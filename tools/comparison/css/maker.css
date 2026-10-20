@@ -60,3 +60,9 @@ button.primary { width: 100%; margin-top: 10px; padding: 12px; background: #19a4
 .card-opt:hover { background: #232836; }
 .card-opt.on { background: #19e28a; color: #04140d; }
 .in-studio .form > h2 { display: none; }
+
+/* partner rows (name, logo file, clear) for the Crest Clash / Torn Poster layouts */
+.prow { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.prow input[type=text] { margin: 0 !important; }
+.prow input[type=file] { margin: 0; font-size: 11px; min-width: 0; }
+.prow button { padding: 5px 0; }

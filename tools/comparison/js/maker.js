@@ -3,15 +3,20 @@
   const state = {
     tag: 'Semi Final',
     kicker: 'eFCOB PRO LEAGUE · SEASON 2',
-    title: 'Head to Head',
-    layout: 2,                     // 1 | 2 | 3
+    title: 'Player Comparison',
+    layout: 2,                     // 1 | 2 | 3 (classic) | 'clash' | 'torn' (js/versus.js)
+    bgMode: 'template',            // Crest Clash / Torn Poster: 'template' | 'jersey' | 'image'
+    bgImage: '',
+    site: 'efcob.com',
+    partnersLabel: 'Official partners',
+    partners: ['NOVAPAY', 'Pixel Arena', 'BOLT', 'zenith', 'KICKOFF+'].map(name => ({ name, logo: '' })),
     moves: {},                     // admin's drags/sizes per layout: { '2': { stats: { x, y, s, ox, oy } } }
     hidden: {},                    // parts the admin switched off, per layout: { '2': { tag: true } }
     footerLeft: 'efcob.com',
     footerRight: 'eFootball Council of Bangladesh',
     logo: '',
-    a: { dx: 0, dy: 0, zoom: 1, name: 'Nova_10', team: 'Dhaka Strikers', photo: (window.SAMPLE_PHOTOS || {}).a || '', primary: '#f2c200', secondary: '#111111' },
-    b: { dx: 0, dy: 0, zoom: 1, name: 'Red Wolf', team: 'Chattogram Kings', photo: (window.SAMPLE_PHOTOS || {}).b || '', primary: '#d8202f', secondary: '#111111' },
+    a: { dx: 0, dy: 0, zoom: 1, name: 'Nova_10', team: 'FC Barcelona', logo: (window.SAMPLE_LOGOS || {}).a || '', photo: (window.SAMPLE_PHOTOS || {}).a || '', primary: '#f2c200', secondary: '#111111' },
+    b: { dx: 0, dy: 0, zoom: 1, name: 'Red Wolf', team: 'Real Madrid', logo: (window.SAMPLE_LOGOS || {}).b || '', photo: (window.SAMPLE_PHOTOS || {}).b || '', primary: '#d8202f', secondary: '#111111' },
     stats: [
       { label: 'Matches', a: '24', b: '22', better: 'none' },
       { label: 'Wins', a: '17', b: '16', better: 'high' },
@@ -29,8 +34,10 @@
   // names for the "Poster e ki ki thakbe" list and the editor bar (js/studio-edit.js)
   const PARTS = { brand: 'Logo', tag: 'Tag (top right)', title: 'Title', stats: 'Stats panel', nameA: 'Player 1 name',
     nameB: 'Player 2 name', vs: 'VS', footer: 'Footer', ghostA: 'Player 1 boro outline naam', ghostB: 'Player 2 boro outline naam',
-    p0: 'Player 1 photo', p1: 'Player 2 photo' };
+    p0: 'Player 1 photo', p1: 'Player 2 photo', seam: 'Lightning seam', teamA: 'Player 1 team + tag', teamB: 'Player 2 team + tag', kick: 'League line', paper: 'Chhera kagoj',
+    partners: 'Partners strip' };
   const KEYS = ['a', 'b'], moveKey = () => String(state.layout);
+  const isVs = () => (window.CMP_VS_LAYOUTS || []).includes(state.layout);
   let editing = false;
   const render = () => { renderComparison(poster, state); if (editing) StudioEdit.afterRender(); };
   const readFile = f => new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(f); });
@@ -111,6 +118,30 @@
     $('[data-auto]', sec).addEventListener('click', () => autoColors(key));
   });
 
+  // layout, background and partners (the last two only show for Crest Clash / Torn Poster)
+  const showVs = () => {
+    $$('[data-vs]').forEach(el => { el.style.display = isVs() ? '' : 'none'; });
+    $$('[data-classic]').forEach(el => { el.style.display = isVs() ? 'none' : ''; });
+    $('#bgUploadRow').style.display = isVs() && state.bgMode === 'image' ? '' : 'none';
+  };
+  $('#layoutSel').value = String(state.layout);
+  $('#layoutSel').addEventListener('change', e => { const v = e.target.value; state.layout = /^\d+$/.test(v) ? +v : v; showVs(); render(); KEYS.forEach(applyPos); });
+  $('[data-k="bgMode"]').addEventListener('change', showVs);
+  $('[data-file="bgImage"]').addEventListener('change', async e => { const f = e.target.files[0]; state.bgImage = f ? await readFile(f) : ''; render(); });
+  $$('[data-player]').forEach(sec => $('[data-logo]', sec).addEventListener('change', async e => {
+    const f = e.target.files[0]; state[sec.dataset.player].logo = f ? await readFile(f) : ''; render();
+  }));
+  const ptpl = $('#partnerTpl');
+  state.partners.forEach((p, i) => {
+    const row = ptpl.content.firstElementChild.cloneNode(true);
+    const name = $('[data-pname]', row); name.value = p.name; name.placeholder = `Partner ${i + 1}`;
+    name.addEventListener('input', () => { p.name = name.value; render(); });
+    $('[data-plogo]', row).addEventListener('change', async e => { const f = e.target.files[0]; p.logo = f ? await readFile(f) : ''; render(); });
+    $('[data-pclear]', row).addEventListener('click', () => { p.logo = ''; p.name = ''; name.value = ''; $('[data-plogo]', row).value = ''; render(); });
+    $('#partners').appendChild(row);
+  });
+  showVs();
+
   // stats editor
   const statsEl = $('#stats');
   function drawStats() {
@@ -136,7 +167,7 @@
   $('#download').addEventListener('click', async () => {
     const btn = $('#download'); btn.disabled = true; btn.textContent = 'Rendering…';
     try {
-      const node = $('.cmp', poster);
+      const node = poster.firstElementChild;
       const url = await htmlToImage.toPng(node, { width: 1080, height: 1350, pixelRatio: 2, fontEmbedCSS: window.POSTER_FONT_CSS, cacheBust: false });
       const a = document.createElement('a');
       a.download = `comparison-${(state.a.name + '-vs-' + state.b.name).toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
@@ -152,7 +183,7 @@
   const frame = $('#frame');
   const applyPos = key => {
     const img = $(`.player-${key}`, poster);
-    if (img) img.setAttribute('style', playerTransform(state[key]) + (img.style.display === 'none' ? 'display:none;' : ''));   // keep a removed photo removed
+    if (img) img.setAttribute('style', (isVs() ? cmpPhotoStyle(state, key) : playerTransform(state[key])) + (img.style.display === 'none' ? 'display:none;' : ''));   // keep a removed photo removed
     const sec = $(`[data-player="${key}"]`);
     $('[data-zoom]', sec).value = Math.round(state[key].zoom * 100);
     $('[data-zoom-val]', sec).textContent = Math.round(state[key].zoom * 100) + '%';
