@@ -34,8 +34,8 @@
             { box: { cx: 810, cy: 640, s: 340 }, slot: { x: 810, top: 430, head: 140, floor: 990 }, clip: 'inset(290px 60px 360px 600px)' }],
     // box = the crest spot without a captain (the crest itself is a movable section in these two)
     // (cut = where the photo is cut off when it is lower than the floor it stands on)
-    clash: [{ box: { cx: 250, cy: 600, s: 250 }, slot: { x: 250, top: 280, head: 118, floor: 760, cut: 900 } },
-            { box: { cx: 830, cy: 600, s: 250 }, slot: { x: 830, top: 280, head: 118, floor: 760, cut: 900 } }],
+    clash: [{ box: { cx: 250, cy: 600, s: 250 }, slot: { x: 250, top: 300, head: 118, floor: 872, cut: 900 } },
+            { box: { cx: 830, cy: 600, s: 250 }, slot: { x: 830, top: 300, head: 118, floor: 872, cut: 900 } }],
     // a vs card: both captains get the same head size
     torn:  [{ box: { cx: 540, cy: 220, s: 240 }, slot: { x: 270, top: 300, head: 112, floor: 900 } },
             { box: { cx: 185, cy: 1075, s: 230 }, slot: { x: 830, top: 780, head: 112, floor: 1255 } }],
@@ -291,9 +291,17 @@
       const dots = cx => Array.from({ length: 12 }, (_, r) => Array.from({ length: 12 }, (_, k) => { const s = Math.max(0, 5.4 - Math.hypot(r, k) * .5);
         return s > .5 ? `<circle cx="${cx + (cx < 540 ? k : -k) * 17}" cy="${150 + r * 17}" r="${s.toFixed(1)}" fill="#fff"/>` : ''; }).join('')).join('');
       const y0 = cap ? 690 : 600, rr = cap ? 112 : 150, cs = cap ? 190 : 250;
-      const ring = (cx, c, n) => `<svg class="full rings" viewBox="0 0 1080 1350"><circle cx="${cx}" cy="${y0}" r="${rr + 40}" fill="url(#ccg${n})"/>
-        <circle cx="${cx}" cy="${y0}" r="${rr}" fill="none" stroke="${c}" stroke-width="10" filter="url(#ccglow)"/><circle cx="${cx}" cy="${y0}" r="${rr}" fill="none" stroke="${mixc(c, '#ffffff', .6)}" stroke-width="3"/>
-        <circle cx="${cx}" cy="${y0}" r="${rr + 22}" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="4 10" opacity=".8"/></svg>`;
+      const ring = (cx, cy, r, c, n) => `<svg class="full rings" viewBox="0 0 1080 1350"><circle cx="${cx}" cy="${cy}" r="${r + 40}" fill="url(#ccg${n})"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c}" stroke-width="10" filter="url(#ccglow)"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${mixc(c, '#ffffff', .6)}" stroke-width="3"/>
+        <circle cx="${cx}" cy="${cy}" r="${r + 22}" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="4 10" opacity=".8"/></svg>`;
+      /* With a captain the glowing ring becomes a halo behind the player and the crest moves off the body to a small ringed
+         badge in the outer top corner (shifty: a crest on the player's chest looks wrong). Without one, crest on the big ring. */
+      const halo = (t, k, cx, c, n) => showCaptain(st, t) ? mv(k, `<div class="ringbox">${ring(cx, 560, 175, c, n)}</div>`) : '';
+      const crestSec = (t, k, cx, c, n) => {
+        if (!showCaptain(st, t)) return mv(k, `<div class="ringbox">${ring(cx, y0, rr, c, n)}<div class="crw" style="left:${cx - cs / 2}px;top:${y0 - cs / 2}px">${crestImg(t, cs, c)}</div></div>`);
+        const bx = cx < 540 ? 100 : 980, by = 330, bs = 128;
+        return mv(k, `<div class="ringbox">${ring(bx, by, 78, c, n)}<div class="crw" style="left:${bx - bs / 2}px;top:${by - bs / 2}px">${crestImg(t, bs, c)}</div></div>`);
+      };
       const ny = cap ? 900 : 830;
       h = `${isUp ? `<div class="upbg" style="background-image:url('${st.bgImage}')"></div><div class="wash" style="background:linear-gradient(180deg,rgba(5,5,16,.25),rgba(5,5,16,.85) 75%)"></div>` : ''}
         <svg class="full" viewBox="0 0 1080 1350"><defs>
@@ -311,9 +319,9 @@
           <rect x="0" y="780" width="1080" height="570" fill="url(#ccbot)"/></svg>
         ${mv('seam', `<svg class="full seam" viewBox="0 0 1080 1350"><path d="${seam}" fill="none" stroke="${P.pop}" stroke-width="22" filter="url(#ccglow)" opacity=".85"/><path d="${seam}" fill="none" stroke="#fff" stroke-width="5"/></svg>`)}
         ${mv('title', `<div class="ghost">${esc(st.title)}</div>`)}
+        ${halo(A, 'haloA', 250, P.c1, 1)}${halo(B, 'haloB', 830, P.c2, 2)}
         ${capImg(A, 0)}${capImg(B, 1)}<div class="floor"></div>
-        ${mv('crestA', `<div class="ringbox">${ring(250, P.c1, 1)}<div class="crw" style="left:${250 - cs / 2}px;top:${y0 - cs / 2}px">${crestImg(A, cs, P.c1)}</div></div>`)}
-        ${mv('crestB', `<div class="ringbox">${ring(830, P.c2, 2)}<div class="crw" style="left:${830 - cs / 2}px;top:${y0 - cs / 2}px">${crestImg(B, cs, P.c2)}</div></div>`)}
+        ${crestSec(A, 'crestA', 250, P.c1, 1)}${crestSec(B, 'crestB', 830, P.c2, 2)}
         ${mv('vs', `<div class="vsp" style="top:${cap ? 300 : 475}px"><b>VS</b>${time ? `<small>${time}</small>` : ''}</div>`)}
         ${chip(A, 'capA', 250, ny - 46)}${chip(B, 'capB', 830, ny - 46)}
         ${mv('teamA', `<div class="cn l" style="top:${ny}px">${esc(A.team)}</div>`)}${mv('teamB', `<div class="cn r" style="top:${ny}px">${esc(B.team)}</div>`)}
