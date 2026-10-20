@@ -22,6 +22,7 @@ One admin page for the eFCOB card makers. Open `index.html` in Chrome or Edge.
 | Best XI | `tools/best-xi/` | ready |
 | Points Table | `tools/points-table/` | ready |
 | Fixtures | `tools/fixtures/` | ready |
+| Lineup | `tools/lineup/` | ready |
 
 ### MVP
 One player, 1080 × 1350, "Big MVP" layout: huge MVP letters behind the player, stats row across
@@ -182,3 +183,20 @@ round / matchweek, format line, start line, live-on line, optional eFCOB logo. T
 Background: **Default template**, **Team colours** (each match takes its two team colours; the background is tinted from match 1)
 or **Upload my own**. Every part (header, each match row, each photo, timeline line, info lines, partners) can be dragged,
 wheel-resized and switched off under **Poster e ki ki thakbe**; **Reset to default** puts it all back.
+
+### Lineup
+Starting XI of both teams before a match, 1080 × 1350 (HD download 2160 × 2700), with the partner strip.
+Per team: name, logo (a plain background is cut away; the colour comes from the logo), team colour, formation, the manager / gamer
+with a photo (auto cut-out, drag/size on the poster), the starters (one per line: number, name, position, like `9 Lewandowski ST`;
+add (C) for the captain; up to 11) and the subs (comma separated). Poster fields: title, event, stage, date, kick-off, live-on line,
+the word under each photo (Manager by default), optional eFCOB logo. Number, position, captain badge, subs and photos switch on/off.
+Three layouts:
+- **Face-Off** (default): both crests with a big X on top, the two lists mirrored on a glowing centre line (number chips, positions),
+  the managers' cut-outs at the edges on name plates (magenta + cyan).
+- **Shirt Wall**: a dressing-room wall, every player a shirt on a hanger with name and number (keepers in volt green), the two
+  teams above and below a slanted VS band with the stage and kick-off (orange + blue).
+- **Holo Panels**: two glass panels, each manager rising out of their panel, neon number boxes and position tags (violet + mint).
+
+Background: **Default template**, **Team colours** (each side takes its team colour; plain black/white teams keep the layout colour)
+or **Upload my own**. Every part can be dragged, wheel-resized and switched off under **Poster e ki ki thakbe**;
+**Reset to default** puts it all back.
