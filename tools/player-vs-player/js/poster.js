@@ -16,6 +16,8 @@
   // two or three letters for a team without a logo: Team Nexus -> TN, PNG Esports -> PE, Nexus -> NEX
   const initials = t => { const w = String(t.short || t.team || '').trim().split(/\s+/).filter(Boolean);
     return (w.length > 1 ? w.slice(0, 3).map(x => x[0]).join('') : (w[0] || '').slice(0, 3)).toUpperCase(); };
+  // kick-off time in 12-hour format: 21:00 -> 9:00 PM (text that is not a 24-hour time is left as typed)
+  const to12 = t => String(t || '').replace(/^\s*([01]?\d|2[0-3])[:.]([0-5]\d)\s*$/, (_, h, m) => `${(+h % 12) || 12}:${m} ${+h < 12 ? 'AM' : 'PM'}`);
   const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 
   // fixed template colours per layout: [team 1, team 1 light, team 2, team 2 light]
@@ -97,7 +99,7 @@
       ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="${slots[i].clip ? `height:1350px;clip-path:${slots[i].clip}` : `height:${slots[i].floor}px`}"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : ''; };
     const phs = [A, B].map((t, i) => t.photo
       ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="${slots[i].clip ? `height:1350px;clip-path:${slots[i].clip}` : `height:${slots[i].floor}px`}"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : '').join('');
-    const date = esc(st.date), time = esc(st.time), extra = esc(st.extra);
+    const date = esc(st.date), time = esc(to12(st.time)), extra = esc(st.extra);
     let h = '';
 
     if (L === 'bolt') {
