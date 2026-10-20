@@ -50,13 +50,13 @@
   -webkit-mask-composite: source-in; mask-composite: intersect; }
 .mvp .player.empty { display: none; }
 
-.mvp .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 380px; z-index: 3;
+.mvp .floor { pointer-events: none; position: absolute; left: 0; right: 0; bottom: 0; height: 380px; z-index: 3;
   background: linear-gradient(to bottom, transparent, rgba(5,6,10,.5) 45%, rgba(5,6,10,.9) 80%); }
-.mvp .top-shade { position: absolute; left: 0; right: 0; top: 0; height: 340px; z-index: 3;
+.mvp .top-shade { pointer-events: none; position: absolute; left: 0; right: 0; top: 0; height: 340px; z-index: 3;
   background: linear-gradient(to bottom, rgba(5,6,10,.78), rgba(5,6,10,.3) 60%, transparent); }
 
 /* ---------- header ---------- */
-.mvp header { position: absolute; top: 0; left: 0; right: 0; z-index: 5; text-align: center; padding-top: 44px; }
+.mvp header { position: absolute; top: 0; left: 0; right: 0; z-index: 5; text-align: center; }
 .mvp .brand { position: absolute; left: 48px; top: 40px; height: 76px; display: flex; align-items: center; }
 .mvp .brand img { max-height: 76px; max-width: 200px; }
 .mvp .brand .wordmark { font-family: 'Anton', Impact, sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1;
@@ -64,7 +64,8 @@
 .mvp .tag { position: absolute; right: 48px; top: 52px; font-weight: 800; font-size: 24px; letter-spacing: .14em;
   text-transform: uppercase; padding: 8px 18px; color: #0b0d12; background: #fff;
   clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
-.mvp .kicker { margin-top: 112px; font-weight: 800; font-style: italic; font-size: 30px; letter-spacing: .22em; opacity: .92; }
+.mvp .kicker { margin-top: 156px;   /* 44 + 112: the header's old top padding, now the kicker sits in its own .mv wrapper */
+  font-weight: 800; font-style: italic; font-size: 30px; letter-spacing: .22em; opacity: .92; }
 .mvp .kicker::before, .mvp .kicker::after { content: ''; display: inline-block; width: 60px; height: 3px; vertical-align: middle;
   margin: 0 18px 6px; background: currentColor; }
 .mvp h1 { margin: 2px 0 0; font-family: 'Anton', Impact, sans-serif; font-weight: 400; font-size: 118px; line-height: .95;
@@ -122,7 +123,7 @@
 .mvp.layout-big .rings { left: 540px; top: 700px; }
 .mvp.layout-big .player { left: 540px; top: 250px; height: 880px; }
 .mvp.layout-big .top-shade { height: 200px; }
-.mvp.layout-big .kicker { margin-top: 40px; font-size: 26px; }
+.mvp.layout-big .kicker { margin-top: 84px; font-size: 26px; }
 .mvp.layout-big .stats { left: 48px; right: 48px; top: auto; bottom: 262px; width: auto; flex-direction: row; gap: 10px; }
 .mvp.layout-big .stat { flex: 1; text-align: center; padding: 10px 8px 12px; border-left: 0; border-top: 5px solid var(--k-accent); }
 .mvp.layout-big .stat .v { font-size: 56px; }
@@ -134,8 +135,9 @@
 .mvp.layout-big .plate .name.long { font-size: 60px; margin-top: 8px; }
 
 /* ======================= Option 2 · RATING ======================= */
-.mvp.layout-rating header { text-align: left; padding-left: 48px; }
-.mvp.layout-rating .kicker { margin-top: 118px; font-size: 26px; letter-spacing: .18em; }
+.mvp.layout-rating header { text-align: left; }
+.mvp.layout-rating header .mv[data-move="title"] { padding-left: 48px; }   /* was the header's padding */
+.mvp.layout-rating .kicker { margin-top: 162px; font-size: 26px; letter-spacing: .18em; }
 .mvp.layout-rating .kicker::before { display: none; }
 .mvp.layout-rating .kicker::after { width: 90px; }
 .mvp.layout-rating h1 { font-size: 132px; line-height: .92; max-width: 560px; }
@@ -363,3 +365,11 @@
   linear-gradient(18deg, transparent 0 16%, rgba(59,130,246,.4) 16% 25%, transparent 25%),
   linear-gradient(170deg, #121828 0%, #0a0d16 60%, #05070c 100%); }
 .mvp.vivid.premium.tpl-shatter .stripes { opacity: .35; }
+
+/* ---------- movable sections (js/studio-edit.js) ----------
+   each wrapper is full-poster and gets a transform, so it carries its block's stacking level */
+.mvp .mv { position: absolute; inset: 0; pointer-events: none; }
+.mvp .mv > *, .mvp .info [data-move] { pointer-events: auto; cursor: move; }
+.mvp > .mv[data-move="bigword"] { z-index: 1; }
+.mvp > .mv[data-move="stats"], .mvp > .mv[data-move="rating"], .mvp > .mv[data-move="grid"], .mvp > .mv[data-move="info"] { z-index: 6; }
+.mvp > .mv[data-move="name"], .mvp > .mv[data-move="score"], .mvp > .mv[data-move="footer"] { z-index: 7; }

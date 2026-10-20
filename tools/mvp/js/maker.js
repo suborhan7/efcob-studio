@@ -3,7 +3,9 @@
   const state = {
     tag: 'Matchday 12',
     kicker: 'eFCOB PRO LEAGUE · SEASON 2',
-    layout: 'big',
+    layout: 'big',                // current | big | rating | split
+    moves: {},                    // admin's drags/sizes per layout: { big: { stats: { x, y, s, ox, oy } } }
+    hidden: {},                   // parts the admin switched off, per layout: { big: { bigword: true } }
     vivid: true,
     bgMode: 'template',           // 'template' | 'jersey' | 'image'
     template: 'shatter',          // fixed design used when bgMode is 'template'
@@ -28,8 +30,15 @@
   const pairRow = document.getElementById('pairRow');
   const bgUploadRow = document.getElementById('bgUploadRow');
   const tplRow = document.getElementById('tplRow');
+  // names for the "Poster e ki ki thakbe" list and the editor bar (js/studio-edit.js)
+  const PARTS = { brand: 'Logo', tag: 'Tag (top right)', title: 'Title', bigword: 'MVP boro lekha', info: 'Info panel (dane)',
+    stats: 'Stats', rating: 'Rating (boro number)', grid: 'Baki stats', name: 'Player name', team: 'Team name', score: 'Score box',
+    footer: 'Footer', p0: 'Player photo' };
+  const moveKey = () => state.layout || 'current';
+  let editing = false;
   const render = () => {
     renderMvp(poster, state);
+    if (editing) StudioEdit.afterRender();
     // the colour pair is used by the template and uploads, and by plain black/white jerseys
     tplRow.style.display = state.bgMode === 'template' ? '' : 'none';
     pairRow.style.display = state.bgMode === 'image' || state.bgMode === 'jersey' && JerseyColors.isPlainNeutral(state.player.primary, state.player.secondary) ? '' : 'none';
@@ -142,25 +151,28 @@
     const btn = $('#download'); btn.disabled = true; btn.textContent = 'Rendering…';
     try {
       const node = $('.mvp', poster);
-      const url = await htmlToImage.toPng(node, { width: 1080, height: 1350, pixelRatio: 1, fontEmbedCSS: window.POSTER_FONT_CSS, cacheBust: false });
+      const url = await htmlToImage.toPng(node, { width: 1080, height: 1350, pixelRatio: 2, fontEmbedCSS: window.POSTER_FONT_CSS, cacheBust: false });
       const a = document.createElement('a');
       a.download = `mvp-${String(state.player.name).toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
       a.href = url; a.click();
     } catch (e) { alert('Export failed: ' + e.message); }
-    btn.disabled = false; btn.textContent = 'Download PNG (1080 × 1350)';
+    btn.disabled = false; btn.textContent = 'Download PNG (HD)';
   });
 
   // ---- move / resize the player photo: drag on the poster, slider in the form ----
   const frame = $('#frame');
   function applyPos() {
     const img = $('.player', poster);
-    if (img) img.setAttribute('style', playerTransform(state.player));
+    if (img) img.setAttribute('style', playerTransform(state.player) + (img.style.display === 'none' ? 'display:none;' : ''));   // keep a removed photo removed
     $('[data-zoom]', sec).value = Math.round(state.player.zoom * 100);
     $('[data-zoom-val]', sec).textContent = Math.round(state.player.zoom * 100) + '%';
   }
   const posterScale = () => frame.getBoundingClientRect().width / 1080;
+  // only the photo is dragged here (sections, selection, nudge, remove and undo live in js/studio-edit.js)
+  const onPhoto = e => !!e.target.closest('[data-p]');
   let drag = null;
   frame.addEventListener('pointerdown', e => {
+    if (!onPhoto(e)) return;
     drag = { x: e.clientX, y: e.clientY, dx: state.player.dx, dy: state.player.dy };
     frame.setPointerCapture(e.pointerId); frame.classList.add('dragging');
   });
@@ -171,9 +183,10 @@
     p.dy = Math.round(drag.dy + (e.clientY - drag.y) / s);
     applyPos();
   });
-  const endDrag = () => { drag = null; frame.classList.remove('dragging'); };
+  const endDrag = () => { if (drag) { drag = null; frame.classList.remove('dragging'); } };
   frame.addEventListener('pointerup', endDrag); frame.addEventListener('pointercancel', endDrag);
   frame.addEventListener('wheel', e => {
+    if (!onPhoto(e)) return;
     e.preventDefault();
     const p = state.player;
     p.zoom = Math.min(2, Math.max(0.5, +(p.zoom * (e.deltaY < 0 ? 1.05 : 0.95)).toFixed(3)));
@@ -185,8 +198,26 @@
   drawStats();
   render();
   applyPos();
-  if (state.player.photo) JerseyColors.enhancePhoto(state.player.photo).then(src => { state.player.photo = src; render(); });
+  const enhanced = state.player.photo ? JerseyColors.enhancePhoto(state.player.photo).then(src => { state.player.photo = src; render(); }) : null;
+
+  StudioEdit.init({
+    frame, poster, state, render, panel: $('#form'), partsBox: $('#parts'), parts: PARTS, moveKey,
+    styleOf: k => mvpMoveStyle(state, k),
+    photo: { get: () => state.player, changed: () => applyPos() },
+    extras: { get: () => [[state.player.dx, state.player.dy, state.player.zoom]], set: v => { [state.player.dx, state.player.dy, state.player.zoom] = v[0]; applyPos(); } },
+  });
+  editing = true;
+  render();
+
+  // ---- reset: every section and the photo of this layout back to the default spot and size ----
+  $('#resetAll').addEventListener('click', () => {
+    delete state.moves[moveKey()]; delete state.hidden[moveKey()];
+    Object.assign(state.player, { dx: 0, dy: 0, zoom: 1 });
+    render(); applyPos();
+  });
+
   // detect the sample jersey on load so the demo shows the auto colours
-  document.fonts.ready.then(autoColors);
+  const colored = document.fonts.ready.then(autoColors);
+  window.__ready = Promise.all([enhanced, colored]).then(() => { render(); StudioEdit.reset(); });
   window.__posterState = state;
 })();

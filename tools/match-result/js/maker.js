@@ -4,6 +4,8 @@
   const team = (o) => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '' }, o);
   const state = {
     layout: 'wave',
+    moves: {},                     // admin's drags/sizes per layout: { wave: { score: { x, y, s, ox, oy } } }
+    hidden: {},                    // parts the admin switched off, per layout: { ticket: { barcode: true } }
     bgMode: 'template',            // 'template' | 'jersey' | 'image'
     bgImage: '',                   // admin's uploaded background (data URL)
     tag: 'Matchday 12',
@@ -24,8 +26,19 @@
   const poster = $('#poster');
   const readFile = f => new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(f); });
 
+  // names for the "Poster e ki ki thakbe" list and the editor bar (js/studio-edit.js); T/B = top/bottom team in Wave
+  const PARTS = { brand: 'eFCOB logo', tag: 'Tag (top right)', kick: 'League line', card: 'Ticket card', title: 'Title',
+    p0: 'Team 1 photo', p1: 'Team 2 photo', photos: 'Photo window', chip1: 'Team 1 player chip', chip2: 'Team 2 player chip', vs: 'VS',
+    crestT: 'Upor team logo', nameT: 'Upor team name', playerT: 'Upor player', badgeT: 'WINNER tag', scorersT: 'Upor scorers',
+    crestB: 'Nicher team logo', nameB: 'Nicher team name', playerB: 'Nicher player', badgeB: 'DEFEAT tag', scorersB: 'Nicher scorers',
+    name1: 'Team 1 name', result1: 'Team 1 WINNER/DEFEAT', player1: 'Team 1 player', score: 'Score', scoreTag: 'Score er upor tag',
+    name2: 'Team 2 name', result2: 'Team 2 WINNER/DEFEAT', player2: 'Team 2 player', scorers1: 'Team 1 scorers', scorers2: 'Team 2 scorers',
+    line: 'Dashed line', info: 'Result / date box', barcode: 'Barcode', footer: 'Footer' };
+  let editing = false;
+
   const render = () => {
     renderMatch(poster, state);
+    if (editing) StudioEdit.afterRender();
     $('#bgUploadRow').style.display = state.bgMode === 'image' ? '' : 'none';
   };
 
@@ -138,13 +151,13 @@
     $('[data-zoom]', sec).value = z; $('[data-zoom-val]', sec).textContent = z + '%';
   }
 
-  // ---- drag a player photo on the poster, wheel to resize ----
+  // ---- photos: drag and wheel-resize (sections, selection, nudge, remove and undo live in js/studio-edit.js) ----
   const frame = $('#frame');
   const posterScale = () => frame.getBoundingClientRect().width / 1080;
   let drag = null;
   frame.addEventListener('pointerdown', e => {
-    const img = e.target.closest('img.player'); if (!img) return;
-    const t = state.teams[+img.dataset.team];
+    const img = e.target.closest('[data-p]'); if (!img) return;
+    const t = state.teams[+img.dataset.p];
     drag = { t, img, x: e.clientX, y: e.clientY, dx: t.dx, dy: t.dy };
     frame.setPointerCapture(e.pointerId); frame.classList.add('dragging');
   });
@@ -159,35 +172,64 @@
   const endDrag = () => { drag = null; frame.classList.remove('dragging'); };
   frame.addEventListener('pointerup', endDrag); frame.addEventListener('pointercancel', endDrag);
   frame.addEventListener('wheel', e => {
-    const img = e.target.closest('img.player'); if (!img) return;
+    const img = e.target.closest('[data-p]'); if (!img) return;
     e.preventDefault();
-    const i = +img.dataset.team, t = state.teams[i];
+    const i = +img.dataset.p, t = state.teams[i];
     t.zoom = Math.min(2, Math.max(0.5, +(t.zoom * (e.deltaY < 0 ? 1.05 : 0.95)).toFixed(3)));
     render(); syncZoom(i);
   }, { passive: false });
+
+  /* Section move/size. Untouched sections get no transform at all, so the default poster (and its stacking) stays exactly
+     as designed. Sections sit inside other boxes (team block, ticket card), so the kit's poster-px resize centre is turned
+     into the wrapper's own px. A moved section comes above the untouched ones (and keeps the highest z-index inside it). */
+  const styleOf = k => {
+    const m = (state.moves[state.layout] || {})[k] || {}, s = m.s || 1;
+    if (!m.x && !m.y && s === 1) return '';
+    const el = poster.querySelector(`[data-move="${k}"]`), root = poster.firstElementChild;
+    let ox = 0, oy = 0, z = 0;
+    for (let e = el; e && e !== root; e = e.offsetParent) { ox += e.offsetLeft; oy += e.offsetTop; }
+    for (let a = el && el.parentElement.closest('[data-move]'); a; a = a.parentElement.closest('[data-move]')) { const q = (state.moves[state.layout] || {})[a.dataset.move] || {}; ox += q.x || 0; oy += q.y || 0; }
+    if (el) [el, ...el.querySelectorAll('*')].forEach(d => { z = Math.max(z, parseInt(getComputedStyle(d).zIndex) || 0); });
+    return `transform:translate(${m.x || 0}px,${m.y || 0}px)${s !== 1 ? ` scale(${s})` : ''};transform-origin:${(m.ox || 540) - ox}px ${(m.oy || 675) - oy}px;z-index:${Math.max(1, z)}${el && !el.classList.contains('mv') ? ';position:relative' : ''}`;
+  };
+  StudioEdit.init({
+    frame, poster, state, render, panel: $('#form'), partsBox: $('#parts'), parts: PARTS,
+    moveKey: () => state.layout, styleOf,
+    photo: { get: i => state.teams[i], changed: i => syncZoom(i) },
+    extras: { get: () => state.teams.map(t => [t.dx, t.dy, t.zoom]), set: v => v.forEach((p, i) => { [state.teams[i].dx, state.teams[i].dy, state.teams[i].zoom] = p; syncZoom(i); }) },
+  });
+  editing = true;
+
+  // ---- reset: every section and both photos of this layout back to the default spot and size ----
+  $('#resetAll').addEventListener('click', () => {
+    delete state.moves[state.layout]; delete state.hidden[state.layout];
+    state.teams.forEach((t, i) => { Object.assign(t, { dx: 0, dy: 0, zoom: 1 }); syncZoom(i); });
+    render();
+  });
 
   // ---- download ----
   $('#download').addEventListener('click', async () => {
     const btn = $('#download'); btn.disabled = true; btn.textContent = 'Rendering…';
     try {
       const node = $('.mr', poster);
-      const url = await htmlToImage.toPng(node, { width: 1080, height: 1350, pixelRatio: 1, fontEmbedCSS: window.POSTER_FONT_CSS, cacheBust: false });
+      const url = await htmlToImage.toPng(node, { width: 1080, height: 1350, pixelRatio: 2, fontEmbedCSS: window.POSTER_FONT_CSS, cacheBust: false });
       const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const a = document.createElement('a');
       a.download = `match-result-${slug(state.teams[0].name)}-vs-${slug(state.teams[1].name)}.png`;
       a.href = url; a.click();
     } catch (e) { alert('Export failed: ' + e.message); }
-    btn.disabled = false; btn.textContent = 'Download PNG (1080 × 1350)';
+    btn.disabled = false; btn.textContent = 'Download PNG (HD)';
   });
 
   render();
   // names are measured to fit, so draw again once the poster fonts are ready
   const fontsReady = Promise.all(['900 84px Unbounded', '800 38px "Bricolage Grotesque"', '900 30px Orbitron', '700 18px "Space Mono"'].map(f => document.fonts.load(f))).catch(() => {});
   // sample photos: sharpen them and read the jersey colours, like a fresh upload
-  fontsReady.then(async () => {
+  window.__ready = fontsReady.then(async () => {
     render();
     for (const [i, t] of state.teams.entries()) if (t.photo) { t.photo = await JerseyColors.enhancePhoto(t.photo); await secs[i].fromJersey(); }
-    render();
+    render(); StudioEdit.reset();
   });
   window.__posterState = state;
+  window.__render = render;
 })();

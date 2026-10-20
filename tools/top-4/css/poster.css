@@ -143,3 +143,10 @@
   background: rgba(255,255,255,.02); white-space: nowrap; overflow: hidden; color: #fff; }
 .t4 .sp .logo img { max-width: 80%; max-height: 40px; object-fit: contain; }
 .t4 .sp .site { position: absolute; left: 0; right: 0; bottom: 12px; text-align: center; font: 600 12px/1 'Orbitron'; letter-spacing: .32em; color: rgba(255,255,255,.55); text-transform: uppercase; }
+
+/* ---------- editor sections (js/studio-edit.js): .mv = a layer over the box it sits in ---------- */
+.t4 .mv { position: absolute; inset: 0; pointer-events: none; }
+.t4 .mv > * { pointer-events: auto; cursor: move; }
+.t4 [data-move] { cursor: move; }
+/* a removed row name keeps the points on the right */
+.t4 .rlogo, .t4 .rtext + .rpts { margin-left: auto; }
