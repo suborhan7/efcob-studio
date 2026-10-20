@@ -44,6 +44,7 @@
   }
 
   function renderComparison(el, d) {
+    if ((window.CMP_VS_LAYOUTS || []).includes(d.layout)) return renderCmpVersus(el, d);   // Crest Clash / Torn Poster (js/versus.js)
     const pa = JerseyColors.paletteFor(d.a.primary, d.a.secondary);
     const pb = JerseyColors.paletteFor(d.b.primary, d.b.secondary);
     const rows = d.stats.filter(s => s.label || s.a || s.b).slice(0, 7).map(s => {
