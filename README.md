@@ -93,6 +93,10 @@ Downloads are HD (2160 × 2700). In a new card, wrap each block as `<div class="
 Each maker draws the "Choose card type" dropdown itself (`js/studio-nav.js`, copy it into a new tool and add
 `<script src="js/studio-nav.js"></script>` to its index.html). Opened on its own, a maker shows only its form.
 
+Every maker also loads `css/ui.css` (after maker.css) and `js/ui.js` (after studio-nav.js): the shared form look
+(inputs, buttons, file pickers with the file name, sticky Download button, short dropdown names with a hint line, a "?"
+for the editor help). Same file in every tool folder; copy both into a new tool.
+
 ### Top 4
 Final standings, 1080 × 1350. Two layouts: **Podium** (four glass steps, champion on the highest) and
 **Leaderboard** (champion hero with points, wins, goal difference and prize, then 2nd to 4th as rows).
