@@ -266,6 +266,9 @@
     }
 
     // ---- Crest Clash and Torn Poster (shifty's two favourites from the Match Result team mode, made pre-match) ----
+    // kick-off time in 12-hour format ("21:00" -> "9:00 PM"); anything that is not HH:MM is shown as typed
+    const t12 = (() => { const m = String(st.time || '').trim().match(/^(\d{1,2})[:.](\d{2})$/); if (!m || +m[1] > 23) return time;
+      return `${(+m[1] % 12) || 12}:${m[2]} ${+m[1] < 12 ? 'AM' : 'PM'}`; })();
     const pal = () => {
       if (tpl) return { c1: a, c2: b, pop: L === 'torn' ? '#ffe14a' : '#ffd23a' };
       let c2 = B.c;
@@ -318,10 +321,10 @@
         ${mv('title', `<div class="ghost">${esc(st.title)}</div>`)}
         ${capImg(A, 0)}${capImg(B, 1)}<div class="floor"></div>
         ${crestSec(A, 'crestA', 250, P.c1, 1)}${crestSec(B, 'crestB', 830, P.c2, 2)}
-        ${mv('vs', `<div class="vsp" style="top:${cap ? 300 : 475}px"><b>VS</b>${time ? `<small>${time}</small>` : ''}</div>`)}
+        ${mv('vs', `<div class="vsp" style="top:${cap ? 300 : 475}px"><b>VS</b></div>`)}
         ${chip(A, 'capA', 250, ny - 46)}${chip(B, 'capB', 830, ny - 46)}
         ${mv('teamA', `<div class="cn l" style="top:${ny}px">${esc(A.team)}</div>`)}${mv('teamB', `<div class="cn r" style="top:${ny}px">${esc(B.team)}</div>`)}
-        ${mv('info', `<div class="info" style="top:${cap ? 1150 : 1010}px">${date ? `<span>${date}</span>` : ''}${extra ? `<em></em>${extra}` : ''}</div>`)}
+        ${mv('info', `<div class="info" style="top:${cap ? 1150 : 1010}px">${date ? `<span>${date}</span>` : ''}${t12 ? `<span class="tm">${t12}</span>` : ''}${extra ? `<em></em>${extra}` : ''}</div>`)}
         ${head2}${mv('event', `<div class="kick">${esc(st.event)}</div>`)}`;
     }
     if (L === 'torn') {
@@ -356,7 +359,7 @@
         ${mv('teamA', `<div class="tn t1" style="left:${b1.cx - b1.w / 2}px;width:${b1.w}px;top:${b1.cy + b1.cs + 14}px">${esc(A.team)}</div>`)}
         ${mv('teamB', `<div class="tn t2" style="left:${b2.tx}px;width:${b2.tw}px;top:${b2.ny}px">${esc(B.team)}</div>`)}
         ${chip(A, 'capA', 270, 735)}${chip(B, 'capB', 830, 1190)}
-        ${mv('vs', `<div class="stamp"><div class="sn">VS</div><div class="sd">${st.title ? `<b>${esc(st.title)}</b>` : ''}${[date, time].filter(Boolean).join(' · ')}</div></div>`)}
+        ${mv('vs', `<div class="stamp"><div class="sn">VS</div><div class="sd">${st.title ? `<b>${esc(st.title)}</b>` : ''}${[date, t12].filter(Boolean).join(' · ')}</div></div>`)}
         ${extra ? mv('info', `<div class="tape">${extra}</div>`) : ''}
         ${head2}${mv('event', `<div class="tk">${esc(st.event)}</div>`)}`;
     }
@@ -367,7 +370,7 @@
 
   // long team names shrink until they fit their space
   const FIT = { ball: [['.nm b', 440]], smoke: [['.nm b', 440]], stad: [['.ban', 370]], brush: [['.nm b', 420], ['.big', 400]],
-    clash: [['.cn', 470], ['.ghost', 1060], ['.kick', 560]], torn: [['.tn', 0], ['.tk', 520], ['.stamp .sd', 760]] };
+    clash: [['.cn', 470], ['.ghost', 1060], ['.kick', 560], ['.info', 900]], torn: [['.tn', 0], ['.tk', 520], ['.stamp .sd', 760]] };
   function fitNames(p) {
     const L = [...p.classList].find(c => FIT[c]);
     for (const [sel, mx] of FIT[L]) p.querySelectorAll(sel).forEach(el => {

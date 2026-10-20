@@ -128,13 +128,14 @@
   background:linear-gradient(180deg,rgba(7,7,22,.92),rgba(20,16,44,.92));clip-path:polygon(14% 0,86% 0,100% 50%,86% 100%,14% 100%,0 50%)}
 .tvt.clash .vsp::before,.tvt.clash .vsp::after{content:'';position:absolute;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--c1),var(--pop),var(--c2))}
 .tvt.clash .vsp::before{top:0}.tvt.clash .vsp::after{bottom:0}
-.tvt.clash .vsp b{font:900 128px/1 'Orbitron';letter-spacing:-.02em;padding:0 .06em;background:linear-gradient(180deg,#ffffff 0%,#ffffff 42%,var(--pop) 60%,#ffffff 100%);
+.tvt.clash .vsp b{font:900 150px/1 'Orbitron';letter-spacing:-.02em;padding:0 .06em;background:linear-gradient(180deg,#ffffff 0%,#ffffff 42%,var(--pop) 60%,#ffffff 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 0 rgba(0,0,0,.45)) drop-shadow(0 0 26px rgba(255,255,255,.25))}
 .tvt.clash .vsp small{font:700 30px/1 'Chakra Petch';letter-spacing:.12em;color:var(--pop)}
 .tvt.clash .cn{position:absolute;width:470px;text-align:center;white-space:nowrap;font:900 74px/1 'Big Shoulders Display';text-transform:uppercase;letter-spacing:.02em;text-shadow:0 6px 0 rgba(0,0,0,.4);z-index:4}
 .tvt.clash .cn.l{left:15px}.tvt.clash .cn.r{left:595px}
-.tvt.clash .info{left:240px;right:auto;width:600px;display:flex;align-items:center;justify-content:center;gap:16px;white-space:nowrap;font:600 22px/1 'Chakra Petch';letter-spacing:.2em;color:rgba(255,255,255,.85);z-index:4}
-.tvt.clash .info span{padding:8px 14px;background:var(--pop);color:#111;font-weight:700}
+.tvt.clash .info{left:90px;right:auto;width:900px;display:flex;align-items:center;justify-content:center;gap:14px;white-space:nowrap;font:700 28px/1 'Chakra Petch';letter-spacing:.14em;text-transform:uppercase;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6);z-index:4}
+.tvt.clash .info span{padding:10px 18px;background:var(--pop);color:#111;font-weight:700;text-shadow:none}
+.tvt.clash .info span.tm{background:#fff;color:#111;box-shadow:0 0 18px rgba(255,255,255,.35)}
 .tvt.clash .info em{width:8px;height:8px;background:#fff;transform:rotate(45deg)}
 
 .tvt.torn .paper{z-index:2}
