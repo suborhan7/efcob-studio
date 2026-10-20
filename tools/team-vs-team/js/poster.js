@@ -1,0 +1,275 @@
+/* Team vs Team poster renderer: renderTvt(el, state). Club crest vs club crest, four layouts from shifty's references:
+   ball (crests wrapped round 3D footballs), smoke (team-colour smoke over a pitch), stad (floodlit stadium, crests on
+   shield cards) and brush (neon panels with paint strokes). In smoke and brush a team can show its captain's photo
+   instead of the crest; the crest then sits next to the team name.
+   Every text block sits in a .mv wrapper so the admin can drag it and wheel-resize it; see tvtMoveStyle. */
+(function () {
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const dk = (hx, k) => { const n = parseInt(hx.slice(1), 16), f = c => Math.round(c * k).toString(16).padStart(2, '0'); return '#' + f(n >> 16) + f(n >> 8 & 255) + f(n & 255); };
+  const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  const hue = hex => { const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255), mx = Math.max(r, g, b), d = mx - Math.min(r, g, b);
+    if (!d) return [0, 0]; const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return [(h * 60 + 360) % 360, d / mx]; };
+
+  // fixed colours per layout in "Default template" mode: [team 1, team 1 light, team 2, team 2 light]
+  const TPL = {
+    ball: null,   // the balls always wear the team colours
+    smoke: ['#1f6bff', '#7fb0ff', '#ff2d7a', '#ff8fb8'],
+    stad: ['#1f7a34', '#3fae5a', '#1f7a34', '#3fae5a'],
+    brush: ['#e0213f', '#ff6b80', '#3fc3f0', '#a8e6ff'],
+  };
+
+  /* Where each team's crest (box: centre + size) or captain photo (slot: body centre x, head-top line, head width,
+     floor where the photo is cut; clip = the panel it lives in) goes. */
+  const ITEMS = {
+    ball:  [{ box: { cx: 262, cy: 660, s: 400 } }, { box: { cx: 818, cy: 660, s: 400 } }],
+    smoke: [{ box: { cx: 260, cy: 575, s: 340 }, slot: { x: 262, top: 420, head: 132, floor: 868 } },
+            { box: { cx: 820, cy: 575, s: 340 }, slot: { x: 818, top: 420, head: 132, floor: 868 } }],
+    stad:  [{ box: { cx: 250, cy: 655, s: 250 } }, { box: { cx: 830, cy: 655, s: 250 } }],
+    brush: [{ box: { cx: 270, cy: 640, s: 340 }, slot: { x: 270, top: 430, head: 140, floor: 990 }, clip: 'inset(290px 600px 360px 60px)' },
+            { box: { cx: 810, cy: 640, s: 340 }, slot: { x: 810, top: 430, head: 140, floor: 990 }, clip: 'inset(290px 60px 360px 600px)' }],
+  };
+  const CAPTAIN = { smoke: 1, brush: 1 };
+  const showCaptain = (st, t) => CAPTAIN[st.layout] && t.captain && t.photo;
+  window.tvtSlots = st => ITEMS[st.layout];
+  window.tvtHasCaptain = L => !!CAPTAIN[L];
+
+  // admin's own drags/sizes of text sections, kept apart for each layout
+  window.tvtMoveKey = st => st.layout;
+  window.tvtMoveStyle = (st, key) => {
+    const o = ((st.moves || {})[tvtMoveKey(st)] || {})[key] || {}, sc = o.s || 1;
+    return `transform:translate(${o.x || 0}px,${o.y || 0}px)${sc !== 1 ? ` scale(${sc})` : ''};transform-origin:${o.ox || 540}px ${o.oy || 675}px`;
+  };
+
+  // captain photo placed by head size (m = head measurement from maker.js)
+  function place(t, slot) {
+    const m = t.m;
+    if (!m) return null;
+    const s = slot.head / m.head * t.zoom;
+    let top = slot.top - m.top * s;
+    const bottom = top + m.h * s;
+    if (bottom < slot.floor + 4 && t.zoom >= 1) top += slot.floor + 4 - bottom;   // short chest-up crop: push down so it never floats
+    return { left: slot.x - m.cx * s + t.dx, top: top + t.dy, w: m.w * s, h: m.h * s };
+  }
+  const css = p => `left:${p.left.toFixed(1)}px;top:${p.top.toFixed(1)}px;width:${p.w.toFixed(1)}px;height:${p.h.toFixed(1)}px`;
+  window.tvtPhotoStyle = (t, slot) => { const p = place(t, slot); return p ? css(p) : ''; };
+  const boxOf = (t, it) => { const s = it.box.s * t.zoom; return { left: it.box.cx - s / 2 + t.dx, top: it.box.cy - s / 2 + t.dy, w: s, h: s }; };
+  // style of whatever stands for the team (photo or crest/ball) — maker.js uses it while dragging
+  window.tvtItemStyle = (t, it, st) => (st && showCaptain(st, t) && it.slot) ? tvtPhotoStyle(t, it.slot) : css(boxOf(t, it));
+
+  /* Wrapped ball: the crest and football panels are painted on a flat skin (longitude x latitude), then every pixel of
+     the ball looks its colour up on that skin through a sphere projection, so the crest bends round the ball like a
+     flag. A crest in the team's own colour (red Liverpool bird) would vanish on a ball of that colour, so such balls
+     are white with team-colour seams. Results are cached; a new ball redraws the poster when it is ready. */
+  const sphereCache = {};
+  const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+  async function makeSphere(t, turn) {
+    const logo = await loadImg(t.logo), TW = 1600, TH = 1000;
+    const tx = document.createElement('canvas'); tx.width = TW; tx.height = TH;
+    const g = tx.getContext('2d', { willReadFrequently: true });
+    // crest colour vs team colour
+    g.drawImage(logo, 0, 0, 200, 200);
+    const px = g.getImageData(0, 0, 200, 200).data; let hx = 0, hy = 0, n = 0;
+    for (let i = 0; i < px.length; i += 16) {
+      if (px[i + 3] < 200) continue;
+      const mx = Math.max(px[i], px[i + 1], px[i + 2]), mn = Math.min(px[i], px[i + 1], px[i + 2]);
+      if (mx < 50 || (mx - mn) / mx < 0.35) continue;
+      const [h] = hue('#' + [px[i], px[i + 1], px[i + 2]].map(v => v.toString(16).padStart(2, '0')).join(''));
+      hx += Math.cos(h * Math.PI / 180); hy += Math.sin(h * Math.PI / 180); n++;
+    }
+    const [th, ts] = hue(t.c), lh = (Math.atan2(hy, hx) * 180 / Math.PI + 360) % 360;
+    const strength = n ? Math.hypot(hx, hy) / n : 0, diff = Math.min(Math.abs(lh - th), 360 - Math.abs(lh - th));
+    const white = ts > 0.35 && strength > 0.6 && diff < 28;
+    g.clearRect(0, 0, TW, TH);
+    const lg = g.createLinearGradient(0, 0, 0, TH);
+    if (white) { lg.addColorStop(0, '#ffffff'); lg.addColorStop(.5, '#f2f2f4'); lg.addColorStop(1, '#a9a9ae'); }
+    else { lg.addColorStop(0, t.c2); lg.addColorStop(.5, t.c); lg.addColorStop(1, dk(t.c, .55)); }
+    g.fillStyle = lg; g.fillRect(0, 0, TW, TH);
+    g.strokeStyle = white ? t.c : dk(t.c, .35); g.lineWidth = 7; g.globalAlpha = white ? .35 : .55;
+    const hs = 120, rt = Math.sqrt(3);
+    for (let row = -1; row < TH / (hs * 1.5) + 1; row++) for (let col = -1; col < TW / (hs * rt) + 1; col++) {
+      const x = col * hs * rt + (row % 2 ? hs * rt / 2 : 0), y = row * hs * 1.5;
+      g.beginPath(); for (let k = 0; k < 6; k++) { const a = Math.PI / 3 * k + Math.PI / 6; g.lineTo(x + hs * Math.cos(a), y + hs * Math.sin(a)); } g.closePath(); g.stroke();
+    }
+    g.globalAlpha = 1;
+    // skin spans longitude -150..150 and latitude -90..90; the crest covers about -55..55 by -50..50
+    const lw = TW * 110 / 300, lh2 = TH * 100 / 180, k = Math.min(lw / logo.width, lh2 / logo.height);
+    g.drawImage(logo, TW / 2 - logo.width * k / 2, TH / 2 - logo.height * k / 2, logo.width * k, logo.height * k);
+    const src = g.getImageData(0, 0, TW, TH).data;
+    const D = 800, R = D / 2, tilt = -0.18, out = document.createElement('canvas'); out.width = out.height = D;
+    const o = out.getContext('2d'), od = o.createImageData(D, D);
+    for (let py = 0; py < D; py++) for (let qx = 0; qx < D; qx++) {
+      const x = (qx + .5 - R) / R, y = (py + .5 - R) / R, d2 = x * x + y * y;
+      if (d2 > 1) continue;
+      const z = Math.sqrt(1 - d2), yy = y * Math.cos(tilt) - z * Math.sin(tilt), zz = y * Math.sin(tilt) + z * Math.cos(tilt);   // tipped back a little
+      const lon = Math.atan2(x, zz) + turn, lat = Math.asin(Math.max(-1, Math.min(1, yy)));
+      const u = Math.max(0, Math.min(TW - 1, Math.round((lon / (Math.PI * 300 / 180) + .5) * (TW - 1))));
+      const v = Math.max(0, Math.min(TH - 1, Math.round((lat / Math.PI + .5) * (TH - 1))));
+      const si = (v * TW + u) * 4, di = (py * D + qx) * 4;
+      od.data[di] = src[si]; od.data[di + 1] = src[si + 1]; od.data[di + 2] = src[si + 2];
+      od.data[di + 3] = d2 > .985 ? Math.round(255 * (1 - d2) / .015) : 255;   // soft round edge
+    }
+    o.putImageData(od, 0, 0);
+    o.globalCompositeOperation = 'source-atop';   // key light top-left, dark rim, small specular spot
+    let gr = o.createRadialGradient(R * .7, R * .6, R * .1, R, R, R);
+    gr.addColorStop(0, 'rgba(255,255,255,.22)'); gr.addColorStop(.5, 'rgba(255,255,255,0)'); gr.addColorStop(.82, 'rgba(0,0,0,.12)'); gr.addColorStop(1, 'rgba(0,0,0,.7)');
+    o.fillStyle = gr; o.fillRect(0, 0, D, D);
+    gr = o.createRadialGradient(R * .62, R * .5, 0, R * .62, R * .5, R * .32);
+    gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    o.fillStyle = gr; o.fillRect(0, 0, D, D);
+    return out.toDataURL('image/png');
+  }
+  function sphereOf(t, turn) {
+    if (!t.logo) return null;
+    const key = [t.logo.length, t.logo.slice(-40), t.c, t.c2, turn].join('|');
+    if (!(key in sphereCache)) {
+      sphereCache[key] = null;
+      makeSphere(t, turn).then(url => { sphereCache[key] = url; document.dispatchEvent(new Event('tvt-redraw')); })
+        .catch(e => console.warn('Ball failed', e));
+    }
+    return sphereCache[key];
+  }
+  window.tvtSpheresReady = () => Object.values(sphereCache).every(Boolean);
+
+  function renderTvt(root, st) {
+    const L = st.layout, [A, B] = st.teams, R = rng(7);
+    const tpl = st.bgMode === 'template' && TPL[L];
+    const [a, a2, b, b2] = tpl || [A.c, A.c2, B.c, B.c2];
+    const isUp = st.bgMode === 'image' && st.bgImage;
+    const up = isUp ? `<div class="upbg" style="background-image:url('${st.bgImage}')"></div><div class="wash"></div>` : '';
+    const mv = (key, html) => `<div class="mv" data-move="${key}" style="${tvtMoveStyle(st, key)}">${html}</div>`;
+    const sp = `<div class="sp"><div class="k">${esc(st.partnersLabel).toUpperCase()}</div><div class="row">${st.partners.map(p =>
+      `<div>${p.logo ? `<img src="${p.logo}" alt="">` : esc(p.name)}</div>`).join('')}</div><div class="w">${esc(st.site).toUpperCase()}</div></div>`;
+    const brand = `<div class="brand">${st.logo ? `<img src="${st.logo}" alt="">` : 'eFCOB'}</div>`;
+    const hdr = mv('head', `<div class="hdr">${brand}<div class="ev"><b>${esc(st.tag)}</b>${esc(st.date)}</div></div>`)
+      + mv('title', `<div class="ttl"><b>${esc(st.title)}</b><span>${esc(st.event)}</span></div>`);
+    const its = ITEMS[L];
+    // team name, with the small crest in front when the captain's photo has the big spot; captain line under it
+    const tn = t => `${showCaptain(st, t) && t.logo ? `<img class="tl" src="${t.logo}" alt="">` : ''}${esc(t.team)}`;
+    const pn = t => showCaptain(st, t) ? esc(t.player) : '';
+    const crest = (t, i, extra = '') => showCaptain(st, t)
+      ? `<div class="slot" style="${its[i].clip ? `clip-path:${its[i].clip};` : `height:${its[i].slot.floor}px;`}"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, its[i].slot)}" alt=""></div>`
+      : t.logo ? `<div class="slot" style="${its[i].clip ? `clip-path:${its[i].clip}` : 'height:1200px'}"><img class="lg" data-p="${i}" src="${t.logo}" style="${css(boxOf(t, its[i]))};${extra}" alt=""></div>` : '';
+    const time = esc(st.time), date = esc(st.date), extra = esc(st.extra);
+    let h = '';
+
+    if (L === 'ball') {
+      const balls = [A, B].map((t, i) => {
+        const url = sphereOf(t, i ? -.2 : .2), p = boxOf(t, its[i]);
+        if (!url) return '';
+        return `<div class="slot" style="height:1200px"><img class="refl" src="${url}" style="${css({ ...p, top: p.top + p.h })}" alt="">
+          <div class="shadow" style="left:${p.left + p.w * .075}px;top:${p.top + p.h - p.h * .05}px;width:${p.w * .85}px;height:${p.h * .1}px"></div>
+          <img class="lg ball3d" data-p="${i}" src="${url}" style="${css(p)}" alt=""></div>`;
+      }).join('');
+      h = `${up || `<svg class="full" viewBox="0 0 1080 1350"><defs>
+          <radialGradient id="tvbg" cx="50%" cy="35%" r="80%"><stop offset="0" stop-color="#3a3d44"/><stop offset=".55" stop-color="#17191d"/><stop offset="1" stop-color="#08090b"/></radialGradient>
+          <linearGradient id="tvfl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b1d22"/><stop offset="1" stop-color="#050506"/></linearGradient>
+          <filter id="tvtex"><feTurbulence type="fractalNoise" baseFrequency=".006" numOctaves="4" seed="4"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .5 -.12"/></filter>
+          <radialGradient id="tvsA" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${A.c}" stop-opacity=".45"/><stop offset="1" stop-color="${A.c}" stop-opacity="0"/></radialGradient>
+          <radialGradient id="tvsB" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="${B.c}" stop-opacity=".45"/><stop offset="1" stop-color="${B.c}" stop-opacity="0"/></radialGradient></defs>
+          <rect width="1080" height="1200" fill="url(#tvbg)"/><rect width="1080" height="1200" filter="url(#tvtex)" opacity=".5"/>
+          <rect y="860" width="1080" height="340" fill="url(#tvfl)"/>
+          <ellipse cx="270" cy="640" rx="380" ry="330" fill="url(#tvsA)"/><ellipse cx="810" cy="640" rx="380" ry="330" fill="url(#tvsB)"/></svg>`}
+        <svg class="full" viewBox="0 0 1080 1350"><defs><linearGradient id="tvgold" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7a4b0c" stop-opacity="0"/><stop offset=".45" stop-color="#ffd27a"/><stop offset=".55" stop-color="#fff3d1"/><stop offset="1" stop-color="#7a4b0c" stop-opacity="0"/></linearGradient></defs>
+          <polygon points="640,430 652,430 444,880 432,880" fill="url(#tvgold)"/><polygon points="660,470 664,470 470,860 466,860" fill="url(#tvgold)" opacity=".6"/></svg>
+        ${hdr}${balls}
+        ${mv('vs', `<div class="vs"><b>VS</b></div>`)}
+        ${mv('teamA', `<div class="nm nmA"><b>${tn(A)}</b><i style="background:${A.c}"></i></div>`)}${mv('teamB', `<div class="nm nmB"><b>${tn(B)}</b><i style="background:${B.c}"></i></div>`)}
+        ${mv('info', `<div class="info">${date}${time ? `<em>${time}</em>` : ' · '}${extra}</div>`)}`;
+    }
+    if (L === 'smoke') {
+      const clouds = (side, c1, c2) => Array.from({ length: 14 }, () => {
+        const x = side === 'L' ? -60 + R() * 470 : 1140 - R() * 470, y = 380 + R() * 620, rx = 120 + R() * 170, ry = 90 + R() * 140;
+        return `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${R() > .5 ? c1 : c2}" opacity="${.45 + R() * .45}"/>`;
+      }).join('');
+      const sparks = Array.from({ length: 26 }, () => `<circle cx="${470 + R() * 140}" cy="${360 + R() * 260}" r="${1 + R() * 2.5}" opacity="${.4 + R() * .6}"/>`).join('');
+      h = `${up || `<svg class="full" viewBox="0 0 1080 1350"><defs>
+          <linearGradient id="tvsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b2a2e"/><stop offset=".55" stop-color="#0a1416"/><stop offset="1" stop-color="#050809"/></linearGradient>
+          <filter id="tvsm" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".011" numOctaves="5" seed="9" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="190" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="16"/></filter></defs>
+          <rect width="1080" height="1200" fill="url(#tvsky)"/>
+          <g filter="url(#tvsm)">${clouds('L', a, a2)}</g><g filter="url(#tvsm)">${clouds('R', b, b2)}</g></svg>`}
+        <svg class="full" viewBox="0 0 1080 1350"><defs>
+          <linearGradient id="tvgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#173d1e"/><stop offset="1" stop-color="#0b2410"/></linearGradient>
+          <radialGradient id="tvgc" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff9a2e" stop-opacity=".55"/><stop offset="1" stop-color="#ff5a00" stop-opacity="0"/></radialGradient>
+          <filter id="tvb6"><feGaussianBlur stdDeviation="3"/></filter></defs>
+          ${up ? '' : `<path d="M0 960 L1080 960 L1080 1200 L0 1200 Z" fill="url(#tvgr)"/>
+          <g opacity=".5">${Array.from({ length: 9 }, (_, i) => i % 2 ? `<path d="M${-200 + i * 185} 1200 L${380 + i * 40} 960" stroke="#1f5226" stroke-width="40" opacity=".5"/>` : '').join('')}</g>
+          <path d="M0 990 L1080 990" stroke="#e8f2e8" stroke-width="4" opacity=".75"/><path d="M528 1200 L536 960 L544 960 L552 1200 Z" fill="#e8f2e8" opacity=".8"/>`}
+          <ellipse cx="540" cy="640" rx="260" ry="200" fill="url(#tvgc)"/><g fill="#ffcf5a">${sparks}</g>
+          <ellipse cx="540" cy="1048" rx="70" ry="12" fill="#000" opacity=".6" filter="url(#tvb6)"/>
+          <g transform="translate(540 990)"><circle r="56" fill="#f4f4f4"/><polygon points="0,-20 19,-6 12,16 -12,16 -19,-6" fill="#1b1b1b"/>
+            ${[0, 72, 144, 216, 288].map(r => `<g transform="rotate(${r})"><path d="M0 -20 L0 -40" stroke="#1b1b1b" stroke-width="3"/><path d="M-14 -52 L0 -40 L14 -52 L9 -56 L-9 -56 Z" fill="#1b1b1b"/></g>`).join('')}
+            <circle r="56" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="5"/><circle cx="-18" cy="-20" r="26" fill="#fff" opacity=".35"/></g></svg>
+        ${hdr}${crest(A, 0, 'filter:drop-shadow(0 0 30px rgba(0,0,0,.6)) drop-shadow(0 18px 24px rgba(0,0,0,.55))')}${crest(B, 1, 'filter:drop-shadow(0 0 30px rgba(0,0,0,.6)) drop-shadow(0 18px 24px rgba(0,0,0,.55))')}
+        ${mv('vs', `<div class="vs"><b>VS</b></div>`)}
+        ${mv('teamA', `<div class="nm nmA"><b>${tn(A)}</b><span>${pn(A)}</span></div>`)}${mv('teamB', `<div class="nm nmB"><b>${tn(B)}</b><span>${pn(B)}</span></div>`)}
+        ${mv('info', `<div class="info"><div>${date}${time ? `<em>${time}</em>` : ' · '}${extra}</div></div>`)}`;
+    }
+    if (L === 'stad') {
+      const card = (t, i, col) => {
+        const x = i ? 650 : 70, p = boxOf(t, its[i]), lx = p.left - x, ly = p.top - 430;
+        return `<div class="card" style="left:${x}px">
+          <svg width="360" height="470" viewBox="0 0 360 470" style="position:absolute;left:0;top:0;overflow:visible">
+            <path d="M14 40 H346 V270 Q346 400 180 462 Q14 400 14 270 Z" fill="rgba(0,0,0,.45)" transform="translate(10 16)" filter="url(#tvbl)"/>
+            <path d="M14 40 H346 V270 Q346 400 180 462 Q14 400 14 270 Z" fill="url(#tvsh)" stroke="#c9a54a" stroke-width="7"/>
+            <path d="M30 56 H330 V268 Q330 386 180 444 Q30 386 30 268 Z" fill="none" stroke="${col}" stroke-width="3" opacity=".55"/></svg>
+          ${t.logo ? `<img class="lg" data-p="${i}" data-in-card="${x}" src="${t.logo}" style="position:absolute;left:${lx.toFixed(1)}px;top:${ly.toFixed(1)}px;width:${p.w.toFixed(1)}px;height:${p.h.toFixed(1)}px;object-fit:contain" alt="">` : ''}
+          <div class="ban" style="background:linear-gradient(180deg,${col},${dk(col, .7)})">${esc(t.team)}</div></div>`;
+      };
+      h = `${up || `<svg class="full" viewBox="0 0 1080 1350"><defs>
+          <linearGradient id="tvsk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#06122e"/><stop offset=".55" stop-color="#0d2c5a"/><stop offset="1" stop-color="#1d5a7a"/></linearGradient>
+          <radialGradient id="tvfo" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff"/><stop offset=".12" stop-color="#e6f4ff" stop-opacity=".9"/><stop offset=".45" stop-color="#8fc8ff" stop-opacity=".25"/><stop offset="1" stop-color="#8fc8ff" stop-opacity="0"/></radialGradient>
+          <linearGradient id="tvpi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f8a3a"/><stop offset="1" stop-color="#145a22"/></linearGradient></defs>
+          <rect width="1080" height="1200" fill="url(#tvsk)"/>
+          ${[[40, 330], [1040, 330]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="300" fill="url(#tvfo)"/>${Array.from({ length: 4 }, (_, r) => Array.from({ length: 5 }, (_, c) => `<circle cx="${x - 44 + c * 22}" cy="${y - 30 + r * 20}" r="7" fill="#fff"/>`).join('')).join('')}`).join('')}
+          <path d="M0 760 L1080 760 L1080 1200 L0 1200 Z" fill="url(#tvpi)"/>
+          ${Array.from({ length: 12 }, (_, i) => i % 2 ? `<path d="M${-660 + i * 200} 1200 L${-60 + i * 100} 760 L${40 + i * 100} 760 L${-460 + i * 200} 1200 Z" fill="#000" opacity=".08"/>` : '').join('')}
+          <g fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="5"><path d="M540 760 L540 1200"/><ellipse cx="540" cy="930" rx="230" ry="70"/><path d="M60 800 L1020 800"/></g></svg>`}
+        <svg class="full" viewBox="0 0 1080 1350"><defs><linearGradient id="tvsh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e3e7ee"/></linearGradient>
+          <filter id="tvbl"><feGaussianBlur stdDeviation="10"/></filter></defs><path d="M610 520 L622 520 L470 860 L458 860 Z" fill="#fff" opacity=".9"/></svg>
+        ${hdr}${mv('teamA', card(A, 0, a))}${mv('teamB', card(B, 1, b))}
+        ${mv('vs', `<div class="vs"><b>VS</b></div>`)}
+        ${mv('info', `<div class="info"><div>${date}${time ? `<em style="color:${a}">${time}</em>` : ' · '}${extra}</div></div>`)}`;
+    }
+    if (L === 'brush') {
+      const strokes = (c1, c2, seed) => `<svg width="420" height="700" viewBox="0 0 420 700" style="position:absolute;left:0;top:0"><defs>
+        <filter id="tvro${seed}" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".02 .004" numOctaves="2" seed="${seed}"/><feDisplacementMap in="SourceGraphic" scale="44"/><feGaussianBlur stdDeviation="1.2"/></filter></defs>
+        <g filter="url(#tvro${seed})"><path d="M-40 480 L460 260 L470 340 L-30 580 Z" fill="${c1}"/><path d="M-30 600 L450 430 L460 460 L-20 650 Z" fill="${c2}" opacity=".85"/>
+        <path d="M-20 200 L300 90 L310 120 L-10 240 Z" fill="${c1}" opacity=".6"/></g></svg>`;
+      const panel = (t, x, c1, c2, seed) => `<div class="panel" style="left:${x}px;border-color:${c1};box-shadow:0 0 22px ${c1},inset 0 0 40px rgba(0,0,0,.6)">
+        ${up ? '' : strokes(c1, c2, seed)}<div class="big">${esc(t.short || t.team.split(' ')[0])}</div></div>`;
+      h = `${up}${hdr}${panel(A, 60, a, a2, 3)}${panel(B, 600, b, b2, 8)}
+        ${crest(A, 0, 'filter:drop-shadow(0 20px 30px rgba(0,0,0,.7))')}${crest(B, 1, 'filter:drop-shadow(0 20px 30px rgba(0,0,0,.7))')}
+        <svg class="full" viewBox="0 0 1080 1350"><defs><radialGradient id="tvgb" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fff2b8"/><stop offset=".35" stop-color="#e6b143"/><stop offset=".8" stop-color="#8a5a12"/><stop offset="1" stop-color="#3d2405"/></radialGradient>
+          <radialGradient id="tvha" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffcf6a" stop-opacity=".5"/><stop offset="1" stop-color="#ffcf6a" stop-opacity="0"/></radialGradient></defs>
+          <circle cx="540" cy="620" r="150" fill="url(#tvha)"/>
+          <g transform="translate(540 620)"><circle r="78" fill="url(#tvgb)"/><polygon points="0,-26 25,-8 15,21 -15,21 -25,-8" fill="#3d2405" opacity=".85"/>
+            ${[0, 72, 144, 216, 288].map(r => `<g transform="rotate(${r})"><path d="M0 -26 L0 -50" stroke="#3d2405" stroke-width="4" opacity=".8"/><path d="M-18 -68 L0 -50 L18 -68 L12 -76 L-12 -76 Z" fill="#3d2405" opacity=".75"/></g>`).join('')}
+            <circle cx="-24" cy="-28" r="30" fill="#fff" opacity=".35"/></g></svg>
+        ${mv('vs', `<div class="vs" style="--a:${a};--b:${b}"><b>VS</b></div>`)}
+        ${mv('teamA', `<div class="nm nmA"><b style="color:${a2}">${tn(A)}</b><span>${pn(A)}</span></div>`)}${mv('teamB', `<div class="nm nmB"><b style="color:${b2}">${tn(B)}</b><span>${pn(B)}</span></div>`)}
+        ${mv('info', `<div class="info">${date}${time ? `<em>${time}</em>` : ' · '}${extra}</div>`)}`;
+    }
+
+    root.innerHTML = `<div class="tvt ${L}${isUp ? ' up' : ''}">${h}${sp}</div>`;
+    fitNames(root.firstElementChild);
+  }
+
+  // long team names shrink until they fit their space
+  const FIT = { ball: [['.nm b', 440]], smoke: [['.nm b', 440]], stad: [['.ban', 370]], brush: [['.nm b', 420]] };
+  function fitNames(p) {
+    const L = [...p.classList].find(c => FIT[c]);
+    for (const [sel, max] of FIT[L]) p.querySelectorAll(sel).forEach(el => {
+      el.style.fontSize = '';
+      let f = parseFloat(getComputedStyle(el).fontSize);
+      const w0 = el.style.width, d0 = el.style.display;
+      el.style.width = 'max-content'; el.style.display = 'inline-block';
+      while (el.offsetWidth > max && f > 16) { f -= 1; el.style.fontSize = f + 'px'; }
+      el.style.width = w0; el.style.display = d0;
+    });
+    const t = p.querySelector('.ttl b');
+    if (t) { t.style.fontSize = ''; let f = parseFloat(getComputedStyle(t).fontSize); t.style.display = 'inline-block'; while (t.offsetWidth > 980 && f > 30) { f -= 2; t.style.fontSize = f + 'px'; } t.style.display = ''; }
+  }
+
+  window.renderTvt = renderTvt;
+})();

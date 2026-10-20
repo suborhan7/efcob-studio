@@ -1,0 +1,98 @@
+/* Team vs Team poster, 1080 x 1350. Four layouts built around club crests: ball (crests wrapped round footballs),
+   smoke (team-colour smoke over a pitch), stad (floodlit stadium, shield cards) and brush (neon panels, paint strokes). */
+.tvt{position:relative;width:1080px;height:1350px;overflow:hidden;color:#fff;box-sizing:border-box;font-family:'Montserrat';background:#08090b}
+.tvt *{box-sizing:border-box;margin:0;padding:0}
+.tvt .upbg{position:absolute;inset:0;background-size:cover;background-position:center}
+.tvt .wash{position:absolute;inset:0;background:linear-gradient(180deg,rgba(5,7,16,.45),rgba(5,7,16,.15) 40%,rgba(5,7,16,.8))}
+.tvt svg.full{position:absolute;left:0;top:0;width:1080px;height:1350px;pointer-events:none}
+
+/* header, stage title, sponsors */
+.tvt .hdr .brand{position:absolute;left:52px;top:44px;font:800 26px/1 'Montserrat';letter-spacing:.14em;padding:9px 14px;background:#fff;color:#111}
+.tvt .brand img{display:block;height:34px}
+.tvt .hdr .ev{position:absolute;right:52px;top:44px;text-align:right;font:700 19px/1.35 'Montserrat';letter-spacing:.24em;text-transform:uppercase;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.tvt .hdr .ev b{display:block;font-size:28px;letter-spacing:.12em}
+.tvt .ttl{position:absolute;left:0;right:0;top:150px;text-align:center}
+.tvt .ttl b{display:block;text-transform:uppercase;white-space:nowrap}
+.tvt .ttl span{display:block;margin-top:12px;font:700 20px/1 'Montserrat';letter-spacing:.42em;text-transform:uppercase}
+.tvt .sp{position:absolute;left:0;right:0;top:1200px;height:150px;background:#07080e;border-top:1px solid rgba(255,255,255,.08)}
+.tvt .sp .k{position:absolute;left:0;right:0;top:18px;text-align:center;font:600 14px/1 'Montserrat';letter-spacing:.55em;color:#8a8ea8}
+.tvt .sp .row{position:absolute;left:56px;right:56px;top:44px;display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.tvt .sp .row div{height:62px;display:flex;align-items:center;justify-content:center;font:800 22px/1 'Montserrat';letter-spacing:.04em;background:rgba(255,255,255,.06);border-radius:8px;color:#e7e9f3}
+.tvt .sp .row img{max-height:46px;max-width:90%;object-fit:contain}
+.tvt .sp .w{position:absolute;left:0;right:0;bottom:12px;text-align:center;font:600 12px/1 'Montserrat';letter-spacing:.5em;color:#5c6080}
+
+/* team names, info line */
+.tvt .nm{position:absolute;width:440px;text-align:center;text-transform:uppercase}
+.tvt .nm b{display:block;white-space:nowrap}
+.tvt .nm span{display:block;margin-top:10px;font:700 20px/1 'Montserrat';letter-spacing:.3em;color:rgba(255,255,255,.8)}
+.tvt .nm span:empty{display:none!important}
+.tvt .info{position:absolute;left:0;right:0;text-align:center;text-transform:uppercase}
+.tvt img.tl{display:inline-block;height:1.3em;width:auto;vertical-align:middle;margin:-.3em .3em -.2em 0;filter:drop-shadow(0 3px 6px rgba(0,0,0,.5))}
+
+/* crest / captain photo holders (drag + wheel from maker.js) */
+.tvt .slot{position:absolute;left:0;top:0;width:1080px;height:1350px;overflow:hidden;pointer-events:none}
+.tvt .slot img{position:absolute;max-width:none;pointer-events:auto;cursor:grab}
+.tvt .slot img:not(.lg){filter:drop-shadow(0 18px 24px rgba(0,0,0,.5))}
+.tvt img.lg{object-fit:contain}
+.tvt .mv{position:absolute;inset:0;pointer-events:none}
+.tvt .mv > *{pointer-events:auto;cursor:move}
+
+/* ===== 1. BALL ===== */
+.tvt.ball .ttl b{font:900 italic 96px/1 'Rubik';background:linear-gradient(180deg,#fff 30%,#c9ccd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6))}
+.tvt.ball .ttl span{color:#cfd2dc}
+.tvt.ball img.refl{position:absolute;transform:scaleY(-1);opacity:.22;pointer-events:none;-webkit-mask-image:linear-gradient(0deg,#000 0%,transparent 45%);mask-image:linear-gradient(0deg,#000 0%,transparent 45%)}
+.tvt.ball .shadow{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.75),transparent);pointer-events:none}
+.tvt.ball img.ball3d{filter:drop-shadow(0 0 40px rgba(0,0,0,.45))}
+.tvt.ball .vs{position:absolute;left:390px;top:500px;width:300px;height:240px;display:flex;align-items:center;justify-content:center}
+.tvt.ball .vs b{font:900 italic 170px/1 'Rubik';letter-spacing:-.04em;background:linear-gradient(180deg,#fff 0%,#e9e3d0 45%,#b98a2e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,190,80,.45)) drop-shadow(0 8px 10px rgba(0,0,0,.6));padding:0 .1em}
+.tvt.ball .nm{top:930px}.tvt.ball .nmA{left:42px}.tvt.ball .nmB{left:598px}
+.tvt.ball .nm b{font:800 50px/1 'Montserrat';letter-spacing:.04em;text-shadow:0 4px 16px rgba(0,0,0,.7)}
+.tvt.ball .nm i{display:inline-block;margin-top:14px;height:5px;width:90px}
+.tvt.ball .info{top:1100px;font:700 24px/1 'Montserrat';letter-spacing:.3em;color:#e9e6dc}
+.tvt.ball .info em{font:900 34px/1 'Orbitron';color:#f2c66d;margin:0 16px;letter-spacing:.04em;vertical-align:-4px;font-style:normal}
+
+/* ===== 2. SMOKE ===== */
+.tvt.smoke{background:#050809}
+.tvt.smoke .ttl b{font:900 italic 104px/1 'Rubik';color:#fff;text-shadow:0 0 30px rgba(255,255,255,.25),0 8px 20px rgba(0,0,0,.6)}
+.tvt.smoke .ttl span{color:#dfe6ef}
+.tvt.smoke .vs{position:absolute;left:340px;top:520px;width:400px;height:240px;display:flex;align-items:center;justify-content:center}
+.tvt.smoke .vs b{font:900 italic 190px/1 'Rubik';letter-spacing:-.04em;background:linear-gradient(180deg,#fff7c2 0%,#ffd04a 35%,#ff7a12 75%,#e63a00);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px #ffb02e) drop-shadow(0 0 34px #ff5a00);padding:0 .1em}
+.tvt.smoke .nm{top:880px}.tvt.smoke .nmA{left:40px}.tvt.smoke .nmB{left:600px}
+.tvt.smoke .nm b{font:900 italic 44px/1 'Rubik';text-shadow:0 0 22px rgba(0,0,0,.7),0 4px 10px rgba(0,0,0,.8)}
+.tvt.smoke .nm span{text-shadow:0 2px 10px rgba(0,0,0,.9)}
+.tvt.smoke .info{top:1118px;font:800 26px/1 'Montserrat';letter-spacing:.24em}
+.tvt.smoke .info div{display:inline-block;padding:14px 30px;background:rgba(6,10,14,.78);border:1px solid rgba(255,255,255,.18);border-radius:40px}
+.tvt.smoke .info em{font:900 italic 38px/1 'Rubik';color:#ffc23a;margin:0 14px;font-style:normal;vertical-align:-4px}
+
+/* ===== 3. STADIUM SHIELD ===== */
+.tvt.stad{background:#06122e}
+.tvt.stad .ttl{top:140px}
+.tvt.stad .ttl b{font:400 112px/1 'Anton';color:#fff;letter-spacing:.01em;text-shadow:0 6px 0 rgba(10,20,50,.6),0 10px 30px rgba(0,0,0,.5)}
+.tvt.stad .ttl span{color:#dfe9ff}
+.tvt.stad .card{position:absolute;top:430px;width:360px;height:470px}
+.tvt.stad .card img.lg{cursor:grab}
+.tvt.stad .card .ban{position:absolute;left:-14px;right:-14px;top:0;height:78px;display:flex;align-items:center;justify-content:center;font:800 34px/1 'Montserrat';letter-spacing:.06em;text-transform:uppercase;color:#fff;white-space:nowrap;clip-path:polygon(0 0,100% 0,96% 100%,4% 100%)}
+.tvt.stad .vs{position:absolute;left:400px;top:560px;width:280px;height:200px;display:flex;align-items:center;justify-content:center}
+.tvt.stad .vs b{font:900 italic 150px/1 'Rubik';color:#fff;letter-spacing:-.06em;text-shadow:0 8px 20px rgba(0,0,0,.5);padding:0 .1em}
+.tvt.stad .info{top:1092px}
+.tvt.stad .info div{display:inline-block;background:#fff;color:#0d2a12;padding:14px 32px;font:800 26px/1 'Montserrat';letter-spacing:.2em;clip-path:polygon(3% 0,100% 0,97% 100%,0 100%)}
+.tvt.stad .info em{font:900 italic 36px/1 'Rubik';margin:0 14px;font-style:normal;vertical-align:-4px}
+
+/* ===== 4. BRUSH ===== */
+.tvt.brush{background:#050507}
+.tvt.brush .ttl{top:130px}
+.tvt.brush .ttl b{font:400 104px/1 'Anton';letter-spacing:.03em;color:#fff}
+.tvt.brush .ttl span{color:#a9adbd}
+.tvt.brush .panel{position:absolute;top:290px;width:420px;height:700px;overflow:hidden;border:3px solid;background:#0b0b10}
+.tvt.brush .panel .big{position:absolute;left:-10px;top:-24px;font:400 300px/.82 'Anton';color:transparent;-webkit-text-stroke:3px rgba(255,255,255,.85);text-transform:uppercase;white-space:nowrap;letter-spacing:-.01em}
+/* VS: cyberpunk Orbitron, chrome face, thin rails and a slight split in the two team colours */
+.tvt.brush .vs{position:absolute;left:390px;top:712px;width:300px;height:110px;display:flex;align-items:center;justify-content:center}
+.tvt.brush .vs::before,.tvt.brush .vs::after{content:'';position:absolute;top:50%;width:46px;height:2px}
+.tvt.brush .vs::before{left:16px;background:linear-gradient(90deg,transparent,var(--a))}
+.tvt.brush .vs::after{right:16px;background:linear-gradient(90deg,var(--b),transparent)}
+.tvt.brush .vs b{font:900 76px/1 'Orbitron';letter-spacing:.08em;padding-left:.08em;background:linear-gradient(180deg,#ffffff 0%,#e9ecf4 46%,#9aa1b4 54%,#f4f6fb 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(-3px 0 0 var(--a)) drop-shadow(3px 0 0 var(--b)) drop-shadow(0 6px 14px rgba(0,0,0,.85))}
+.tvt.brush .nm{top:1012px;width:420px}.tvt.brush .nmA{left:60px}.tvt.brush .nmB{left:600px}
+.tvt.brush .nm b{font:400 46px/1 'Anton';letter-spacing:.05em}
+.tvt.brush .info{top:1110px;font:700 22px/1 'Montserrat';letter-spacing:.3em;color:#cfd1dc}
+.tvt.brush .info em{font:900 30px/1 'Orbitron';color:#fff;margin:0 14px;font-style:normal;letter-spacing:.06em;vertical-align:-3px}
