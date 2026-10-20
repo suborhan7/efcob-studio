@@ -141,10 +141,11 @@
 .tvt.torn .tcr{position:absolute;z-index:4}
 .tvt.torn .tn{position:absolute;font:400 60px/1 'Black Ops One';text-transform:uppercase;white-space:nowrap;z-index:4;text-shadow:4px 4px 0 rgba(0,0,0,.35)}
 .tvt.torn .tn.t1{text-align:center}
-.tvt.torn .stamp{position:absolute;left:140px;width:800px;top:668px;text-align:center;transform:rotate(-23.96deg);color:#141414;z-index:3}
-.tvt.torn .stamp .sn{font:400 150px/1 'Black Ops One';letter-spacing:.04em}
-.tvt.torn .stamp .sd{display:inline-block;white-space:nowrap;margin-top:4px;font:600 20px/1 'Chakra Petch';letter-spacing:.24em;text-transform:uppercase;color:#333}
-.tvt.torn .stamp .sd b{display:inline-block;margin-right:14px;padding:6px 12px;border:3px solid #c8102e;color:#c8102e;transform:rotate(-3deg);font-family:'Black Ops One';font-weight:400}
+.tvt.torn .stamp{position:absolute;left:140px;width:800px;top:676px;text-align:center;transform:rotate(-23.96deg);color:#141414;z-index:3}
+.tvt.torn .stamp .sn{font:400 118px/1 'Black Ops One';letter-spacing:.04em}
+/* match info on the paper: dark, big and bold so it reads on the cream (shifty: faint text was hard to see) */
+.tvt.torn .stamp .sd{display:inline-block;white-space:nowrap;margin-top:6px;font:700 28px/1 'Chakra Petch';letter-spacing:.14em;text-transform:uppercase;color:#0d0d0d}
+.tvt.torn .stamp .sd b{display:inline-block;margin-right:16px;padding:7px 14px;border:4px solid #b00d26;color:#b00d26;transform:rotate(-3deg);font:400 26px/1 'Black Ops One';letter-spacing:.08em}
 .tvt.torn .tape{position:absolute;padding:8px 20px;background:var(--pop);color:#111;font:400 20px/1 'Black Ops One';letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;
   left:60px;top:905px;transform:rotate(-20deg);box-shadow:0 4px 10px rgba(0,0,0,.35);z-index:4}
 .tvt.torn .tk{position:absolute;left:44px;top:88px;white-space:nowrap;font:600 18px/1 'Chakra Petch';letter-spacing:.26em;text-transform:uppercase;color:rgba(255,255,255,.85)}
