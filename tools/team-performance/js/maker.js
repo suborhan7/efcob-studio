@@ -4,7 +4,7 @@
 (function () {
   const SL = window.SAMPLE_LOGOS || {}, S = window.SAMPLE_PHOTOS || {};
   const state = {
-    layout: 'roster',              // roster | arena | neon
+    layout: 'arena',               // arena | roster | neon
     moves: {},                     // admin's drags/sizes per layout
     hidden: {},                    // parts the admin switched off, per layout
     bgMode: 'template',            // 'template' | 'jersey' | 'image'

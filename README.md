@@ -209,10 +209,10 @@ Up to 5 stats (empty ones are hidden). Photos: up to 7 player cut-outs that are 
 fitted to the same size, player 1 is the star in the middle), or one group photo. A name tag on each player (or one names line),
 optional confetti, optional eFCOB logo. Fields: result line, big title (Roster), event, corner tag (Arena).
 Three layouts:
-- **Diagonal Roster** (default): a team-colour diagonal band with speed stripes and the team name repeated faintly, all players
-  in one row in front of it, the team name in script over a huge slanted title, skewed stat boxes (blue + pink).
-- **Arena Shockwave**: light slashes and shockwave rings, a 2-row squad, huge italic team name, slanted result ribbon and big
+- **Arena Shockwave** (default): light slashes and shockwave rings, a 2-row squad, huge italic team name, slanted result ribbon and big
   italic numbers (crimson + amber).
+- **Diagonal Roster**: a team-colour diagonal band with speed stripes and the team name repeated faintly, all players
+  in one row in front of it, the team name in script over a huge slanted title, skewed stat boxes (blue + pink).
 - **Neon Tunnel**: a holographic tunnel, the short name huge behind the heads, the squad behind a glowing platform with the
   crest, angled HUD stat tiles (violet + lime).
 
