@@ -18,6 +18,7 @@ One admin page for the eFCOB card makers. Open `index.html` in Chrome or Edge.
 | Top 4 | `tools/top-4/` | ready |
 | Player vs Player | `tools/player-vs-player/` | ready |
 | Team vs Team | `tools/team-vs-team/` | ready |
+| Transfer | `tools/transfer/` | ready |
 
 ### MVP
 One player, 1080 × 1350, "Big MVP" layout: huge MVP letters behind the player, stats row across
@@ -115,3 +116,18 @@ with the mouse wheel; **Reset to default** puts them back.
 
 Every part (header, title, photos/crests, Brush outline words, VS, names, date line, partners strip) can be switched off
 under **Poster e ki ki thakbe**, per layout; **Reset to default** brings back positions, sizes and hidden parts.
+
+### Transfer
+One player moving from an old club to a new one ("Done Deal"), 1080 × 1350 (HD download 2160 × 2700), with the partner
+strip. Three layouts:
+- **Arrow**: chevrons flowing from the old club's colour into the new club's, gradient DONE DEAL, FROM → TO box, name and stat tiles.
+- **Contract**: a signed transfer agreement on a pinstripe desk (club letterhead, paper clip, stats table, clause line,
+  script signature) with an inked DONE DEAL stamp; the player on the right with a "Welcome to …" name block.
+- **Breaking News**: TV broadcast look, BREAKING NEWS / EXCLUSIVE tags, big "Here we go!", news name bar with both logos,
+  a headline line and a stats ticker.
+
+Background: Default template, Club colours (old club colour + the new club's two colours, from the logos or the jersey)
+or Upload my own. Fields: title, small line, window name, date, time (News), contract number and stamp line (Contract),
+the two big News words, player name and photo (auto cut-out, head-size auto-fit), both clubs (short + full name, logo,
+colours) and up to 4 stats (an empty stat is hidden). Every part can be dragged, wheel-resized and switched off under
+**Poster e ki ki thakbe**; **Reset to default** puts everything back.
