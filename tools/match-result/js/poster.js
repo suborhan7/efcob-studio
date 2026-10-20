@@ -1,7 +1,7 @@
 /* Renders the Match Result poster into a container.
    renderMatch(container, data)
    data = {
-     layout: 'wave' | 'ticket', bgMode: 'template' | 'jersey' | 'image', bgImage,
+     layout: 'wave' | 'ticket' (player mode) | 'clash' | 'victory' | 'torn' (team mode, drawn by js/team.js), bgMode: 'template' | 'jersey' | 'image', bgImage,
      tag, kicker, label, date, footerLeft, footerRight, logo,
      teams: [{ name, player, score, scorers, photo, logo, primary, secondary, dx, dy, zoom }, { ... }]
    }
@@ -173,6 +173,7 @@
   function renderMatch(el, d) {
     const mode = d.bgMode || 'template';
     const custom = mode === 'image' && !!d.bgImage;
+    if (window.MR_TEAM_LAYOUTS && MR_TEAM_LAYOUTS.includes(d.layout)) return renderMatchTeam(el, d);   // team mode, js/team.js
     const r = (d.layout === 'ticket' ? renderTicket : renderWave)(d, mode, custom);
     el.innerHTML = `<div class="mr ${r.cls} ${custom ? 'custom-bg' : ''}" style="${r.vars}">${r.body}</div>`;
     fitNames(el);
@@ -180,4 +181,5 @@
 
   window.renderMatch = renderMatch;
   window.matchPhotoTransform = photoTransform;
+  window.MR_COLORS = { teamColor, popFor, deepOf, lum, toHsl, hsl };
 })();

@@ -50,6 +50,19 @@ two colours with "Auto from jersey" and "Auto from logo". A draw shows DRAW and 
 Background: **Default template** (fixed eFCOB colours), **Jersey / logo colours (auto)** (each team's colour; white/black kits
 use their trim, plain black/white kits get purple + gold), **Upload my own** (admin's 1080 × 1350 image behind everything).
 
+**Team mode** (Mode dropdown at the top: *Team vs Team (logo + score)*): club crest vs club crest with the score, the partners
+strip at the bottom, its own fonts and three layouts (`js/team.js`, `css/team.css`):
+- **Crest Clash** (default): two team-colour halves split by a lightning seam, crests on glowing rings, a huge chrome score in a
+  hex plate, the result word in giant outline letters behind, WINNER / DEFEAT tags and scorers; captains stand behind their crests.
+- **Victory Squad**: the winning team's squad (up to 5 cut-outs, sized by head) in front of a huge italic title (own word, VICTORY
+  by default) with a script word, crest watermark, confetti, name tags and a broadcast score bar with both crests.
+- **Torn Poster**: a torn paper strip across the poster with the score stamped on it, one team above and one below, halftone
+  dots, captains layered over the tear, a WINNER tape on the winner's crest.
+
+Per team: name, short name, goals, scorers, official club crest (a plain background is cut away; colours come from the crest),
+two colours, captain name + photo, squad of up to 5 players (name + photo, player 1 in the middle). **Chobi**: squad + captain,
+captain only, or logo only. Same 3 backgrounds; every part can be dragged, wheel-resized and removed, Reset puts it back.
+
 The Player Stats Card is not in the studio; it lives on the client side of efcob.com
 (see efcob-player-cards).
 

@@ -67,3 +67,9 @@ button.primary { width: 100%; margin-top: 10px; padding: 12px; background: #19a4
 /* editor: one button that puts every dragged section and photo back, and the on/off list of poster parts */
 .reset-all { width: 100%; margin-bottom: 4px; }
 .form .parts { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+/* team mode: squad and partner rows (name, file, clear) */
+.prow { display: grid; grid-template-columns: 1fr 1fr 28px; gap: 6px; align-items: center; margin-bottom: 6px; }
+.prow input[type=text] { margin: 0 !important; }
+.prow input[type=file] { margin: 0; font-size: 11px; min-width: 0; }
+.prow button { padding: 5px 0; }
+.colors button { padding: 5px 8px; font-size: 12px; }
