@@ -370,7 +370,7 @@
 
   // long team names shrink until they fit their space
   const FIT = { ball: [['.nm b', 440]], smoke: [['.nm b', 440]], stad: [['.ban', 370]], brush: [['.nm b', 420], ['.big', 400]],
-    clash: [['.cn', 470], ['.ghost', 1060], ['.kick', 560], ['.info', 900]], torn: [['.tn', 0], ['.tk', 520], ['.stamp .sd', 760]] };
+    clash: [['.cn', 470], ['.ghost', 1000], ['.kick', 560], ['.info', 900]], torn: [['.tn', 0], ['.tk', 520], ['.stamp .sd', 760]] };
   function fitNames(p) {
     const L = [...p.classList].find(c => FIT[c]);
     for (const [sel, mx] of FIT[L]) p.querySelectorAll(sel).forEach(el => {
