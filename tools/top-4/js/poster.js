@@ -1,6 +1,8 @@
 /* Top 4 poster renderer: renderTop4(el, state) draws the 1080 x 1350 poster into el.
    Layouts: 'podium' (four glass steps) and 'board' (champion hero + 3 rows).
-   Backgrounds: 'template' (theme), 'jersey' (blocks + background from the players' kit colours), 'image' (admin upload). */
+   Backgrounds: 'template' (theme), 'jersey' (blocks + background from the players' kit colours), 'image' (admin upload).
+   Every element is an editor section (data-move, see js/studio-edit.js): mv = its own layer over the box it sits in,
+   w = an in-flow wrapper; a few flex items carry data-move themselves. Keys end in the place (1-4). Photos are data-p. */
 (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -110,53 +112,55 @@
     }).join('')}</div>${s.site ? `<div class="site">${esc(s.site)}</div>` : ''}</div>`;
   }
 
+  const mv = (k, h) => `<div class="mv" data-move="${k}">${h}</div>`;
+  const w = (k, h) => `<div data-move="${k}">${h}</div>`;
   const brand = s => s.logo ? `<div class="abs brand img"><img src="${s.logo}" alt=""></div>` : `<div class="abs brand">eFCOB</div>`;
   const rec = p => `${esc(p.w)}W ${esc(p.d)}D ${esc(p.l)}L`;
 
   function podium(s, K) {
     const P = s.players;
-    let h = brand(s) + `<div class="abs event">${esc(s.event)}</div>
-      <div class="abs title"><span class="t">Top</span><span class="n">4</span></div>
-      <div class="abs sub">${esc(s.sub)}</div><div class="abs uline"></div>`;
+    let h = mv('brand', brand(s)) + mv('event', `<div class="abs event">${esc(s.event)}</div>`) + `
+      ${mv('title', '<div class="abs title"><span class="t">Top</span><span class="n">4</span></div>')}
+      ${mv('sub', `<div class="abs sub">${esc(s.sub)}</div>`)}${mv('uline', '<div class="abs uline"></div>')}`;
     for (const sl of SLOTS) {
-      const pl = P[sl.i], k = K[sl.i], height = 1350 - 140 - sl.top;
+      const pl = P[sl.i], k = K[sl.i], height = 1350 - 140 - sl.top, n = sl.i + 1;
       if (pl.photo) h += `<div class="phw" data-p="${sl.i}" style="${boxCss(podiumBox(sl, pl))}transform-origin:50% 100%;transform:${photoTransform(pl)}"><img src="${pl.photo}" alt=""></div>`;
       const nm = fitSize(pl.player, sl.nm, sl.w - (pl.logo ? 120 : 56));
       const tl = String(pl.team).length, teamStyle = sl.i === 3 || tl > 15 ? `font-size:${tl > 18 ? 11 : 13}px;letter-spacing:.06em` : '';
-      h += `<div class="block" style="left:${sl.x}px;width:${sl.w}px;height:${height}px;--f1:${k.f1};--f2:${k.f2};--tp:${k.tp};--ed:${k.ed}">
+      h += mv('block' + n, `<div class="block" style="left:${sl.x}px;width:${sl.w}px;height:${height}px;--f1:${k.f1};--f2:${k.f2};--tp:${k.tp};--ed:${k.ed}">
         <div class="top"></div><div class="shade"></div><div class="front">
-          <div class="num" style="top:${sl.i ? (sl.i === 3 ? 28 : 34) : 44}px;font-size:${sl.num}px">${sl.i + 1}<sup>${SUF[sl.i]}</sup></div>
-          ${pl.logo ? `<img class="tlogo" src="${pl.logo}" alt="">` : ''}
+          ${mv('rank' + n, `<div class="num" style="top:${sl.i ? (sl.i === 3 ? 28 : 34) : 44}px;font-size:${sl.num}px">${sl.i + 1}<sup>${SUF[sl.i]}</sup></div>`)}
+          ${pl.logo ? mv('logo' + n, `<img class="tlogo" src="${pl.logo}" alt="">`) : ''}
           <div class="info" style="top:${sl.num * .8 + (sl.i ? (sl.i === 3 ? 40 : 54) : 74)}px">
-            <div class="place">${PLACE[sl.i]}</div>
+            ${w('name' + n, `<div class="place">${PLACE[sl.i]}</div>
             <div class="pname" style="font-size:${nm}px">${esc(pl.player)}</div>
-            ${pl.team ? `<div class="team" style="${teamStyle}">${esc(pl.team)}</div>` : ''}
-            <div class="pts"><b>${esc(pl.pts)}</b>PTS</div>
-            ${sl.i === 3 ? '' : `<div class="rec">${rec(pl)}</div>`}
-          </div></div></div>`;
+            ${pl.team ? `<div class="team" style="${teamStyle}">${esc(pl.team)}</div>` : ''}`)}
+            ${w('stats' + n, `<div class="pts"><b>${esc(pl.pts)}</b>PTS</div>
+            ${sl.i === 3 ? '' : `<div class="rec">${rec(pl)}</div>`}`)}
+          </div></div></div>`);
     }
     return h;
   }
 
   function board(s, K) {
     const P = s.players, c = P[0];
-    let h = `<div class="abs head">${brand(s).replace('abs ', '')}<div class="event">${esc(s.event)}</div></div>
-      <div class="abs title"><span class="t">Top</span><span class="n">4</span><span class="t">${esc(s.boardWord)}</span></div>`;
+    let h = `<div class="abs head">${w('brand', brand(s).replace('abs ', ''))}${w('event', `<div class="event">${esc(s.event)}</div>`)}</div>
+      ${mv('title', `<div class="abs title"><span class="t">Top</span><span class="n">4</span><span class="t">${esc(s.boardWord)}</span></div>`)}`;
     if (c.photo) h += `<div class="hero"><div class="phw" data-p="0" style="${boxCss(heroBox(c))}transform-origin:50% 30%;transform:${photoTransform(c)}"><img src="${c.photo}" alt=""></div></div>`;
-    h += `<div class="abs champ"><div class="clabel">CHAMPION</div>
-      <div class="cname" style="font-size:${fitSize(c.player, 140, 520)}px">${esc(c.player)}</div>
-      ${c.team || c.logo ? `<div class="cteam">${c.logo ? `<img src="${c.logo}" alt="">` : ''}${esc(c.team)}</div>` : ''}
-      <div class="cstats"><div><b>${esc(c.pts)}</b><small>POINTS</small></div><div><b>${esc(c.w)}W</b><small>WINS</small></div>${c.gd !== '' ? `<div><b>${esc(c.gd)}</b><small>GOAL DIFF</small></div>` : ''}</div>
-      ${s.prize ? `<div class="prize"><small>PRIZE</small><b>${esc(s.prize)}</b></div>` : ''}</div>`;
+    h += `<div class="abs champ">${w('champLabel', '<div class="clabel">CHAMPION</div>')}
+      ${w('champName', `<div class="cname" style="font-size:${fitSize(c.player, 140, 520)}px">${esc(c.player)}</div>`)}
+      ${c.team || c.logo ? w('champTeam', `<div class="cteam">${c.logo ? `<img src="${c.logo}" alt="">` : ''}${esc(c.team)}</div>`) : ''}
+      ${w('champStats', `<div class="cstats"><div><b>${esc(c.pts)}</b><small>POINTS</small></div><div><b>${esc(c.w)}W</b><small>WINS</small></div>${c.gd !== '' ? `<div><b>${esc(c.gd)}</b><small>GOAL DIFF</small></div>` : ''}</div>`)}
+      ${s.prize ? w('prize', `<div class="prize"><small>PRIZE</small><b>${esc(s.prize)}</b></div>`) : ''}</div>`;
     h += `<div class="abs rows">`;
     for (let i = 1; i < 4; i++) {
       const pl = P[i], k = K[i];
-      h += `<div class="row" style="--f1:${k.f1};--f2:${k.f2};--tp:${k.tp};--ed:${k.ed}">
-        <div class="rk">${i + 1}<sup>${SUF[i]}</sup></div>
+      h += w('row' + (i + 1), `<div class="row" style="--f1:${k.f1};--f2:${k.f2};--tp:${k.tp};--ed:${k.ed}">
+        ${w('rank' + (i + 1), `<div class="rk">${i + 1}<sup>${SUF[i]}</sup></div>`)}
         <div class="face" data-p="${i}">${pl.photo ? `<img src="${pl.photo}" alt="" style="${boxCss(faceBox(pl))}transform-origin:50% 20%;transform:${photoTransform(pl, 0.4)}">` : ''}</div>
-        <div class="rtext"><div class="rplace">${PLACE[i]}</div><div class="rname" style="font-size:${fitSize(pl.player, 44, pl.logo ? 330 : 380)}px">${esc(pl.player)}</div><div class="rteam">${esc(pl.team)}</div></div>
-        ${pl.logo ? `<img class="rlogo" src="${pl.logo}" alt="">` : ''}
-        <div class="rpts"><div class="box"><b>${esc(pl.pts)}</b>PTS</div><small>${rec(pl)}</small></div></div>`;
+        <div class="rtext" data-move="name${i + 1}"><div class="rplace">${PLACE[i]}</div><div class="rname" style="font-size:${fitSize(pl.player, 44, pl.logo ? 330 : 380)}px">${esc(pl.player)}</div><div class="rteam">${esc(pl.team)}</div></div>
+        ${pl.logo ? `<img class="rlogo" data-move="logo${i + 1}" src="${pl.logo}" alt="">` : ''}
+        <div class="rpts" data-move="pts${i + 1}"><div class="box"><b>${esc(pl.pts)}</b>PTS</div><small>${rec(pl)}</small></div></div>`);
     }
     return h + `</div>`;
   }
@@ -171,9 +175,9 @@
       acc = 'rgba(255,255,255,.9)';
       if (s.theme === 'ember') { n1 = '#7cf3ff'; n2 = '#3d7bff'; } else { n1 = '#ffe28a'; n2 = '#ff9a2e'; }
     }
-    const body = s.layout === 'board' ? board(s, K) : podium(s, K);
+    const body = s.layout === 'board' ? board(s, K) : podium(s, K), sp = partners(s);
     el.innerHTML = `<div class="t4 ${s.layout === 'board' ? 'lb' : 'pod'}${bg.meshed ? ' meshed' : ''}" style="--n1:${n1};--n2:${n2};--acc:${acc}">
-      ${bg.html}${body}${partners(s)}<div class="grain"></div></div>`;
+      ${bg.html}${body}${sp ? mv('partners', sp) : ''}<div class="grain"></div></div>`;
   }
 
   window.renderTop4 = renderTop4;

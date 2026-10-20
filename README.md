@@ -48,6 +48,16 @@ The Player Stats Card is not in the studio; it lives on the client side of efcob
 
 Each maker also works on its own: open `tools/<name>/index.html` directly.
 
+## Editing (every card)
+Every card loads `js/studio-edit.js` (the same file in each tool folder). Click any text block, panel or photo on the
+poster to select it, then:
+- drag it (text snaps to the centre line; hold Alt to stop snapping), or nudge with the arrow keys (Shift = 10px);
+- resize with the mouse wheel, the − / + buttons or the + / − keys;
+- **Majhe ano** centres it, **Reset eta** puts just that part back, **Remove** / Delete hides it;
+- **Undo / Redo** (Ctrl+Z / Ctrl+Y) cover moves, sizes and removed parts.
+The **Poster e ki ki thakbe** list switches parts on/off per layout, and **Reset to default** brings everything back.
+Downloads are HD (2160 × 2700). In a new card, wrap each block as `<div class="mv" data-move="key">` and mark photos `data-p`.
+
 ## Adding a new card type
 
 1. Put the new maker in `tools/<id>/` with its own `index.html`.

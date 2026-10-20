@@ -79,13 +79,13 @@
 .cmp .player-b { left: 900px; }
 .cmp .player.empty { display: none; }
 
-.cmp .floor { position: absolute; left: 0; right: 0; bottom: 0; height: 420px; z-index: 3;
+.cmp .floor { pointer-events: none; position: absolute; left: 0; right: 0; bottom: 0; height: 420px; z-index: 3;
   background: linear-gradient(to bottom, transparent, rgba(5,6,10,.55) 45%, rgba(5,6,10,.92) 80%); }
 
 /* ---------- header ---------- */
-.cmp .top-shade { position: absolute; left: 0; right: 0; top: 0; height: 360px; z-index: 3;
+.cmp .top-shade { pointer-events: none; position: absolute; left: 0; right: 0; top: 0; height: 360px; z-index: 3;
   background: linear-gradient(to bottom, rgba(5,6,10,.78), rgba(5,6,10,.35) 60%, transparent); }
-.cmp header { position: absolute; top: 0; left: 0; right: 0; z-index: 5; text-align: center; padding-top: 44px; }
+.cmp header { position: absolute; top: 0; left: 0; right: 0; z-index: 5; text-align: center; }
 .cmp .brand { position: absolute; left: 48px; top: 40px; height: 76px; display: flex; align-items: center; }
 .cmp .brand img { max-height: 76px; max-width: 200px; }
 .cmp .brand .wordmark { font-family: 'Anton', Impact, sans-serif; font-size: 40px; letter-spacing: 1px; line-height: 1;
@@ -93,7 +93,8 @@
 .cmp .tag { position: absolute; right: 48px; top: 52px; font-weight: 800; font-size: 24px; letter-spacing: .14em;
   text-transform: uppercase; padding: 8px 18px; color: #0b0d12; background: #fff;
   clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); }
-.cmp .kicker { margin-top: 112px; font-weight: 800; font-style: italic; font-size: 30px; letter-spacing: .22em;
+.cmp .kicker { margin-top: 156px;   /* 44 + 112: the header's old top padding, now the kicker sits in its own .mv wrapper */
+  font-weight: 800; font-style: italic; font-size: 30px; letter-spacing: .22em;
   color: #fff; opacity: .92; }
 .cmp .kicker::before, .cmp .kicker::after { content: ''; display: inline-block; width: 60px; height: 3px; vertical-align: middle;
   margin: 0 18px 6px; background: currentColor; }
@@ -183,3 +184,11 @@
 
 /* the big outlined name behind each player is optional (off by default) */
 .cmp.no-ghost .ghost { display: none; }
+
+/* ---------- movable sections (js/studio-edit.js) ----------
+   each wrapper is full-poster and gets a transform, so it carries its block's stacking level */
+.cmp .mv { position: absolute; inset: 0; pointer-events: none; }
+.cmp .mv > * { pointer-events: auto; cursor: move; }
+.cmp > .mv[data-move="stats"] { z-index: 6; }
+.cmp > .mv[data-move="nameA"], .cmp > .mv[data-move="nameB"], .cmp > .mv[data-move="footer"] { z-index: 7; }
+.cmp > .mv[data-move="vs"] { z-index: 8; }

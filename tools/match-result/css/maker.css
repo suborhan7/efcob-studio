@@ -63,3 +63,7 @@ button.primary { width: 100%; margin-top: 10px; padding: 12px; background: #19a4
 .form textarea { display: block; width: 100%; box-sizing: border-box; margin-top: 3px; padding: 7px 9px; border: 1px solid #2f3544;
   border-radius: 6px; background: #0f1218; color: #fff; font: inherit; resize: vertical; }
 .auto-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+
+/* editor: one button that puts every dragged section and photo back, and the on/off list of poster parts */
+.reset-all { width: 100%; margin-bottom: 4px; }
+.form .parts { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }

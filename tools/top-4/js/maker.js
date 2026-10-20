@@ -4,6 +4,8 @@
   const player = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', m: null, gd: '' }, o);
   const state = {
     layout: 'podium',              // 'podium' | 'board'
+    moves: {},                     // admin's drags/sizes per layout: { podium: { block1: { x, y, s, ox, oy } } }
+    hidden: {},                    // parts the admin switched off, per layout: { board: { prize: true } }
     bgMode: 'template',            // 'template' | 'jersey' | 'image'
     theme: 'navy',                 // navy (default) | jewel | ocean | emerald | ember
     bgImage: '',
@@ -29,8 +31,18 @@
   const readFile = f => new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(f); });
   const loadImage = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 
+  // names for the "Poster e ki ki thakbe" list and the editor bar (js/studio-edit.js); 1-4 = place
+  const PL = ['1st', '2nd', '3rd', '4th'];
+  const PARTS = Object.assign({ brand: 'eFCOB logo', event: 'Event name', title: 'TOP 4 title', sub: 'Line under TOP 4', uline: 'Underline',
+    champLabel: 'CHAMPION label', champName: 'Champion name', champTeam: 'Champion team', champStats: 'Champion stats', prize: 'Prize' },
+    ...PL.map((p, i) => ({ ['p' + i]: `${p} photo`, ['block' + (i + 1)]: `${p} podium step`, ['row' + (i + 1)]: `${p} row`, ['rank' + (i + 1)]: `${p} rank number`,
+      ['name' + (i + 1)]: `${p} name + team`, ['stats' + (i + 1)]: `${p} points + record`, ['pts' + (i + 1)]: `${p} points`, ['logo' + (i + 1)]: `${p} team logo` })),
+    { partners: 'Partners strip' });
+  let editing = false;
+
   const render = () => {
     renderTop4(poster, state);
+    if (editing) StudioEdit.afterRender();
     $('#bgUploadRow').style.display = state.bgMode === 'image' ? '' : 'none';
     $('#themeRow').style.display = state.bgMode === 'image' ? 'none' : '';
     $$('[data-only]').forEach(el => el.style.display = el.dataset.only === state.layout ? '' : 'none');
@@ -164,7 +176,7 @@
     $('[data-zoom]', sec).value = z; $('[data-zoom-val]', sec).textContent = z + '%';
   }
 
-  // ---- drag a photo on the poster, wheel to resize ----
+  // ---- photos: drag and wheel-resize (sections, selection, nudge, remove and undo live in js/studio-edit.js) ----
   const frame = $('#frame');
   const posterScale = () => frame.getBoundingClientRect().width / 1080;
   const target = e => e.target.closest('[data-p]');
@@ -193,17 +205,45 @@
     render(); syncZoom(i);
   }, { passive: false });
 
+  /* Section move/size. Untouched sections get no transform at all, so the default poster (and its stacking) stays exactly
+     as designed. Sections sit inside other boxes (podium step, row, champion block), so the kit's poster-px resize centre is
+     turned into the wrapper's own px. A moved section comes above the untouched ones (and keeps the highest z-index inside it). */
+  const styleOf = k => {
+    const m = (state.moves[state.layout] || {})[k] || {}, s = m.s || 1;
+    if (!m.x && !m.y && s === 1) return '';
+    const el = poster.querySelector(`[data-move="${k}"]`), root = poster.firstElementChild;
+    let ox = 0, oy = 0, z = 0;
+    for (let e = el; e && e !== root; e = e.offsetParent) { ox += e.offsetLeft; oy += e.offsetTop; }
+    for (let a = el && el.parentElement.closest('[data-move]'); a; a = a.parentElement.closest('[data-move]')) { const q = (state.moves[state.layout] || {})[a.dataset.move] || {}; ox += q.x || 0; oy += q.y || 0; }
+    if (el) [el, ...el.querySelectorAll('*')].forEach(d => { z = Math.max(z, parseInt(getComputedStyle(d).zIndex) || 0); });
+    return `transform:translate(${m.x || 0}px,${m.y || 0}px)${s !== 1 ? ` scale(${s})` : ''};transform-origin:${(m.ox || 540) - ox}px ${(m.oy || 675) - oy}px;z-index:${Math.max(1, z)}${el && !el.classList.contains('mv') ? ';position:relative' : ''}`;
+  };
+  StudioEdit.init({
+    frame, poster, state, render, panel: $('#form'), partsBox: $('#parts'), parts: PARTS,
+    moveKey: () => state.layout, styleOf,
+    photo: { get: i => state.players[i], changed: i => syncZoom(i), box: el => el.classList.contains('face') ? el.querySelector('img') || el : el },   // a row's face tile stays, only its photo goes
+    extras: { get: () => state.players.map(t => [t.dx, t.dy, t.zoom]), set: v => v.forEach((p, i) => { [state.players[i].dx, state.players[i].dy, state.players[i].zoom] = p; syncZoom(i); }) },
+  });
+  editing = true;
+
+  // ---- reset: every section and all four photos of this layout back to the default spot and size ----
+  $('#resetAll').addEventListener('click', () => {
+    delete state.moves[state.layout]; delete state.hidden[state.layout];
+    state.players.forEach((t, i) => { Object.assign(t, { dx: 0, dy: 0, zoom: 1 }); syncZoom(i); });
+    render();
+  });
+
   // ---- download ----
   $('#download').addEventListener('click', async () => {
     const btn = $('#download'); btn.disabled = true; btn.textContent = 'Rendering…';
     try {
-      const url = await htmlToImage.toPng($('.t4', poster), { width: 1080, height: 1350, pixelRatio: 1, fontEmbedCSS: window.POSTER_FONT_CSS, cacheBust: false });
+      const url = await htmlToImage.toPng($('.t4', poster), { width: 1080, height: 1350, pixelRatio: 2, fontEmbedCSS: window.POSTER_FONT_CSS, cacheBust: false });
       const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       const a = document.createElement('a');
       a.download = `top-4-${slug(state.event) || 'standings'}-${state.layout}.png`;
       a.href = url; a.click();
     } catch (e) { alert('Export failed: ' + e.message); }
-    btn.disabled = false; btn.textContent = 'Download PNG (1080 × 1350)';
+    btn.disabled = false; btn.textContent = 'Download PNG (HD)';
   });
 
   render();
@@ -212,7 +252,7 @@
   // sample photos: measure the heads so they sit right from the start
   window.__ready = fontsReady.then(async () => {
     for (const t of state.players) if (t.photo) t.m = await measure(t.photo).catch(() => null);
-    render();
+    render(); StudioEdit.reset();
   });
   window.__posterState = state;
   window.__render = render;

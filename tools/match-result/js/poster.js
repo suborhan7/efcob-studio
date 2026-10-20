@@ -5,7 +5,9 @@
      tag, kicker, label, date, footerLeft, footerRight, logo,
      teams: [{ name, player, score, scorers, photo, logo, primary, secondary, dx, dy, zoom }, { ... }]
    }
-   Wave puts the winner in the top half; Ticket keeps team 1 on the left. */
+   Wave puts the winner in the top half; Ticket keeps team 1 on the left.
+   Every element is an editor section (data-move, see js/studio-edit.js): mv = its own layer over the box it sits in,
+   w = an in-flow wrapper (wf keeps a flex child blockified, wr also keeps it on the right). Photos are data-p="team". */
 (function () {
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -82,6 +84,8 @@
     const dx = +t.dx || 0, dy = +t.dy || 0, z = +t.zoom || 1;
     return `transform:${base || ''} translate(${dx}px, ${dy}px) scale(${z});`;
   }
+  const mv = (k, h) => `<div class="mv" data-move="${k}">${h}</div>`;
+  const w = (k, h, c) => `<div${c ? ` class="${c}"` : ''} data-move="${k}">${h}</div>`;
   const crest = t => t.logo ? `<img src="${esc(t.logo)}" alt="">` : esc(initials(t.name));
 
   function renderWave(d, mode, custom) {
@@ -95,29 +99,29 @@
     const wave2 = 'M0 812 C 260 712, 420 942, 700 842 S 1000 762, 1080 822';
     const sc = scorerList(top.scorers), sb = scorerList(bot.scorers);
     const brand = d.logo ? `<div class="abs brand logo"><img src="${esc(d.logo)}" alt=""></div>` : `<div class="abs brand">eFCOB</div>`;
-    const topTag = draw ? `<div class="res">${esc(top.player)}</div>` : `<div class="wplayer">${esc(top.player)}</div><div class="winbadge"><b></b>WINNER</div>`;
-    const botTag = draw ? `<div class="res">${esc(bot.player)}</div>` : `<div class="lrow"><div class="wplayer lp">${esc(bot.player)}</div><div class="losebadge"><b></b>DEFEAT</div></div>`;
+    const topTag = draw ? w('playerT', `<div class="res">${esc(top.player)}</div>`) : w('playerT', `<div class="wplayer">${esc(top.player)}</div>`) + w('badgeT', '<div class="winbadge"><b></b>WINNER</div>');
+    const botTag = draw ? w('playerB', `<div class="res">${esc(bot.player)}</div>`) : `<div class="lrow">${w('playerB', `<div class="wplayer lp">${esc(bot.player)}</div>`)}${w('badgeB', '<div class="losebadge"><b></b>DEFEAT</div>', 'wf')}</div>`;
     const body = `
       ${custom ? `<div class="bgimg" style="background-image:url('${esc(d.bgImage)}')"></div>` : ''}
       <div class="top"></div><div class="contour"></div><div class="abs halo2"></div><div class="abs halo"></div>
-      <img class="abs player pa ${top.photo ? '' : 'empty'}" data-team="${wi}" style="${photoTransform(top)}" src="${esc(top.photo)}" alt="">
+      <img class="abs player pa ${top.photo ? '' : 'empty'}" data-p="${wi}" style="${photoTransform(top)}" src="${esc(top.photo)}" alt="">
       <svg class="botwrap" viewBox="0 0 1080 1350" preserveAspectRatio="none">${fill}
         <path d="${wave} L1080 1350 L0 1350 Z" fill="${custom ? 'rgba(11,11,20,.55)' : 'url(#mrg)'}"/>
         <path d="${wave}" fill="none" stroke="#fff" stroke-width="10"/>
         <path d="${wave2}" fill="none" stroke="${p.a2}" stroke-width="5" opacity=".9"/>
       </svg>
-      <img class="abs player pb ${bot.photo ? '' : 'empty'}" data-team="${1 - wi}" style="${photoTransform(bot)}" src="${esc(bot.photo)}" alt="">
-      ${brand}${d.tag ? `<div class="abs tag">${esc(d.tag)}</div>` : ''}<div class="abs kick">${esc(d.kicker)}</div>
-      <div class="abs ta"><div class="crest">${draw ? '' : '<i class="crown">👑</i>'}${crest(top)}</div><div class="tname">${twoLines(top.name)}</div>${topTag}
-        ${sc.length ? `<div class="scorers">${sc.map(esc).join(' · ')}</div>` : ''}</div>
-      <div class="abs tb"><div class="crest">${crest(bot)}</div><div class="tname">${twoLines(bot.name)}</div>${botTag}
-        ${sb.length ? `<div class="scorers">${sb.map(esc).join(' · ')}</div>` : ''}</div>
-      <div class="abs medal" style="--wc:${p.a2}">${draw ? '<span class="wtag">DRAW</span>' : '<span class="wtag">▲ WINNER</span>'}
+      <img class="abs player pb ${bot.photo ? '' : 'empty'}" data-p="${1 - wi}" style="${photoTransform(bot)}" src="${esc(bot.photo)}" alt="">
+      ${mv('brand', brand)}${d.tag ? mv('tag', `<div class="abs tag">${esc(d.tag)}</div>`) : ''}${mv('kick', `<div class="abs kick">${esc(d.kicker)}</div>`)}
+      <div class="abs ta">${w('crestT', `<div class="crest">${draw ? '' : '<i class="crown">👑</i>'}${crest(top)}</div>`)}${w('nameT', `<div class="tname">${twoLines(top.name)}</div>`)}${topTag}
+        ${sc.length ? w('scorersT', `<div class="scorers">${sc.map(esc).join(' · ')}</div>`) : ''}</div>
+      <div class="abs tb">${w('crestB', `<div class="crest">${crest(bot)}</div>`)}${w('nameB', `<div class="tname">${twoLines(bot.name)}</div>`)}${botTag}
+        ${sb.length ? w('scorersB', `<div class="scorers">${sb.map(esc).join(' · ')}</div>`) : ''}</div>
+      ${mv('score', `<div class="abs medal" style="--wc:${p.a2}">${mv('scoreTag', draw ? '<span class="wtag">DRAW</span>' : '<span class="wtag">▲ WINNER</span>')}
         <div class="disc"><div class="ft">${esc(d.label || 'Full time')}</div>
           <div class="sc"><span class="${draw ? '' : 'w'}">${esc(top.score)}</span><i>:</i><span class="${draw ? '' : 'l'}">${esc(bot.score)}</span></div>
-          <div class="date">${esc(d.date)}</div></div></div>
+          <div class="date">${esc(d.date)}</div></div></div>`)}
       <div class="grain"></div>
-      <div class="footer"><span>${esc(d.footerLeft)}</span><span>${esc(d.footerRight)}</span></div>`;
+      ${mv('footer', `<div class="footer"><span>${esc(d.footerLeft)}</span><span>${esc(d.footerRight)}</span></div>`)}`;
     return { cls: 'wave', vars: cssVars(p), body };
   }
 
@@ -127,29 +131,29 @@
     const sa = num(A.score), sb = num(B.score);
     const tagFor = (i, t) => {
       const c = i === 0 ? 'var(--t1d)' : 'var(--t2d)';
-      const tag = sa === sb ? '' : (i === 0 ? sa > sb : sb > sa) ? '<span class="tag2 tw"><b></b>WINNER</span>' : '<span class="tag2 tl"><b></b>DEFEAT</span>';
-      return `<div class="prow" style="--tc:${c}">${tag}<span class="pn">${esc(t.player)}</span></div>`;
+      const tag = sa === sb ? '' : w('result' + (i + 1), (i === 0 ? sa > sb : sb > sa) ? '<span class="tag2 tw"><b></b>WINNER</span>' : '<span class="tag2 tl"><b></b>DEFEAT</span>', 'wf');
+      return `<div class="prow" style="--tc:${c}">${tag}${w('player' + (i + 1), `<span class="pn">${esc(t.player)}</span>`, 'wf')}</div>`;
     };
-    const half = (i, t) => `<div class="half h${i + 1}"><img class="player ${t.photo ? '' : 'empty'}" data-team="${i}" style="${photoTransform(t, 'translateX(-50%)')}" src="${esc(t.photo)}" alt="">
-      ${t.player ? `<div class="chip">${esc(t.player)}</div>` : ''}</div>`;
+    const half = (i, t) => `<div class="half h${i + 1}"><img class="player ${t.photo ? '' : 'empty'}" data-p="${i}" style="${photoTransform(t, 'translateX(-50%)')}" src="${esc(t.photo)}" alt="">
+      ${t.player ? mv('chip' + (i + 1), `<div class="chip">${esc(t.player)}</div>`) : ''}</div>`;
     const li = s => scorerList(s).map(x => `<li>${esc(x)}</li>`).join('');
     const brand = d.logo ? `<div class="brand logo"><img src="${esc(d.logo)}" alt=""></div>` : `<div class="brand">eFCOB</div>`;
     const words = String(d.title || 'Match Result').split(' ');
     const title = words.length > 1 ? `${esc(words.slice(0, -1).join(' '))} <span>${esc(words[words.length - 1])}</span>` : `<span>${esc(words[0])}</span>`;
     const body = `
       ${custom ? `<div class="bgimg" style="background-image:url('${esc(d.bgImage)}')"></div>` : '<div class="mesh"></div><div class="grain"></div>'}
-      <div class="abs top">${brand}${d.tag ? `<div class="tag">${esc(d.tag)}</div>` : ''}</div>
-      <div class="abs card">
-        <div class="head"><div class="title">${title}</div><div class="kick">${esc(d.kicker)}</div></div>
-        <div class="window">${half(0, A)}${half(1, B)}<div class="vs">VS</div></div>
-        <div class="stub"><div class="team"><div class="tname">${twoLines(A.name)}</div>${tagFor(0, A)}</div>
-          <div class="score"><span class="x">${esc(A.score)}</span><i>–</i><span class="y">${esc(B.score)}</span></div>
-          <div class="team r"><div class="tname">${twoLines(B.name)}</div>${tagFor(1, B)}</div></div>
-        <div class="details"><ul class="l">${li(A.scorers)}</ul><ul class="r">${li(B.scorers)}</ul></div>
-        <div class="perf"></div>
-        <div class="meta"><div class="info"><span>${esc(d.label || 'Full time')}</span>${esc(d.date)}<br>${esc(d.kicker)}</div><div class="bar"></div></div>
-      </div>
-      <div class="foot"><span>${esc(d.footerLeft)}</span><span>${esc(d.footerRight)}</span></div>`;
+      <div class="abs top">${w('brand', brand)}${d.tag ? w('tag', `<div class="tag">${esc(d.tag)}</div>`, 'wr') : ''}</div>
+      ${mv('card', `<div class="abs card">
+        <div class="head">${w('title', `<div class="title">${title}</div>`)}${w('kick', `<div class="kick">${esc(d.kicker)}</div>`, 'wr')}</div>
+        ${mv('photos', `<div class="window">${half(0, A)}${half(1, B)}${mv('vs', '<div class="vs">VS</div>')}</div>`)}
+        <div class="stub"><div class="team">${w('name1', `<div class="tname">${twoLines(A.name)}</div>`)}${tagFor(0, A)}</div>
+          ${w('score', `<div class="score"><span class="x">${esc(A.score)}</span><i>–</i><span class="y">${esc(B.score)}</span></div>`)}
+          <div class="team r">${w('name2', `<div class="tname">${twoLines(B.name)}</div>`)}${tagFor(1, B)}</div></div>
+        <div class="details">${w('scorers1', `<ul class="l">${li(A.scorers)}</ul>`)}${w('scorers2', `<ul class="r">${li(B.scorers)}</ul>`)}</div>
+        ${mv('line', '<div class="perf"></div>')}
+        <div class="meta">${w('info', `<div class="info"><span>${esc(d.label || 'Full time')}</span>${esc(d.date)}<br>${esc(d.kicker)}</div>`)}${w('barcode', '<div class="bar"></div>', 'wr')}</div>
+      </div>`)}
+      ${mv('footer', `<div class="foot"><span>${esc(d.footerLeft)}</span><span>${esc(d.footerRight)}</span></div>`)}`;
     return { cls: 'ticket', vars: cssVars(p), body };
   }
 
