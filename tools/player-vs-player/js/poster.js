@@ -40,9 +40,9 @@
     brush:  [{ x: 270, top: 430, head: 140, floor: 990, clip: 'inset(290px 600px 360px 60px)' },
              { x: 810, top: 430, head: 140, floor: 990, clip: 'inset(290px 60px 360px 600px)' }],
     // crest clash: players behind their crest rings, fading out at the bottom
-    clash:  [{ x: 262, top: 330, head: 178, floor: 975, fade: 1 }, { x: 818, top: 330, head: 178, floor: 975, fade: 1 }],
+    clash:  [{ x: 262, top: 290, head: 172, floor: 900, fade: 1 }, { x: 818, top: 290, head: 172, floor: 900, fade: 1 }],
     // torn poster: player 1 above the tear (cut hidden under the paper), player 2 below it in front of the paper
-    torn:   [{ x: 290, top: 150, head: 165, floor: 900 }, { x: 805, top: 585, head: 150, floor: 1255 }],
+    torn:   [{ x: 285, top: 95, head: 215, floor: 900 }, { x: 805, top: 585, head: 150, floor: 1255 }],
   };
   /* Upor-nich: player slots for the staggered arrangement (fade = the photo's cut line is open, so it fades out)
      and where the text sections move by default so names stay under their player. */
@@ -248,8 +248,8 @@
         <circle cx="${cx}" cy="${cy}" r="${r + 20}" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="4 10" opacity=".8"/>`;
       const crestRing = (k, t, cx, c, g) => mv(k, `<div class="ring">${`<svg class="full" viewBox="0 0 1080 1350"><defs>
           <radialGradient id="pcg${g}"><stop offset="0" stop-color="${c}" stop-opacity=".7"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>
-          <filter id="pcgl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter></defs>${ring(cx, 880, 84, c, g)}</svg>`}
-        <div class="crw" style="left:${cx - 66}px;top:814px">${crest(t, 132, c)}</div></div>`);
+          <filter id="pcgl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter></defs>${ring(cx, 935, 62, c, g)}</svg>`}
+        <div class="crw" style="left:${cx - 52}px;top:883px">${crest(t, 104, c)}</div></div>`);
       h = `${up ? '' : '<div class="wash" style="background:#070716"></div>'}<svg class="full" viewBox="0 0 1080 1350"><defs>
           <linearGradient id="pchl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}" stop-opacity=".95"/><stop offset="1" stop-color="${mix(a, '#070716', .7)}" stop-opacity=".9"/></linearGradient>
           <linearGradient id="pchr" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${b}" stop-opacity=".95"/><stop offset="1" stop-color="${mix(b, '#070716', .7)}" stop-opacity=".9"/></linearGradient>

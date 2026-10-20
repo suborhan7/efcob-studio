@@ -1,6 +1,6 @@
 /* Maker page: form -> state -> poster. Head-size auto-fit, auto cut-out, jersey/logo colours, drag/size and HD PNG download. */
 (function () {
-  const S = window.SAMPLE_PHOTOS || {};
+  const S = window.SAMPLE_PHOTOS || {}, SC = window.SAMPLE_CRESTS || {};
   const team = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', short: '', m: null }, o);
   const state = {
     arrange: 'side',               // side | updown (players staggered; bolt, slash and half only)
@@ -20,8 +20,8 @@
     partnersLabel: 'Official partners',
     partners: ['NOVAPAY', 'Pixel Arena', 'BOLT', 'zenith', 'KICKOFF+'].map(name => ({ name, logo: '' })),
     teams: [
-      team({ team: 'Team Nexus',  player: 'Nexus_Arif', photo: S.a || '', c: '#7b45e0', c2: '#c3a2ff' }),
-      team({ team: 'PNG Esports', player: 'PNG_Moreno', photo: S.b || '', c: '#e09a1a', c2: '#ffd86b' }),
+      team({ team: 'AC Milan', player: 'Nexus_Arif', photo: S.a || '', logo: SC.milan || '', c: '#7b45e0', c2: '#c3a2ff' }),
+      team({ team: 'Al Nassr', player: 'PNG_Moreno', photo: S.b || '', logo: SC.alnassr || '', c: '#e09a1a', c2: '#ffd86b' }),
     ],
   };
 
