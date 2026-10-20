@@ -87,6 +87,9 @@ wheel, like the photos; this is kept separately for each layout and arrangement.
 **Reset to default** puts all sections and both photos of the current layout back.
 Partners strip at the bottom: up to 5 names or logos plus a website line.
 
+Every part (header, title, photos/crests, Brush outline words, VS, names, date line, partners strip) can be switched off
+under **Poster e ki ki thakbe**, per layout; **Reset to default** brings back positions, sizes and hidden parts.
+
 ### Team vs Team
 Club crest vs club crest, 1080 × 1350 (HD download 2160 × 2700), with the partner strip. Four layouts:
 - **Ball**: each crest is wrapped round a 3D football in the team colours (a crest in the same colour as its team gets a white ball).
@@ -99,3 +102,6 @@ Background: Default template (fixed colours), Team colours (auto from the logo) 
 In Smoke and Brush, tick **Captain er chobi soho** to show the captain's cut-out photo instead of the crest; the crest then
 sits next to the team name, with the captain's name below. Crests, photos and every text block can be dragged and resized
 with the mouse wheel; **Reset to default** puts them back.
+
+Every part (header, title, photos/crests, Brush outline words, VS, names, date line, partners strip) can be switched off
+under **Poster e ki ki thakbe**, per layout; **Reset to default** brings back positions, sizes and hidden parts.

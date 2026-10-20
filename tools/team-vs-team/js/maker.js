@@ -6,6 +6,7 @@
   const state = {
     layout: 'ball',                // ball | smoke | stad | brush
     moves: {},                     // admin's drags/sizes per layout: { smoke: { vs: { x, y, s, ox, oy } } }
+    hidden: {},                    // parts the admin switched off, per layout: { brush: { wordA: true } }
     bgMode: 'jersey',              // 'template' | 'jersey' (team colours) | 'image'
     bgImage: '',
     logo: '',
@@ -30,8 +31,29 @@
   const readFile = f => new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(f); });
   const loadImage = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 
+  /* Every part of the poster can be switched off (per layout). Parts are the movable text sections plus the two
+     photos/crests; the list is read from the rendered poster so each layout shows only what it has. */
+  const PARTS = { head: 'Header (logo, tag, date)', title: 'Title', p0: 'Team 1 photo / logo', p1: 'Team 2 photo / logo',
+    wordA: 'Team 1 boro outline lekha', wordB: 'Team 2 boro outline lekha', vs: 'VS', bar: 'VS bar', teamA: 'Team 1 name',
+    teamB: 'Team 2 name', info: 'Date / time line', partners: 'Partners strip' };
+  const hiddenOf = () => (state.hidden[tvtMoveKey(state)] ||= {});
+  function applyParts() {
+    const hid = hiddenOf(), keys = [];
+    $$('[data-move]', poster).forEach(el => { keys.push(el.dataset.move); if (hid[el.dataset.move]) el.style.display = 'none'; });
+    [0, 1].forEach(i => { const el = $(`[data-p="${i}"]`, poster); if (!el) return; keys.push('p' + i);
+      if (hid['p' + i]) (el.closest('.slot') || el).style.display = 'none'; });
+    const box = $('#parts'), order = Object.keys(PARTS).filter(k => keys.includes(k));
+    if (box.dataset.keys !== order.join() || box.dataset.layout !== tvtMoveKey(state)) {
+      box.dataset.keys = order.join(); box.dataset.layout = tvtMoveKey(state);
+      box.innerHTML = order.map(k => `<label class="check"><input type="checkbox" data-part="${k}"> ${PARTS[k]}</label>`).join('');
+    }
+    $$('[data-part]', box).forEach(c => c.checked = !hid[c.dataset.part]);
+  }
+  $('#parts').addEventListener('change', e => { const k = e.target.dataset.part; if (!k) return; hiddenOf()[k] = !e.target.checked; render(); });
+
   const render = () => {
     renderTvt(poster, state);
+    applyParts();
     $('#bgUploadRow').style.display = state.bgMode === 'image' ? '' : 'none';
     $$('[data-show]').forEach(el => el.style.display = el.dataset.show.split(' ').includes(state.layout) ? '' : 'none');
   };
@@ -335,7 +357,7 @@
 
   // ---- reset: every section and both photos of this layout back to the default spot and size ----
   $('#resetAll').addEventListener('click', () => {
-    delete state.moves[tvtMoveKey(state)];
+    delete state.moves[tvtMoveKey(state)]; delete state.hidden[tvtMoveKey(state)];
     state.teams.forEach((t, i) => { Object.assign(t, { dx: 0, dy: 0, zoom: 1 }); syncZoom(i); });
     render();
   });

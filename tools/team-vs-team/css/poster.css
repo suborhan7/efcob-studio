@@ -84,7 +84,8 @@
 .tvt.brush .ttl b{font:400 104px/1 'Anton';letter-spacing:.03em;color:#fff}
 .tvt.brush .ttl span{color:#a9adbd}
 .tvt.brush .panel{position:absolute;top:290px;width:420px;height:700px;overflow:hidden;border:3px solid;background:#0b0b10}
-.tvt.brush .panel .big{position:absolute;left:-10px;top:-24px;font:400 300px/.82 'Anton';color:transparent;-webkit-text-stroke:3px rgba(255,255,255,.85);text-transform:uppercase;white-space:nowrap;letter-spacing:-.01em}
+.tvt.brush .bigclip{position:absolute;inset:0;pointer-events:none}
+.tvt.brush .big{position:absolute;top:290px;margin-top:-.08em;font:400 300px/.82 'Anton';color:transparent;-webkit-text-stroke:3px rgba(255,255,255,.85);text-transform:uppercase;white-space:nowrap;letter-spacing:-.01em}
 /* VS: cyberpunk Orbitron, chrome face, thin rails and a slight split in the two team colours */
 .tvt.brush .vs{position:absolute;left:390px;top:712px;width:300px;height:110px;display:flex;align-items:center;justify-content:center}
 .tvt.brush .vs::before,.tvt.brush .vs::after{content:'';position:absolute;top:50%;width:46px;height:2px}
