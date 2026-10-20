@@ -237,8 +237,10 @@
         <g filter="url(#tvro${seed})"><path d="M-40 480 L460 260 L470 340 L-30 580 Z" fill="${c1}"/><path d="M-30 600 L450 430 L460 460 L-20 650 Z" fill="${c2}" opacity=".85"/>
         <path d="M-20 200 L300 90 L310 120 L-10 240 Z" fill="${c1}" opacity=".6"/></g></svg>`;
       const panel = (t, x, c1, c2, seed) => `<div class="panel" style="left:${x}px;border-color:${c1};box-shadow:0 0 22px ${c1},inset 0 0 40px rgba(0,0,0,.6)">
-        ${up ? '' : strokes(c1, c2, seed)}<div class="big">${esc(t.short || t.team.split(' ')[0])}</div></div>`;
-      h = `${up}${hdr}${panel(A, 60, a, a2, 3)}${panel(B, 600, b, b2, 8)}
+        ${up ? '' : strokes(c1, c2, seed)}</div>`;
+      // big outline word: its own section (drag, wheel, remove), still clipped to its panel
+      const word = (t, k, x) => `<div class="bigclip" style="clip-path:inset(290px ${1020 - x - 420 + 60}px 360px ${x}px)">${mv(k, `<div class="big" style="left:${x + 10}px">${esc(t.short || t.team.split(' ')[0])}</div>`)}</div>`;
+      h = `${up}${hdr}${panel(A, 60, a, a2, 3)}${panel(B, 600, b, b2, 8)}${word(A, 'wordA', 60)}${word(B, 'wordB', 600)}
         ${crest(A, 0, 'filter:drop-shadow(0 20px 30px rgba(0,0,0,.7))')}${crest(B, 1, 'filter:drop-shadow(0 20px 30px rgba(0,0,0,.7))')}
         <svg class="full" viewBox="0 0 1080 1350"><defs><radialGradient id="tvgb" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fff2b8"/><stop offset=".35" stop-color="#e6b143"/><stop offset=".8" stop-color="#8a5a12"/><stop offset="1" stop-color="#3d2405"/></radialGradient>
           <radialGradient id="tvha" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffcf6a" stop-opacity=".5"/><stop offset="1" stop-color="#ffcf6a" stop-opacity="0"/></radialGradient></defs>
@@ -251,12 +253,12 @@
         ${mv('info', `<div class="info">${date}${time ? `<em>${time}</em>` : ' · '}${extra}</div>`)}`;
     }
 
-    root.innerHTML = `<div class="tvt ${L}${isUp ? ' up' : ''}">${h}${sp}</div>`;
+    root.innerHTML = `<div class="tvt ${L}${isUp ? ' up' : ''}">${h}${mv('partners', sp)}</div>`;
     fitNames(root.firstElementChild);
   }
 
   // long team names shrink until they fit their space
-  const FIT = { ball: [['.nm b', 440]], smoke: [['.nm b', 440]], stad: [['.ban', 370]], brush: [['.nm b', 420]] };
+  const FIT = { ball: [['.nm b', 440]], smoke: [['.nm b', 440]], stad: [['.ban', 370]], brush: [['.nm b', 420], ['.big', 400]] };
   function fitNames(p) {
     const L = [...p.classList].find(c => FIT[c]);
     for (const [sel, max] of FIT[L]) p.querySelectorAll(sel).forEach(el => {
