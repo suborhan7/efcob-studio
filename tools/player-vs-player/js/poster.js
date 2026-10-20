@@ -277,10 +277,10 @@
 
     if (L === 'torn') {
       const R2 = rng(29);
-      // the tear runs from (0, 1000) up to (1080, 520); the paper strip is ±95px around it with ragged edges
+      // the tear runs from (0, 1000) up to (1080, 520); the paper strip is ±112px around it with ragged edges
       const yAt = (x, off) => 1000 - x * 480 / 1080 + off;
       const edge = (off, j) => { const pts = []; for (let x = -20; x <= 1100; x += 18) pts.push(`${x},${(yAt(x, off) + (R2() - .5) * j).toFixed(1)}`); return pts; };
-      const top = edge(-95, 16), bot = edge(95, 16), topIn = edge(-80, 10), botIn = edge(80, 10);
+      const top = edge(-112, 16), bot = edge(112, 16), topIn = edge(-97, 10), botIn = edge(97, 10);
       const paper = `M${top.join(' L')} L${bot.slice().reverse().join(' L')} Z`, paper2 = `M${topIn.join(' L')} L${botIn.slice().reverse().join(' L')} Z`;
       const dot = (id, c) => `<pattern id="${id}" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="8" cy="8" r="3.2" fill="${c}"/></pattern>`;
       h = `${up}<svg class="full" viewBox="0 0 1080 1350"><defs>
