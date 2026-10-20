@@ -1,0 +1,86 @@
+/* Studio look: one polish layer shared by every maker (same file in every tools/<id>/css/). Loaded after maker.css. */
+:root { --ui-bg: #11141b; --ui-panel: #171b24; --ui-field: #0f1218; --ui-line: #262b37; --ui-line2: #323949;
+  --ui-text: #e8ecf3; --ui-mute: #8f9bb3; --ui-accent: #19e28a; --ui-accent-ink: #04140d; }
+body { -webkit-font-smoothing: antialiased; accent-color: var(--ui-accent); }
+
+/* left column */
+.form { background: var(--ui-panel); scrollbar-width: thin; scrollbar-color: #2f3544 transparent; }
+.form::-webkit-scrollbar { width: 8px; }
+.form::-webkit-scrollbar-thumb { background: #2f3544; border-radius: 8px; }
+.form section { padding: 16px 0 10px; }
+.form h3 { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 6px; margin-bottom: 10px; font-size: 12px; color: var(--ui-mute); }
+.form h3 .sub { font-size: 11px; font-weight: 500; letter-spacing: 0; text-transform: none; color: #6b768d; }
+.form label { margin-bottom: 10px; }
+
+/* inputs, selects, textareas: one height, one focus ring */
+.form input:not([type=color]):not([type=file]):not([type=checkbox]):not([type=radio]):not([type=range]), .form select, .form textarea {
+  min-height: 34px; border-color: var(--ui-line2); background-color: var(--ui-field); transition: border-color .12s, box-shadow .12s; }
+.form input:hover, .form select:hover, .form textarea:hover { border-color: #414a5e; }
+.form input:focus, .form select:focus, .form textarea:focus, .form button:focus-visible {
+  outline: none; border-color: var(--ui-accent); box-shadow: 0 0 0 3px rgba(25, 226, 138, .18); }
+.form select { appearance: none; -webkit-appearance: none; padding-right: 28px; text-overflow: ellipsis; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, #8f9bb3 50%), linear-gradient(135deg, #8f9bb3 50%, transparent 50%);
+  background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+.form .hint { display: block; margin-top: 4px; font-size: 11px; line-height: 1.35; color: #6b768d; }
+.form input[type=range] { height: 18px; }
+.form input[type=checkbox], .form input[type=radio], .form input[type=radio]:not([type=color]):not([type=file]):not([type=checkbox]) {
+  display: inline-block; width: 15px; height: 15px; min-height: 0; margin: 0; padding: 0; flex: none; box-shadow: none; }
+.form label.check { align-items: flex-start; gap: 8px; line-height: 1.35; }
+.form label.check input { margin-top: 1px; }
+
+/* buttons: same size and font everywhere */
+button { min-height: 32px; font-size: 13px; line-height: 1.2; transition: background .12s, border-color .12s; }
+button:hover { border-color: #414a5e; }
+button:disabled { opacity: .4; cursor: default; }
+.colors { flex-wrap: wrap; row-gap: 6px; }
+.colors button, .auto-row button, .pdet .colors button { padding: 6px 10px; font-size: 12px; white-space: nowrap; min-height: 30px; }
+.auto-row button { min-height: 34px; }
+.pos button { min-height: 28px; padding: 4px 10px; font-size: 12px; }
+.reset-all { margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* file inputs: a dark button + the chosen file name instead of the browser's grey "Choose File / No file chosen" */
+.form input[type=file] { font-size: 0; color: transparent; max-width: 100%; cursor: pointer; margin-top: 5px; }
+.form input[type=file]::file-selector-button { margin: 0; padding: 6px 11px; min-height: 30px; border: 1px dashed #3a4256; border-radius: 6px;
+  background: #1d2230; color: #cfd6e4; font: 600 12px system-ui, -apple-system, 'Segoe UI', sans-serif; cursor: pointer; }
+.form input[type=file]:hover::file-selector-button { border-color: var(--ui-accent); color: #fff; }
+.form .fname { display: block; margin-top: 3px; font-size: 11px; color: #6fd3a0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.form .fname:empty { display: none; }
+.prow input[type=file] { margin: 0; width: 100%; }
+.prow input[type=file]::file-selector-button { width: 100%; }
+.prow .fname { display: none; }
+.prow input[type=file].has-file::file-selector-button { border-style: solid; border-color: #2f7d58; color: #6fd3a0; }
+
+/* empty status lines take no room (the gap under "Auto cut-out") */
+.status:empty { min-height: 0; margin: 0; }
+
+/* card picker: card name never breaks onto two lines */
+.card-pick span { white-space: nowrap; }
+.card-pick b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 62%; }
+.studio-brand { display: flex; align-items: center; gap: 8px; font-size: 17px; letter-spacing: .01em; }
+.studio-brand::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: var(--ui-accent); box-shadow: 0 0 12px rgba(25, 226, 138, .6); }
+
+/* editor toolbar: help text folds behind a "?" button */
+.se-bar .tip { display: none; margin: 2px 0 8px; }
+.se-bar.show-help .tip { display: block; }
+.se-bar .se-help { margin-left: auto; width: 30px; padding: 0; border-radius: 99px; font-weight: 700; }
+.se-bar.show-help .se-help { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); }
+
+/* Download always in reach at the bottom of the column */
+.form > button.primary { position: sticky; bottom: -20px; z-index: 3; margin: 14px -20px -20px; width: calc(100% + 40px); border-radius: 0;
+  padding: 14px; background: #19a463; box-shadow: 0 -10px 20px rgba(17, 20, 27, .85); font-size: 14px; }
+.form > button.primary:hover { background: #1db872; }
+.form > button.primary:disabled { opacity: .7; }
+
+/* Best XI: star radio sits on the same line as Rating */
+.form label.star-pick { margin-top: 0; align-self: end; align-items: center; min-height: 34px; margin-bottom: 10px; white-space: nowrap; }
+.form label.star-pick input { margin-top: 0; }
+
+/* poster area */
+.stage { background: radial-gradient(ellipse at 50% 40%, #1a1f2b 0%, var(--ui-bg) 70%); }
+.frame { box-shadow: 0 24px 70px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .04); }
+
+@media (max-width: 620px) {
+  .form { overflow: visible; }
+  .form > button.primary { bottom: 0; margin: 14px -20px 0; }
+  .stage { box-shadow: 0 8px 20px rgba(0, 0, 0, .5); }
+}
