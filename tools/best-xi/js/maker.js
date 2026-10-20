@@ -4,7 +4,7 @@
   const S = window.SAMPLE_PHOTOS || {}, SL = window.SAMPLE_LOGOS || {};
   const P = (name, team, kit, rating, photo, logo = '') => ({ name, team, kit, rating, photo: S[photo] || '', logo: SL[logo] || '', m: null, dx: 0, dy: 0, zoom: 1 });
   const state = {
-    layout: 'pitch',               // pitch | board
+    layout: 'board',               // board | pitch
     formation: '4-3-3',
     moves: {},                     // admin's drags/sizes per layout: { pitch: { pl3: { x, y, s, ox, oy } } }
     hidden: {},                    // parts the admin switched off, per layout

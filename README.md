@@ -138,10 +138,10 @@ Team of the Week: eleven players in a formation, 1080 × 1350 (HD download 2160 
 Formation dropdown: **4-3-3**, **4-4-2**, **4-2-3-1**, **3-5-2**, **3-4-3**, **5-3-2**; every player moves to their spot on their own.
 The form lists the players in formation order (1 = keeper, then defenders, midfielders and forwards, left to right), and each
 box shows the spot (GK / DF / MF / FW) the player takes in the chosen formation. Two layouts:
+- **Tactics Board** (default): a flat green board on a bright blue page; photo tiles with colour-coded position tags (FW red, MF green,
+  DF blue, GK yellow), rating chip and name card; average rating and top player boxes at the top.
 - **Tactic Pitch**: a tilted 3D pitch; round photo badges with a ring in the player's kit colour, rating chip, name plate with
   position, team and logo; average rating box bottom left.
-- **Tactics Board**: a flat green board on a bright blue page; photo tiles with colour-coded position tags (FW red, MF green,
-  DF blue, GK yellow), rating chip and name card; average rating and top player boxes at the top.
 
 Background: **Default template**, **Jersey / logo colours** (from the star player's kit; yellow/orange kits get purple, plain
 black/white kits get gold + purple) or **Upload my own**. Fields: title, event, week, small tag, the two box labels, optional eFCOB
