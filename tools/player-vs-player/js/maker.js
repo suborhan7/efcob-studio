@@ -14,7 +14,7 @@
     event: 'eFCOB Winter Cup 2026',
     tag: 'Matchday',
     date: 'Sat 25 Oct',
-    time: '21:00',
+    time: '9:00 PM',
     extra: 'BST · Online',
     site: 'efcob.com',
     partnersLabel: 'Official partners',
