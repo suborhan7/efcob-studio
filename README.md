@@ -70,11 +70,14 @@ Photos are auto-fitted by head size, so every head comes out the same size for i
 Partners strip at the bottom: up to 5 names or logos plus a website line.
 
 ### Team vs Team
-Pre-match poster, 1080 × 1350 (downloads in HD, 2160 × 2700). Five layouts (dropdown at the top of the form):
-**Lightning Split**, **Neon Frames**, **Slash Plates**, **Chrome Bar** and **Halftone Slash**.
+Pre-match poster, 1080 × 1350 (downloads in HD, 2160 × 2700). Six layouts (dropdown at the top of the form):
+**Lightning Split**, **Neon Frames**, **Slash Plates**, **Chrome Bar**, **Halftone Slash** and **Up-Down Split**
+(halftone, team 1 high on the left, team 2 low on the right).
 Background: **Default template** (fixed colours for each layout), **Jersey / logo colours (auto)** (each side takes its
 team colour; white/black kits use their trim, plain black/white kits get purple) or **Upload my own**.
 Poster fields: title (stage), event, small tag, date, kick-off time, the text after the time, optional eFCOB logo.
 Per team: team, player, photo (auto cut-out, drag/size), optional team logo (sets the colours), main + light colour.
 Photos are fitted by head size and are not sharpened, so faces stay clean; use photos at least about 1000 px tall.
+Every text block (header, title, VS, team names, date line) can be dragged on the poster too, separately for each layout.
+**Reset to default** puts all sections and both photos of the current layout back.
 Partners strip at the bottom: up to 5 names or logos plus a website line.

@@ -3,7 +3,8 @@
   const S = window.SAMPLE_PHOTOS || {};
   const team = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', m: null }, o);
   const state = {
-    layout: 'bolt',                // bolt | neon | slash | chrome | half
+    layout: 'bolt',                // bolt | neon | slash | chrome | half | updown
+    moves: {},                     // dragged text sections per layout: { half: { vs: { x, y } } }
     bgMode: 'template',            // 'template' | 'jersey' | 'image'
     bgImage: '',
     logo: '',
@@ -244,23 +245,29 @@
     $('[data-zoom]', sec).value = z; $('[data-zoom-val]', sec).textContent = z + '%';
   }
 
-  // ---- drag a photo on the poster, wheel to resize ----
+  // ---- drag a photo or any text section on the poster, wheel to resize a photo ----
   const frame = $('#frame');
   const posterScale = () => frame.getBoundingClientRect().width / 1080;
   const target = e => e.target.closest('[data-p]');
   let drag = null;
   frame.addEventListener('pointerdown', e => {
-    const el = target(e); if (!el) return;
-    const i = +el.dataset.p, t = state.teams[i];
-    drag = { t, i, el, x: e.clientX, y: e.clientY, dx: t.dx, dy: t.dy };
+    const el = target(e);
+    if (el) {
+      const i = +el.dataset.p, t = state.teams[i];
+      drag = { t, i, el, x: e.clientX, y: e.clientY, dx: t.dx, dy: t.dy };
+    } else {
+      const mv = e.target.closest('[data-move]'); if (!mv) return;
+      const L = state.layout, k = mv.dataset.move, o = ((state.moves[L] ||= {})[k] ||= { x: 0, y: 0 });
+      drag = { o, el: mv, x: e.clientX, y: e.clientY, dx: o.x, dy: o.y };
+    }
     frame.setPointerCapture(e.pointerId); frame.classList.add('dragging');
   });
   frame.addEventListener('pointermove', e => {
     if (!drag) return;
-    const s = posterScale(), t = drag.t;
-    t.dx = Math.round(drag.dx + (e.clientX - drag.x) / s);
-    t.dy = Math.round(drag.dy + (e.clientY - drag.y) / s);
-    drag.el.style.cssText = tvtPhotoStyle(t, TVT_SLOTS[state.layout][drag.i]);   // move only the photo while dragging
+    const s = posterScale(), x = Math.round(drag.dx + (e.clientX - drag.x) / s), y = Math.round(drag.dy + (e.clientY - drag.y) / s);
+    if (drag.o) { Object.assign(drag.o, { x, y }); drag.el.style.transform = `translate(${x}px,${y}px)`; return; }
+    Object.assign(drag.t, { dx: x, dy: y });
+    drag.el.style.cssText = tvtPhotoStyle(drag.t, TVT_SLOTS[state.layout][drag.i]);   // move only the photo while dragging
   });
   const endDrag = () => { drag = null; frame.classList.remove('dragging'); };
   frame.addEventListener('pointerup', endDrag); frame.addEventListener('pointercancel', endDrag);
@@ -271,6 +278,13 @@
     t.zoom = Math.min(2, Math.max(0.5, +(t.zoom * (e.deltaY < 0 ? 1.05 : 0.95)).toFixed(3)));
     render(); syncZoom(i);
   }, { passive: false });
+
+  // ---- reset: every section and both photos of this layout back to the default spot and size ----
+  $('#resetAll').addEventListener('click', () => {
+    delete state.moves[state.layout];
+    state.teams.forEach((t, i) => { Object.assign(t, { dx: 0, dy: 0, zoom: 1 }); syncZoom(i); });
+    render();
+  });
 
   // ---- download: 2x (2160 × 2700) so text and edges stay sharp; photos keep their own resolution ----
   $('#download').addEventListener('click', async () => {

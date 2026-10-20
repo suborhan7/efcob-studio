@@ -150,3 +150,13 @@
 .tvt .brand img{display:block;height:34px}
 .tvt .sp .row div img{max-height:44px;max-width:90%;object-fit:contain}
 .tvt .info{text-transform:uppercase}
+
+/* movable sections: each text block sits in a full-poster wrapper that the admin can drag (offset = transform) */
+.tvt .mv{position:absolute;inset:0;pointer-events:none}
+.tvt .mv > *{pointer-events:auto;cursor:move}
+
+/* Up-Down Split: halftone slash with team 1 high on the left (name under the player) and team 2 low on the right */
+.tvt.updown .ttl{top:120px}
+.tvt.updown .vs{top:440px}
+.tvt.updown .tnA{top:768px}
+.tvt.updown .slot{-webkit-mask-image:linear-gradient(#000 calc(100% - 60px),transparent);mask-image:linear-gradient(#000 calc(100% - 60px),transparent)}
