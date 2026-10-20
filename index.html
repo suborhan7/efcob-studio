@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>eFCOB Admin Studio</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: #11141b; }
+  /* the selected maker fills the page; its left column holds the card list and the form */
+  .main { position: fixed; inset: 0; }
+  .main iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: none; }
+  .main iframe.on { display: block; }
+</style>
+</head>
+<body>
+
+<main class="main" id="main"></main>
+
+<script>
+/* Card types. To add a new card: put its maker in tools/<id>/ and add one line here. */
+const CARD_TYPES = [
+  { id: "comparison", name: "Player Comparison", src: "tools/comparison/index.html" },
+  { id: "mvp",        name: "MVP",               src: "tools/mvp/index.html" },
+  { id: "match-result", name: "Match Result",    src: "tools/match-result/index.html" },
+  { id: "top-4",      name: "Top 4",             src: "tools/top-4/index.html" },
+];
+
+const main = document.getElementById("main");
+const frames = {};   // each maker is loaded once and kept, so switching keeps your edits
+
+function select(id) {
+  const t = CARD_TYPES.find(x => x.id === id) || CARD_TYPES[0];
+  if (!frames[t.id]) {
+    const f = document.createElement("iframe");
+    f.src = t.src;
+    f.title = t.name;
+    main.appendChild(f);
+    frames[t.id] = f;
+  }
+  for (const [k, f] of Object.entries(frames)) f.classList.toggle("on", k === t.id);
+  document.title = `${t.name} · eFCOB Admin Studio`;
+  if (location.hash.slice(1) !== t.id) history.replaceState(null, "", "#" + t.id);
+}
+
+// each maker draws the card list at the top of its form (js/studio-nav.js) and asks to switch through here
+window.addEventListener("message", e => {
+  const m = e.data || {};
+  const id = Object.keys(frames).find(k => frames[k].contentWindow === e.source);
+  if (m.type === "studio-ready" && id)
+    e.source.postMessage({ type: "studio-cards", cards: CARD_TYPES.map(({ id, name }) => ({ id, name })), current: id }, "*");
+  if (m.type === "studio-select") select(m.id);
+});
+
+select(location.hash.slice(1));
+window.addEventListener("hashchange", () => select(location.hash.slice(1)));
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Player Comparison Poster</title>
+<script src="js/fonts.js"></script>
+<link rel="stylesheet" href="css/poster.css">
+<link rel="stylesheet" href="css/maker.css">
+</head>
+<body>
+<div class="app">
+  <aside class="form" id="form">
+    <h2>Player Comparison</h2>
+
+    <section>
+      <h3>Poster</h3>
+      <label>Tag (top right)<input data-k="tag"></label>
+      <label>Small line above title<input data-k="kicker"></label>
+      <label>Title<input data-k="title"></label>
+      <label>Logo (optional)<input type="file" accept="image/*" data-file="logo"></label>
+      <div class="two">
+        <label>Footer left<input data-k="footerLeft"></label>
+        <label>Footer right<input data-k="footerRight"></label>
+      </div>
+    </section>
+
+    <section data-player="a">
+      <h3>Player 1 (left)</h3>
+      <label>Name<input data-p="name"></label>
+      <label>Team<input data-p="team"></label>
+      <label>Photo<input type="file" accept="image/*" data-photo></label>
+      <label class="check"><input type="checkbox" data-cutout checked> Auto cut-out (background kete dao)</label>
+      <div class="status" data-status></div>
+      <div class="pos">
+        <span>Size</span>
+        <input type="range" min="50" max="200" value="100" data-zoom aria-label="Photo size">
+        <span data-zoom-val>100%</span>
+        <button type="button" data-reset-pos>Reset</button>
+      </div>
+      <p class="tip">Poster er upor chobi te drag kore shorao. Mouse wheel e boro-choto.</p>
+      <div class="colors">
+        <span>Jersey colours</span>
+        <input type="color" data-p="primary" title="Main colour">
+        <input type="color" data-p="secondary" title="Second colour">
+        <button type="button" data-auto>Auto from jersey</button>
+      </div>
+    </section>
+
+    <section data-player="b">
+      <h3>Player 2 (right)</h3>
+      <label>Name<input data-p="name"></label>
+      <label>Team<input data-p="team"></label>
+      <label>Photo<input type="file" accept="image/*" data-photo></label>
+      <label class="check"><input type="checkbox" data-cutout checked> Auto cut-out (background kete dao)</label>
+      <div class="status" data-status></div>
+      <div class="pos">
+        <span>Size</span>
+        <input type="range" min="50" max="200" value="100" data-zoom aria-label="Photo size">
+        <span data-zoom-val>100%</span>
+        <button type="button" data-reset-pos>Reset</button>
+      </div>
+      <p class="tip">Poster er upor chobi te drag kore shorao. Mouse wheel e boro-choto.</p>
+      <div class="colors">
+        <span>Jersey colours</span>
+        <input type="color" data-p="primary" title="Main colour">
+        <input type="color" data-p="secondary" title="Second colour">
+        <button type="button" data-auto>Auto from jersey</button>
+      </div>
+    </section>
+
+    <section>
+      <h3>Stats (max 7)</h3>
+      <div class="stat-head"><span>P1</span><span>Stat</span><span>P2</span><span>Better</span><span></span></div>
+      <div id="stats"></div>
+      <button type="button" id="addStat">+ Add stat</button>
+    </section>
+
+    <button type="button" id="download" class="primary">Download PNG (1080 × 1350)</button>
+  </aside>
+
+  <main class="stage">
+    <div class="frame" id="frame"><div id="poster"></div></div>
+  </main>
+</div>
+
+<script src="lib/html-to-image.js"></script>
+<script src="lib/bg-removal.js"></script>
+<script src="js/samples.js"></script>
+<script src="js/colors.js"></script>
+<script src="js/poster.js"></script>
+<script src="js/maker.js"></script>
+<script src="js/fit.js"></script>
+<script src="js/studio-nav.js"></script>
+</body>
+</html>
