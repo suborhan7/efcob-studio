@@ -1,10 +1,10 @@
 /* Maker page: form -> state -> poster. Head-size auto-fit, auto cut-out, jersey/logo colours, drag/size and HD PNG download. */
 (function () {
   const S = window.SAMPLE_PHOTOS || {};
-  const team = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', m: null }, o);
+  const team = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', short: '', m: null }, o);
   const state = {
     arrange: 'side',               // side | updown (players staggered; bolt, slash and half only)
-    layout: 'bolt',                // bolt | neon | slash | chrome | half
+    layout: 'bolt',                // bolt | neon | slash | chrome | half | smoke | brush
     moves: {},                     // admin's drags/sizes per layout + arrangement: { 'half:ud': { vs: { x, y, s, ox, oy } } }
     bgMode: 'template',            // 'template' | 'jersey' | 'image'
     bgImage: '',
@@ -318,7 +318,7 @@
   });
 
   render();
-  const fontsReady = Promise.all(['italic 900 40px Rubik', '40px Graduate', '800 20px Montserrat', 'italic 900 40px "Exo 2"', '40px Anton']
+  const fontsReady = Promise.all(['italic 900 40px Rubik', '40px Graduate', '800 20px Montserrat', 'italic 900 40px "Exo 2"', '40px Anton', '900 40px Orbitron']
     .map(f => document.fonts.load(f))).catch(() => {});
   window.__ready = fontsReady.then(async () => {
     for (const t of state.teams) if (t.photo) t.m = await measure(t.photo).catch(() => null);

@@ -1,5 +1,7 @@
-/* Player vs Player poster renderer: renderTvt(el, state). Five layouts from shifty's VS references:
-   bolt (lightning split), neon (neon frames), slash (slash plates), chrome (chrome bar), half (halftone slash).
+/* Player vs Player poster renderer: renderTvt(el, state). Seven layouts from shifty's VS references:
+   bolt (lightning split), neon (neon frames), slash (slash plates), chrome (chrome bar), half (halftone slash),
+   smoke (team-colour smoke over a pitch) and brush (neon panels, paint strokes, cyberpunk VS); the last two are
+   shared with the Team vs Team card.
    st.arrange: 'side' (players side by side) or 'updown' (team 1 high on the left, team 2 low on the right; bolt, slash, half).
    Every text block sits in a .mv wrapper so the admin can drag it and wheel-resize it; see tvtMoveStyle. */
 (function () {
@@ -13,6 +15,7 @@
     bolt: ['#ff8a1a', '#ffd21a', '#1f63db', '#3fc1f2'], neon: ['#2f6bff', '#8fb8ff', '#ff2d55', '#ff9db0'],
     slash: ['#1e9be0', '#7fd0ff', '#1e9be0', '#7fd0ff'], chrome: ['#1d4fd8', '#5d8bff', '#d91f3a', '#ff6b7f'],
     half: ['#1b3263', '#2c4c8f', '#c4101b', '#e8323d'],
+    smoke: ['#1f6bff', '#7fb0ff', '#ff2d7a', '#ff8fb8'], brush: ['#e0213f', '#ff6b80', '#3fc3f0', '#a8e6ff'],
   };
 
   /* Where each player stands: x = body centre, top = head-top line, head = head width, floor = where the photo is cut
@@ -23,6 +26,10 @@
     slash:  [{ x: 260, top: 405, head: 130, floor: 792 },  { x: 820, top: 555, head: 130, floor: 942 }],
     chrome: [{ x: 285, top: 480, head: 140, floor: 905 },  { x: 795, top: 480, head: 140, floor: 905 }],
     half:   [{ x: 260, top: 505, head: 140, floor: 1032 }, { x: 820, top: 505, head: 140, floor: 1032 }],
+    smoke:  [{ x: 262, top: 420, head: 132, floor: 868 },  { x: 818, top: 420, head: 132, floor: 868 }],
+    // clip = the neon panel the player stands in
+    brush:  [{ x: 270, top: 430, head: 140, floor: 990, clip: 'inset(290px 600px 360px 60px)' },
+             { x: 810, top: 430, head: 140, floor: 990, clip: 'inset(290px 60px 360px 600px)' }],
   };
   /* Upor-nich: player slots for the staggered arrangement (fade = the photo's cut line is open, so it fades out)
      and where the text sections move by default so names stay under their player. */
@@ -72,7 +79,7 @@
       : mv('head', `<div class="hdr">${brand}<div class="ev"><b>${esc(st.tag)}</b>${esc(st.date)}</div></div>`) + mv('title', `<div class="ttl"><b>${esc(st.title)}</b><span>${esc(st.event)}</span></div>`);
     const slots = tvtSlots(st);
     const phs = [A, B].map((t, i) => t.photo
-      ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="height:${slots[i].floor}px"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : '').join('');
+      ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="${slots[i].clip ? `height:1350px;clip-path:${slots[i].clip}` : `height:${slots[i].floor}px`}"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : '').join('');
     const date = esc(st.date), time = esc(st.time), extra = esc(st.extra);
     let h = '';
 
@@ -152,6 +159,56 @@
         ${mv('info', `<div class="info">${date}${time ? `<b>${time}</b>` : ' · '}${extra}</div>`)}`;
     }
 
+    if (L === 'smoke') {
+      const clouds = (side, c1, c2) => Array.from({ length: 14 }, () => {
+        const x = side === 'L' ? -60 + R() * 470 : 1140 - R() * 470, y = 380 + R() * 620, rx = 120 + R() * 170, ry = 90 + R() * 140;
+        return `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${R() > .5 ? c1 : c2}" opacity="${.45 + R() * .45}"/>`;
+      }).join('');
+      const sparks = Array.from({ length: 26 }, () => `<circle cx="${470 + R() * 140}" cy="${360 + R() * 260}" r="${1 + R() * 2.5}" opacity="${.4 + R() * .6}"/>`).join('');
+      h = `${up || `<svg class="full" viewBox="0 0 1080 1350"><defs>
+          <linearGradient id="pvsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b2a2e"/><stop offset=".55" stop-color="#0a1416"/><stop offset="1" stop-color="#050809"/></linearGradient>
+          <filter id="pvsm" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".011" numOctaves="5" seed="9" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="190" xChannelSelector="R" yChannelSelector="G"/><feGaussianBlur stdDeviation="16"/></filter></defs>
+          <rect width="1080" height="1200" fill="url(#pvsky)"/>
+          <g filter="url(#pvsm)">${clouds('L', a, a2)}</g><g filter="url(#pvsm)">${clouds('R', b, b2)}</g></svg>`}
+        <svg class="full" viewBox="0 0 1080 1350"><defs>
+          <linearGradient id="pvgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#173d1e"/><stop offset="1" stop-color="#0b2410"/></linearGradient>
+          <radialGradient id="pvgc" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff9a2e" stop-opacity=".55"/><stop offset="1" stop-color="#ff5a00" stop-opacity="0"/></radialGradient>
+          <filter id="pvb6"><feGaussianBlur stdDeviation="3"/></filter></defs>
+          ${up ? '' : `<path d="M0 960 L1080 960 L1080 1200 L0 1200 Z" fill="url(#pvgr)"/>
+          <g opacity=".5">${Array.from({ length: 9 }, (_, i) => i % 2 ? `<path d="M${-200 + i * 185} 1200 L${380 + i * 40} 960" stroke="#1f5226" stroke-width="40" opacity=".5"/>` : '').join('')}</g>
+          <path d="M0 990 L1080 990" stroke="#e8f2e8" stroke-width="4" opacity=".75"/><path d="M528 1200 L536 960 L544 960 L552 1200 Z" fill="#e8f2e8" opacity=".8"/>`}
+          <ellipse cx="540" cy="640" rx="260" ry="200" fill="url(#pvgc)"/><g fill="#ffcf5a">${sparks}</g>
+          <ellipse cx="540" cy="1048" rx="70" ry="12" fill="#000" opacity=".6" filter="url(#pvb6)"/>
+          <g transform="translate(540 990)"><circle r="56" fill="#f4f4f4"/><polygon points="0,-20 19,-6 12,16 -12,16 -19,-6" fill="#1b1b1b"/>
+            ${[0, 72, 144, 216, 288].map(r => `<g transform="rotate(${r})"><path d="M0 -20 L0 -40" stroke="#1b1b1b" stroke-width="3"/><path d="M-14 -52 L0 -40 L14 -52 L9 -56 L-9 -56 Z" fill="#1b1b1b"/></g>`).join('')}
+            <circle r="56" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="5"/><circle cx="-18" cy="-20" r="26" fill="#fff" opacity=".35"/></g></svg>
+        ${hdr}${phs}
+        ${mv('vs', `<div class="vs"><b>VS</b></div>`)}
+        ${mv('teamA', `<div class="nm nmA"><b>${esc(A.player)}</b><span>${esc(A.team)}</span></div>`)}${mv('teamB', `<div class="nm nmB"><b>${esc(B.player)}</b><span>${esc(B.team)}</span></div>`)}
+        ${mv('info', `<div class="info"><div>${date}${time ? `<em>${time}</em>` : ' · '}${extra}</div></div>`)}`;
+    }
+    if (L === 'brush') {
+      const strokes = (c1, c2, seed) => `<svg width="420" height="700" viewBox="0 0 420 700" style="position:absolute;left:0;top:0"><defs>
+        <filter id="pvro${seed}" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".02 .004" numOctaves="2" seed="${seed}"/><feDisplacementMap in="SourceGraphic" scale="44"/><feGaussianBlur stdDeviation="1.2"/></filter></defs>
+        <g filter="url(#pvro${seed})"><path d="M-40 480 L460 260 L470 340 L-30 580 Z" fill="${c1}"/><path d="M-30 600 L450 430 L460 460 L-20 650 Z" fill="${c2}" opacity=".85"/>
+        <path d="M-20 200 L300 90 L310 120 L-10 240 Z" fill="${c1}" opacity=".6"/></g></svg>`;
+      // big outline word: the short name, or the first part of the player's name (Nexus_Arif -> NEXUS)
+      const word = t => esc(t.short || String(t.player || t.team).split(/[_\s.-]/)[0]);
+      const panel = (t, x, c1, c2, seed) => `<div class="panel" style="left:${x}px;border-color:${c1};box-shadow:0 0 22px ${c1},inset 0 0 40px rgba(0,0,0,.6)">
+        ${up ? '' : strokes(c1, c2, seed)}<div class="big">${word(t)}</div></div>`;
+      h = `${up}${hdr}${panel(A, 60, a, a2, 3)}${panel(B, 600, b, b2, 8)}${phs}
+        <svg class="full" viewBox="0 0 1080 1350"><defs><radialGradient id="pvgb" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#fff2b8"/><stop offset=".35" stop-color="#e6b143"/><stop offset=".8" stop-color="#8a5a12"/><stop offset="1" stop-color="#3d2405"/></radialGradient>
+          <radialGradient id="pvha" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffcf6a" stop-opacity=".5"/><stop offset="1" stop-color="#ffcf6a" stop-opacity="0"/></radialGradient></defs>
+          <circle cx="540" cy="620" r="150" fill="url(#pvha)"/>
+          <g transform="translate(540 620)"><circle r="78" fill="url(#pvgb)"/><polygon points="0,-26 25,-8 15,21 -15,21 -25,-8" fill="#3d2405" opacity=".85"/>
+            ${[0, 72, 144, 216, 288].map(r => `<g transform="rotate(${r})"><path d="M0 -26 L0 -50" stroke="#3d2405" stroke-width="4" opacity=".8"/><path d="M-18 -68 L0 -50 L18 -68 L12 -76 L-12 -76 Z" fill="#3d2405" opacity=".75"/></g>`).join('')}
+            <circle cx="-24" cy="-28" r="30" fill="#fff" opacity=".35"/></g></svg>
+        ${mv('vs', `<div class="vs"><b>VS</b></div>`)}
+        ${mv('teamA', `<div class="nm nmA"><b style="color:${a2}">${esc(A.player)}</b><span>${esc(A.team)}</span></div>`)}${mv('teamB', `<div class="nm nmB"><b style="color:${b2}">${esc(B.player)}</b><span>${esc(B.team)}</span></div>`)}
+        ${mv('info', `<div class="info">${date}${time ? `<em>${time}</em>` : ' · '}${extra}</div>`)}`;
+    }
+
     root.innerHTML = `<div class="tvt ${L}${isUp ? ' up' : ''}">${h}${sp}</div>`;
     const p = root.firstElementChild;
     [['--a', a], ['--a2', a2], ['--b', b], ['--b2', b2]].forEach(([k, v]) => p.style.setProperty(k, v));
@@ -159,7 +216,7 @@
   }
 
   // long team names shrink until they fit their space
-  const FIT = { bolt: [['.pl b', 400]], neon: [['.nm b', 460]], slash: [['.plA b', 320], ['.plB b', 420]], chrome: [['.tn', 300]], half: [['.tn b', 460]] };
+  const FIT = { bolt: [['.pl b', 400]], neon: [['.nm b', 460]], slash: [['.plA b', 320], ['.plB b', 420]], chrome: [['.tn', 300]], half: [['.tn b', 460]], smoke: [['.nm b', 440]], brush: [['.nm b', 420]] };
   function fitNames(p) {
     const L = [...p.classList].find(c => FIT[c]);
     for (const [sel, max] of FIT[L]) p.querySelectorAll(sel).forEach(el => {
