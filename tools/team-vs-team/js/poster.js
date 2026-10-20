@@ -1,7 +1,7 @@
 /* Team vs Team poster renderer: renderTvt(el, state). Five layouts from shifty's VS references:
-   bolt (lightning split), neon (neon frames), slash (slash plates), chrome (chrome bar), half (halftone slash),
-   updown (halftone slash with the players staggered: team 1 high on the left, team 2 low on the right).
-   Every text block sits in a .mv wrapper so the admin can drag it; offsets live in st.moves[layout][key]. */
+   bolt (lightning split), neon (neon frames), slash (slash plates), chrome (chrome bar), half (halftone slash).
+   st.arrange: 'side' (players side by side) or 'updown' (team 1 high on the left, team 2 low on the right) for every layout.
+   Every text block sits in a .mv wrapper so the admin can drag it and wheel-resize it; see tvtMoveStyle. */
 (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const dk = (hx, k) => { const n = parseInt(hx.slice(1), 16), f = c => Math.round(c * k).toString(16).padStart(2, '0'); return '#' + f(n >> 16) + f(n >> 8 & 255) + f(n & 255); };
@@ -14,7 +14,6 @@
     slash: ['#1e9be0', '#7fd0ff', '#1e9be0', '#7fd0ff'], chrome: ['#1d4fd8', '#5d8bff', '#d91f3a', '#ff6b7f'],
     half: ['#1b3263', '#2c4c8f', '#c4101b', '#e8323d'],
   };
-  TPL.updown = TPL.half;
 
   /* Where each player stands: x = body centre, top = head-top line, head = head width, floor = where the photo is cut
      (hidden behind the plate / bar / frame bottom). Photos are scaled by head size so every cut-out looks the same size. */
@@ -24,7 +23,24 @@
     slash:  [{ x: 260, top: 405, head: 130, floor: 792 },  { x: 820, top: 555, head: 130, floor: 942 }],
     chrome: [{ x: 285, top: 480, head: 140, floor: 905 },  { x: 795, top: 480, head: 140, floor: 905 }],
     half:   [{ x: 260, top: 505, head: 140, floor: 1032 }, { x: 820, top: 505, head: 140, floor: 1032 }],
-    updown: [{ x: 250, top: 330, head: 132, floor: 770 },  { x: 830, top: 600, head: 132, floor: 1032 }],
+  };
+  /* Upor-nich: player slots for the staggered arrangement (fade = the photo's cut line is open, so it fades out)
+     and where the text sections move by default so names stay under their player. */
+  const UPDOWN = {
+    bolt:   { slots: [{ x: 260, top: 300, head: 140, floor: 842, fade: 1 }, { x: 820, top: 560, head: 140, floor: 1012 }], moves: { teamA: { y: -170 } } },
+    neon:   { slots: [{ x: 262, top: 385, head: 130, floor: 890, fade: 1 }, { x: 818, top: 575, head: 130, floor: 1026 }], moves: { teamA: { y: -140 } } },
+    slash:  { slots: [{ x: 260, top: 330, head: 130, floor: 722 },  { x: 820, top: 590, head: 130, floor: 942 }],  moves: { teamA: { y: -70 } } },
+    chrome: { slots: [{ x: 285, top: 340, head: 140, floor: 905 },  { x: 795, top: 600, head: 140, floor: 905 }],  moves: {} },
+    half:   { slots: [{ x: 250, top: 330, head: 132, floor: 770, fade: 1 }, { x: 830, top: 600, head: 132, floor: 1032 }], moves: { title: { y: -20 }, vs: { y: 20 }, teamA: { y: -262 } } },
+  };
+  const isUD = st => st.arrange === 'updown';
+  window.tvtSlots = st => isUD(st) ? UPDOWN[st.layout].slots : SLOTS[st.layout];
+  // admin's own drags/sizes, kept apart for each layout and each arrangement
+  window.tvtMoveKey = st => st.layout + (isUD(st) ? ':ud' : '');
+  window.tvtMoveStyle = (st, key) => {
+    const p = (isUD(st) && UPDOWN[st.layout].moves[key]) || {}, o = ((st.moves || {})[tvtMoveKey(st)] || {})[key] || {};
+    const x = (p.x || 0) + (o.x || 0), y = (p.y || 0) + (o.y || 0), sc = o.s || 1;
+    return `transform:translate(${x}px,${y}px)${sc !== 1 ? ` scale(${sc})` : ''};transform-origin:${o.ox || 540}px ${o.oy || 675}px`;
   };
 
   // photo placement in poster px; m = head measurement from maker.js (null = no measurement yet, fit the box instead)
@@ -41,12 +57,10 @@
     const p = place(t, slot);
     return p ? `left:${p.left.toFixed(1)}px;top:${p.top.toFixed(1)}px;width:${p.w.toFixed(1)}px;height:${p.h.toFixed(1)}px` : '';
   };
-  window.TVT_SLOTS = SLOTS;
 
   function renderTvt(root, st) {
-    const L = st.layout, K = L === 'updown' ? 'half' : L, [A, B] = st.teams, R = rng(7);
-    const moves = (st.moves && st.moves[L]) || {};
-    const mv = (key, html) => { const o = moves[key] || {}; return `<div class="mv" data-move="${key}" style="transform:translate(${o.x || 0}px,${o.y || 0}px)">${html}</div>`; };
+    const L = st.layout, [A, B] = st.teams, R = rng(7);
+    const mv = (key, html) => `<div class="mv" data-move="${key}" style="${tvtMoveStyle(st, key)}">${html}</div>`;
     let a, a2, b, b2;
     if (st.bgMode === 'jersey') { a = A.c; a2 = A.c2; b = B.c; b2 = B.c2; } else [a, a2, b, b2] = TPL[L];
     const isUp = st.bgMode === 'image' && st.bgImage;
@@ -57,9 +71,9 @@
     const hdr = L === 'slash'
       ? mv('head', `<div class="hdr">${brand}<div class="ev"><b>${esc(st.title)}</b>${esc(st.event)}</div></div>`)
       : mv('head', `<div class="hdr">${brand}<div class="ev"><b>${esc(st.tag)}</b>${esc(st.date)}</div></div>`) + mv('title', `<div class="ttl"><b>${esc(st.title)}</b><span>${esc(st.event)}</span></div>`);
-    const slots = SLOTS[L];
+    const slots = tvtSlots(st);
     const phs = [A, B].map((t, i) => t.photo
-      ? `<div class="slot" style="height:${slots[i].floor}px"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : '').join('');
+      ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="height:${slots[i].floor}px"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : '').join('');
     const date = esc(st.date), time = esc(st.time), extra = esc(st.extra);
     let h = '';
 
@@ -121,7 +135,7 @@
         <div class="shield"></div><div class="shield2"></div><div class="vs"><span class="v">V</span><span class="s">S</span></div>`)}
         ${mv('info', `<div class="info">${date}${time ? `<b>${time}</b>` : ' · '}${extra}</div>`)}`;
     }
-    if (K === 'half') {
+    if (L === 'half') {
       h = `${up || `<svg class="full" viewBox="0 0 1080 1350"><defs>
         <pattern id="tvdR" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="6" fill="${b}"/></pattern>
         <pattern id="tvdB" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="6" fill="${a}"/></pattern>
@@ -139,7 +153,7 @@
         ${mv('info', `<div class="info">${date}${time ? `<b>${time}</b>` : ' · '}${extra}</div>`)}`;
     }
 
-    root.innerHTML = `<div class="tvt ${K}${K !== L ? ' ' + L : ''}${isUp ? ' up' : ''}">${h}${sp}</div>`;
+    root.innerHTML = `<div class="tvt ${L}${isUp ? ' up' : ''}">${h}${sp}</div>`;
     const p = root.firstElementChild;
     [['--a', a], ['--a2', a2], ['--b', b], ['--b2', b2]].forEach(([k, v]) => p.style.setProperty(k, v));
     fitNames(p);

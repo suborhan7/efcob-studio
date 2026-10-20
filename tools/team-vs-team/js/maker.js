@@ -3,8 +3,9 @@
   const S = window.SAMPLE_PHOTOS || {};
   const team = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', m: null }, o);
   const state = {
-    layout: 'bolt',                // bolt | neon | slash | chrome | half | updown
-    moves: {},                     // dragged text sections per layout: { half: { vs: { x, y } } }
+    arrange: 'side',               // side | updown (players staggered)
+    layout: 'bolt',                // bolt | neon | slash | chrome | half
+    moves: {},                     // admin's drags/sizes per layout + arrangement: { 'half:ud': { vs: { x, y, s, ox, oy } } }
     bgMode: 'template',            // 'template' | 'jersey' | 'image'
     bgImage: '',
     logo: '',
@@ -257,22 +258,38 @@
       drag = { t, i, el, x: e.clientX, y: e.clientY, dx: t.dx, dy: t.dy };
     } else {
       const mv = e.target.closest('[data-move]'); if (!mv) return;
-      const L = state.layout, k = mv.dataset.move, o = ((state.moves[L] ||= {})[k] ||= { x: 0, y: 0 });
-      drag = { o, el: mv, x: e.clientX, y: e.clientY, dx: o.x, dy: o.y };
+      const k = mv.dataset.move, o = sectionOf(k);
+      drag = { o, k, el: mv, x: e.clientX, y: e.clientY, dx: o.x, dy: o.y };
     }
     frame.setPointerCapture(e.pointerId); frame.classList.add('dragging');
   });
   frame.addEventListener('pointermove', e => {
     if (!drag) return;
     const s = posterScale(), x = Math.round(drag.dx + (e.clientX - drag.x) / s), y = Math.round(drag.dy + (e.clientY - drag.y) / s);
-    if (drag.o) { Object.assign(drag.o, { x, y }); drag.el.style.transform = `translate(${x}px,${y}px)`; return; }
+    if (drag.o) { Object.assign(drag.o, { x, y }); drag.el.style.cssText = tvtMoveStyle(state, drag.k); return; }
     Object.assign(drag.t, { dx: x, dy: y });
-    drag.el.style.cssText = tvtPhotoStyle(drag.t, TVT_SLOTS[state.layout][drag.i]);   // move only the photo while dragging
+    drag.el.style.cssText = tvtPhotoStyle(drag.t, tvtSlots(state)[drag.i]);   // move only the photo while dragging
   });
   const endDrag = () => { drag = null; frame.classList.remove('dragging'); };
   frame.addEventListener('pointerup', endDrag); frame.addEventListener('pointercancel', endDrag);
+  const sectionOf = k => ((state.moves[tvtMoveKey(state)] ||= {})[k] ||= { x: 0, y: 0 });
+  // wheel over a text section: grow/shrink it around its own centre (measured once, unscaled, in poster px)
+  function resizeSection(mv, e) {
+    const k = mv.dataset.move, o = sectionOf(k), up = e.deltaY < 0;
+    if (!o.ox) {
+      const pr = frame.getBoundingClientRect(), s = posterScale();
+      let l = 1e9, t = 1e9, r = -1e9, b = -1e9;
+      mv.querySelectorAll('*').forEach(c => { const q = c.getBoundingClientRect(); if (!q.width || !q.height) return; l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom); });
+      if (r < l) return;
+      const cur = new DOMMatrix(getComputedStyle(mv).transform);   // undo the current move so the centre is in layout px
+      o.ox = Math.round(((l + r) / 2 - pr.left) / s - cur.e); o.oy = Math.round(((t + b) / 2 - pr.top) / s - cur.f);
+    }
+    o.s = Math.min(2.5, Math.max(0.4, +((o.s || 1) * (up ? 1.05 : 0.95)).toFixed(3)));
+    mv.style.cssText = tvtMoveStyle(state, k);
+  }
   frame.addEventListener('wheel', e => {
-    const el = target(e); if (!el) return;
+    const el = target(e);
+    if (!el) { const mv = e.target.closest('[data-move]'); if (mv) { e.preventDefault(); resizeSection(mv, e); } return; }
     e.preventDefault();
     const i = +el.dataset.p, t = state.teams[i];
     t.zoom = Math.min(2, Math.max(0.5, +(t.zoom * (e.deltaY < 0 ? 1.05 : 0.95)).toFixed(3)));
@@ -281,7 +298,7 @@
 
   // ---- reset: every section and both photos of this layout back to the default spot and size ----
   $('#resetAll').addEventListener('click', () => {
-    delete state.moves[state.layout];
+    delete state.moves[tvtMoveKey(state)];
     state.teams.forEach((t, i) => { Object.assign(t, { dx: 0, dy: 0, zoom: 1 }); syncZoom(i); });
     render();
   });
