@@ -1,5 +1,7 @@
 /* Team vs Team poster renderer: renderTvt(el, state). Five layouts from shifty's VS references:
-   bolt (lightning split), neon (neon frames), slash (slash plates), chrome (chrome bar), half (halftone slash). */
+   bolt (lightning split), neon (neon frames), slash (slash plates), chrome (chrome bar), half (halftone slash),
+   updown (halftone slash with the players staggered: team 1 high on the left, team 2 low on the right).
+   Every text block sits in a .mv wrapper so the admin can drag it; offsets live in st.moves[layout][key]. */
 (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const dk = (hx, k) => { const n = parseInt(hx.slice(1), 16), f = c => Math.round(c * k).toString(16).padStart(2, '0'); return '#' + f(n >> 16) + f(n >> 8 & 255) + f(n & 255); };
@@ -12,6 +14,7 @@
     slash: ['#1e9be0', '#7fd0ff', '#1e9be0', '#7fd0ff'], chrome: ['#1d4fd8', '#5d8bff', '#d91f3a', '#ff6b7f'],
     half: ['#1b3263', '#2c4c8f', '#c4101b', '#e8323d'],
   };
+  TPL.updown = TPL.half;
 
   /* Where each player stands: x = body centre, top = head-top line, head = head width, floor = where the photo is cut
      (hidden behind the plate / bar / frame bottom). Photos are scaled by head size so every cut-out looks the same size. */
@@ -21,6 +24,7 @@
     slash:  [{ x: 260, top: 405, head: 130, floor: 792 },  { x: 820, top: 555, head: 130, floor: 942 }],
     chrome: [{ x: 285, top: 480, head: 140, floor: 905 },  { x: 795, top: 480, head: 140, floor: 905 }],
     half:   [{ x: 260, top: 505, head: 140, floor: 1032 }, { x: 820, top: 505, head: 140, floor: 1032 }],
+    updown: [{ x: 250, top: 330, head: 132, floor: 770 },  { x: 830, top: 600, head: 132, floor: 1032 }],
   };
 
   // photo placement in poster px; m = head measurement from maker.js (null = no measurement yet, fit the box instead)
@@ -40,7 +44,9 @@
   window.TVT_SLOTS = SLOTS;
 
   function renderTvt(root, st) {
-    const L = st.layout, [A, B] = st.teams, R = rng(7);
+    const L = st.layout, K = L === 'updown' ? 'half' : L, [A, B] = st.teams, R = rng(7);
+    const moves = (st.moves && st.moves[L]) || {};
+    const mv = (key, html) => { const o = moves[key] || {}; return `<div class="mv" data-move="${key}" style="transform:translate(${o.x || 0}px,${o.y || 0}px)">${html}</div>`; };
     let a, a2, b, b2;
     if (st.bgMode === 'jersey') { a = A.c; a2 = A.c2; b = B.c; b2 = B.c2; } else [a, a2, b, b2] = TPL[L];
     const isUp = st.bgMode === 'image' && st.bgImage;
@@ -49,8 +55,8 @@
       `<div>${p.logo ? `<img src="${p.logo}" alt="">` : esc(p.name)}</div>`).join('')}</div><div class="w">${esc(st.site).toUpperCase()}</div></div>`;
     const brand = `<div class="brand">${st.logo ? `<img src="${st.logo}" alt="">` : 'eFCOB'}</div>`;
     const hdr = L === 'slash'
-      ? `<div class="hdr">${brand}<div class="ev"><b>${esc(st.title)}</b>${esc(st.event)}</div></div>`
-      : `<div class="hdr">${brand}<div class="ev"><b>${esc(st.tag)}</b>${esc(st.date)}</div></div><div class="ttl"><b>${esc(st.title)}</b><span>${esc(st.event)}</span></div>`;
+      ? mv('head', `<div class="hdr">${brand}<div class="ev"><b>${esc(st.title)}</b>${esc(st.event)}</div></div>`)
+      : mv('head', `<div class="hdr">${brand}<div class="ev"><b>${esc(st.tag)}</b>${esc(st.date)}</div></div>`) + mv('title', `<div class="ttl"><b>${esc(st.title)}</b><span>${esc(st.event)}</span></div>`);
     const slots = SLOTS[L];
     const phs = [A, B].map((t, i) => t.photo
       ? `<div class="slot" style="height:${slots[i].floor}px"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : '').join('');
@@ -71,9 +77,9 @@
         <g clip-path="url(#tvcB)"><rect width="1080" height="1220" fill="url(#tvgB)"/>${rays(820, 520, dk(b, .55))}</g></svg><div class="dots"></div>`}
         <svg class="full" viewBox="0 0 1080 1350"><polyline points="${bp}" fill="none" stroke="#10142a" stroke-width="44"/><polyline points="${bp}" fill="none" stroke="#fff" stroke-width="24"/></svg>
         ${hdr}${phs}
-        <div class="vs"><div class="o"><span style="margin-top:-40px">V</span><span style="margin-top:70px;margin-left:-18px">S</span></div><span class="v">V</span><span class="s">S</span></div>
-        <div class="pl plA"><b>${esc(A.team)}</b><span>${esc(A.player)}</span></div><div class="pl plB"><b>${esc(B.team)}</b><span>${esc(B.player)}</span></div>
-        <div class="info"><div><i>${[date, [time && `<em>${time}</em>`, extra].filter(Boolean).join(' ')].filter(Boolean).join(' · ')}</i></div></div>`;
+        ${mv('vs', `<div class="vs"><div class="o"><span style="margin-top:-40px">V</span><span style="margin-top:70px;margin-left:-18px">S</span></div><span class="v">V</span><span class="s">S</span></div>`)}
+        ${mv('teamA', `<div class="pl plA"><b>${esc(A.team)}</b><span>${esc(A.player)}</span></div>`)}${mv('teamB', `<div class="pl plB"><b>${esc(B.team)}</b><span>${esc(B.player)}</span></div>`)}
+        ${mv('info', `<div class="info"><div><i>${[date, [time && `<em>${time}</em>`, extra].filter(Boolean).join(' ')].filter(Boolean).join(' · ')}</i></div></div>`)}`;
     }
     if (L === 'neon') {
       // two rounded frames whose inner edges lean like a "/"
@@ -82,11 +88,11 @@
       h = `${up}<svg class="full" viewBox="0 0 1080 1350"><path d="${fA}" fill="${a}" fill-opacity=".14"/><path class="glowA" d="${fA}" fill="none" stroke="${a2}" stroke-width="6"/>
         <path d="${fB}" fill="${b}" fill-opacity=".14"/><path class="glowB" d="${fB}" fill="none" stroke="${b2}" stroke-width="6"/></svg>
         ${hdr}${phs}
-        <div class="vs"><div class="v glowA" style="-webkit-text-stroke-color:${a2}">V</div>
+        ${mv('vs', `<div class="vs"><div class="v glowA" style="-webkit-text-stroke-color:${a2}">V</div>
           <svg style="position:absolute;left:96px;top:60px;filter:drop-shadow(0 0 4px #ffd27a) drop-shadow(0 0 16px #ff8a3c)" width="110" height="190" viewBox="0 0 110 190"><polygon points="70,4 18,104 52,104 34,186 96,72 60,72 84,4" fill="none" stroke="#ffe08a" stroke-width="5" stroke-linejoin="round"/></svg>
-          <div class="s glowB" style="-webkit-text-stroke-color:${b2}">S</div></div>
-        <div class="nm nmA"><b>${esc(A.team)}</b><span>${esc(A.player)}</span></div><div class="nm nmB"><b>${esc(B.team)}</b><span>${esc(B.player)}</span></div>
-        <div class="info">${date}${time ? `<b>${time}</b>` : ' · '}${extra}</div>`;
+          <div class="s glowB" style="-webkit-text-stroke-color:${b2}">S</div></div>`)}
+        ${mv('teamA', `<div class="nm nmA"><b>${esc(A.team)}</b><span>${esc(A.player)}</span></div>`)}${mv('teamB', `<div class="nm nmB"><b>${esc(B.team)}</b><span>${esc(B.player)}</span></div>`)}
+        ${mv('info', `<div class="info">${date}${time ? `<b>${time}</b>` : ' · '}${extra}</div>`)}`;
     }
     if (L === 'slash') {
       const tint = st.bgMode === 'jersey' ? 18 : 0;
@@ -96,10 +102,10 @@
           <polygon points="764,110 768,110 354,1090 350,1090" fill="#9a9da6"/>
           <g stroke="rgba(0,0,0,.08)" stroke-width="2">${Array.from({ length: 14 }, () => { const x = 150 + R() * 800, y = 60 + R() * 1000; return `<line x1="${x}" y1="${y}" x2="${x + 30}" y2="${y - 80}"/>`; }).join('')}</g></svg>
         ${hdr}${phs}
-        <div class="pl plA"><small>${esc(A.player)}</small><b>${esc(A.team)}</b></div>
-        <div class="pl plB"><small>${esc(B.player)}</small><b>${esc(B.team)}</b></div>
-        <div class="vs"><span class="v">V</span><span class="s">S</span></div>
-        <div class="info">${time ? `<b>${time}</b>` : ''}${[date, extra].filter(Boolean).join(' · ')}</div>`;
+        ${mv('teamA', `<div class="pl plA"><small>${esc(A.player)}</small><b>${esc(A.team)}</b></div>`)}
+        ${mv('teamB', `<div class="pl plB"><small>${esc(B.player)}</small><b>${esc(B.team)}</b></div>`)}
+        ${mv('vs', `<div class="vs"><span class="v">V</span><span class="s">S</span></div>`)}
+        ${mv('info', `<div class="info">${time ? `<b>${time}</b>` : ''}${[date, extra].filter(Boolean).join(' · ')}</div>`)}`;
     }
     if (L === 'chrome') {
       const parts = (side, col) => Array.from({ length: 220 }, () => {
@@ -109,13 +115,13 @@
       h = `${up || `<div class="stream stA"></div><div class="stream stB"></div>`}
         ${hdr}${phs}
         ${up ? '' : `<svg class="full" viewBox="0 0 1080 1350" style="filter:drop-shadow(0 0 5px ${a2})">${parts('L', a2)}</svg><svg class="full" viewBox="0 0 1080 1350" style="filter:drop-shadow(0 0 5px ${b2})">${parts('R', b2)}</svg>`}
-        <div class="lip"></div><div class="bar"></div>
+        ${mv('bar', `<div class="lip"></div><div class="bar"></div>
         <div class="tn tnA">${esc(A.team)}</div><div class="tn tnB">${esc(B.team)}</div>
         <div class="pn pnA">${esc(A.player)}</div><div class="pn pnB">${esc(B.player)}</div>
-        <div class="shield"></div><div class="shield2"></div><div class="vs"><span class="v">V</span><span class="s">S</span></div>
-        <div class="info">${date}${time ? `<b>${time}</b>` : ' · '}${extra}</div>`;
+        <div class="shield"></div><div class="shield2"></div><div class="vs"><span class="v">V</span><span class="s">S</span></div>`)}
+        ${mv('info', `<div class="info">${date}${time ? `<b>${time}</b>` : ' · '}${extra}</div>`)}`;
     }
-    if (L === 'half') {
+    if (K === 'half') {
       h = `${up || `<svg class="full" viewBox="0 0 1080 1350"><defs>
         <pattern id="tvdR" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="6" fill="${b}"/></pattern>
         <pattern id="tvdB" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="6" fill="${a}"/></pattern>
@@ -128,12 +134,12 @@
         <polygon points="716,0 726,0 600,440" fill="#fff"/><polygon points="760,-10 772,-10 640,330" fill="#fff" opacity=".8"/>
         <polygon points="520,720 528,720 410,1060" fill="#fff"/><polygon points="470,800 478,800 380,1080" fill="#fff" opacity=".7"/></svg>`}
         ${hdr}${phs}
-        <div class="vs" style="--sh:${st.bgMode === 'jersey' ? '#10142a' : '#0d1838'}"><b>VS</b></div>
-        <div class="tn tnA"><b>${esc(A.team)}</b><span>${esc(A.player)}</span></div><div class="tn tnB"><b>${esc(B.team)}</b><span>${esc(B.player)}</span></div>
-        <div class="info">${date}${time ? `<b>${time}</b>` : ' · '}${extra}</div>`;
+        ${mv('vs', `<div class="vs" style="--sh:${st.bgMode === 'jersey' ? '#10142a' : '#0d1838'}"><b>VS</b></div>`)}
+        ${mv('teamA', `<div class="tn tnA"><b>${esc(A.team)}</b><span>${esc(A.player)}</span></div>`)}${mv('teamB', `<div class="tn tnB"><b>${esc(B.team)}</b><span>${esc(B.player)}</span></div>`)}
+        ${mv('info', `<div class="info">${date}${time ? `<b>${time}</b>` : ' · '}${extra}</div>`)}`;
     }
 
-    root.innerHTML = `<div class="tvt ${L}${isUp ? ' up' : ''}">${h}${sp}</div>`;
+    root.innerHTML = `<div class="tvt ${K}${K !== L ? ' ' + L : ''}${isUp ? ' up' : ''}">${h}${sp}</div>`;
     const p = root.firstElementChild;
     [['--a', a], ['--a2', a2], ['--b', b], ['--b2', b2]].forEach(([k, v]) => p.style.setProperty(k, v));
     fitNames(p);

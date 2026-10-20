@@ -70,3 +70,6 @@ button.primary { width: 100%; margin-top: 10px; padding: 12px; background: #19a4
 .prow input[type=file] { margin: 0; font-size: 11px; min-width: 0; }
 .prow button { padding: 5px 0; }
 .four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+
+/* Team vs Team: one button that puts every dragged section and photo back */
+.reset-all { width: 100%; margin-bottom: 4px; }
