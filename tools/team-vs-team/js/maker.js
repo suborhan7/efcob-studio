@@ -35,7 +35,7 @@
   const PARTS = { head: 'Header (logo, tag, date)', title: 'Title', p0: 'Team 1 logo / captain', p1: 'Team 2 logo / captain',
     wordA: 'Team 1 boro outline lekha', wordB: 'Team 2 boro outline lekha', vs: 'VS', teamA: 'Team 1 name', teamB: 'Team 2 name',
     info: 'Date / time line', partners: 'Partners strip', event: 'Event name', seam: 'Lightning seam', paper: 'Torn paper strip',
-    crestA: 'Team 1 logo', crestB: 'Team 2 logo', haloA: 'Team 1 glow ring', haloB: 'Team 2 glow ring', capA: 'Team 1 captain name', capB: 'Team 2 captain name' };
+    crestA: 'Team 1 logo', crestB: 'Team 2 logo', capA: 'Team 1 captain name', capB: 'Team 2 captain name' };
   let editing = false;
 
   const render = () => {
