@@ -107,6 +107,12 @@ two are shared with Team vs Team; Brush shows a big outline short name per playe
 the first part of the player name). Lightning, Slash and Halftone
 also have a **Players** choice: *Side by side* or *Upor-nich* (team 1 high on the left, team 2 low on the right, names follow
 their player). Neon Frames, Chrome Bar, Smoke and Brush are side by side only.
+Two more layouts come from the Match Result team mode: **Crest Clash** (team-colour halves split by a lightning seam, both
+players fading out behind their team crest on a glowing ring, a chrome VS in a hex plate, the stage title in giant outline
+letters, player name + team chip under each crest) and **Torn Poster** (a torn paper strip across the poster with VS, the
+event, title and date stamped on it, player 1 above the tear with crest + name top right, player 2 below it in front of the
+paper with crest + name bottom left, halftone dots, the small tag on a tape). The team logo is the crest; without a logo a
+disc in the team colour shows the team's initials. Both use the slim partners strip.
 Background: **Default template** (fixed colours for each layout), **Jersey / logo colours (auto)** (each side takes its
 team colour; white/black kits use their trim, plain black/white kits get purple) or **Upload my own**.
 Poster fields: title (stage), event, small tag, date, kick-off time, the text after the time, optional eFCOB logo.

@@ -1,13 +1,21 @@
 /* Player vs Player poster renderer: renderTvt(el, state). Seven layouts from shifty's VS references:
    bolt (lightning split), neon (neon frames), slash (slash plates), chrome (chrome bar), half (halftone slash),
-   smoke (team-colour smoke over a pitch) and brush (neon panels, paint strokes, cyberpunk VS); the last two are
-   shared with the Team vs Team card.
+   smoke (team-colour smoke over a pitch) and brush (neon panels, paint strokes, cyberpunk VS); those two are
+   shared with the Team vs Team card. clash (Crest Clash) and torn (Torn Poster) come from the Match Result team mode:
+   clash = team-colour halves split by a lightning seam, the players behind their crests on glowing rings, a chrome VS in a
+   hex plate and the stage title in giant outline letters; torn = a torn paper strip across the poster with both names
+   and VS stamped on it, player 1 above the tear and player 2 below it, halftone dots and a tape tag.
    st.arrange: 'side' (players side by side) or 'updown' (team 1 high on the left, team 2 low on the right; bolt, slash, half).
    Every text block sits in a .mv wrapper so the admin can drag it and wheel-resize it; see tvtMoveStyle. */
 (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const dk = (hx, k) => { const n = parseInt(hx.slice(1), 16), f = c => Math.round(c * k).toString(16).padStart(2, '0'); return '#' + f(n >> 16) + f(n >> 8 & 255) + f(n & 255); };
   // seeded random, so rays/particles stay put while the admin types
+  const mix = (x, y, t) => { const p = h => [16, 8, 0].map(k => parseInt(h.slice(1), 16) >> k & 255), A = p(x), B = p(y);
+    return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+  // two or three letters for a team without a logo: Team Nexus -> TN, PNG Esports -> PE, Nexus -> NEX
+  const initials = t => { const w = String(t.short || t.team || '').trim().split(/\s+/).filter(Boolean);
+    return (w.length > 1 ? w.slice(0, 3).map(x => x[0]).join('') : (w[0] || '').slice(0, 3)).toUpperCase(); };
   const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 
   // fixed template colours per layout: [team 1, team 1 light, team 2, team 2 light]
@@ -16,6 +24,7 @@
     slash: ['#1e9be0', '#7fd0ff', '#1e9be0', '#7fd0ff'], chrome: ['#1d4fd8', '#5d8bff', '#d91f3a', '#ff6b7f'],
     half: ['#1b3263', '#2c4c8f', '#c4101b', '#e8323d'],
     smoke: ['#1f6bff', '#7fb0ff', '#ff2d7a', '#ff8fb8'], brush: ['#e0213f', '#ff6b80', '#3fc3f0', '#a8e6ff'],
+    clash: ['#ff2e63', '#ff8fab', '#19c7ff', '#9be6ff'], torn: ['#ff5a1f', '#ffa47a', '#2453ff', '#93a8ff'],
   };
 
   /* Where each player stands: x = body centre, top = head-top line, head = head width, floor = where the photo is cut
@@ -30,6 +39,10 @@
     // clip = the neon panel the player stands in
     brush:  [{ x: 270, top: 430, head: 140, floor: 990, clip: 'inset(290px 600px 360px 60px)' },
              { x: 810, top: 430, head: 140, floor: 990, clip: 'inset(290px 60px 360px 600px)' }],
+    // crest clash: players behind their crest rings, fading out at the bottom
+    clash:  [{ x: 262, top: 330, head: 178, floor: 975, fade: 1 }, { x: 818, top: 330, head: 178, floor: 975, fade: 1 }],
+    // torn poster: player 1 above the tear (cut hidden under the paper), player 2 below it in front of the paper
+    torn:   [{ x: 290, top: 150, head: 165, floor: 900 }, { x: 805, top: 585, head: 150, floor: 1255 }],
   };
   /* Upor-nich: player slots for the staggered arrangement (fade = the photo's cut line is open, so it fades out)
      and where the text sections move by default so names stay under their player. */
@@ -78,6 +91,8 @@
       ? mv('head', `<div class="hdr">${brand}<div class="ev"><b>${esc(st.title)}</b>${esc(st.event)}</div></div>`)
       : mv('head', `<div class="hdr">${brand}<div class="ev"><b>${esc(st.tag)}</b>${esc(st.date)}</div></div>`) + mv('title', `<div class="ttl"><b>${esc(st.title)}</b><span>${esc(st.event)}</span></div>`);
     const slots = tvtSlots(st);
+    const ph = i => { const t = [A, B][i]; return t.photo
+      ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="height:${slots[i].floor}px"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : ''; };
     const phs = [A, B].map((t, i) => t.photo
       ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="${slots[i].clip ? `height:1350px;clip-path:${slots[i].clip}` : `height:${slots[i].floor}px`}"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : '').join('');
     const date = esc(st.date), time = esc(st.time), extra = esc(st.extra);
@@ -211,6 +226,85 @@
         ${mv('info', `<div class="info">${date}${time ? `<em>${time}</em>` : ' · '}${extra}</div>`)}`;
     }
 
+    // team crest: the uploaded team logo, else a disc in the team colour with the team's initials
+    const crest = (t, s, c) => t.logo ? `<img class="cr" src="${t.logo}" style="width:${s}px;height:${s}px" alt="">`
+      : `<div class="cr mono" style="width:${s}px;height:${s}px;background:${c};font-size:${Math.round(s * .32)}px">${esc(initials(t))}</div>`;
+    // the third colour (lightning, chips, tape): gold, or white when a team colour is already yellow-ish
+    const hue = hx => { const n = parseInt(hx.slice(1), 16), r = (n >> 16) / 255, g = (n >> 8 & 255) / 255, bl = (n & 255) / 255, mx = Math.max(r, g, bl), d = mx - Math.min(r, g, bl);
+      return !d ? -99 : (mx === r ? ((g - bl) / d + 6) % 6 : mx === g ? (bl - r) / d + 2 : (r - g) / d + 4) * 60; };
+    const near = (x, y) => Math.min(Math.abs(x - y), 360 - Math.abs(x - y)) < 22;
+    const pop = near(hue(a), 48) || near(hue(b), 48) ? '#ffffff' : '#ffd23a';
+    const brandT = `<div class="tb">${st.logo ? `<img src="${st.logo}" alt="">` : 'eFCOB'}</div>`;
+
+    if (L === 'clash') {
+      const R2 = rng(5);
+      let x = 600, seam = 'M600 -20';
+      for (let y = 40; y <= 1370; y += 60) { x = 600 - (y / 1350) * 120 + (R2() - .5) * 70; seam += ` L${x.toFixed(0)} ${y}`; }
+      const dots = (cx, cy) => Array.from({ length: 12 }, (_, r) => Array.from({ length: 12 }, (_, k) => { const s = Math.max(0, 5.4 - Math.hypot(r, k) * .5);
+        return s > .5 ? `<circle cx="${cx + (cx < 540 ? k : -k) * 17}" cy="${cy + r * 17}" r="${s.toFixed(1)}" fill="#fff"/>` : ''; }).join('')).join('');
+      const ring = (cx, cy, r, c, g) => `<circle cx="${cx}" cy="${cy}" r="${r + 40}" fill="url(#pcg${g})"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="#0b0b1e" fill-opacity=".55"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${c}" stroke-width="10" filter="url(#pcgl)"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${mix(c, '#ffffff', .6)}" stroke-width="3"/>
+        <circle cx="${cx}" cy="${cy}" r="${r + 20}" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="4 10" opacity=".8"/>`;
+      const crestRing = (k, t, cx, c, g) => mv(k, `<div class="ring">${`<svg class="full" viewBox="0 0 1080 1350"><defs>
+          <radialGradient id="pcg${g}"><stop offset="0" stop-color="${c}" stop-opacity=".7"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></radialGradient>
+          <filter id="pcgl" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter></defs>${ring(cx, 880, 84, c, g)}</svg>`}
+        <div class="crw" style="left:${cx - 66}px;top:814px">${crest(t, 132, c)}</div></div>`);
+      h = `${up ? '' : '<div class="wash" style="background:#070716"></div>'}<svg class="full" viewBox="0 0 1080 1350"><defs>
+          <linearGradient id="pchl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}" stop-opacity=".95"/><stop offset="1" stop-color="${mix(a, '#070716', .7)}" stop-opacity=".9"/></linearGradient>
+          <linearGradient id="pchr" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${b}" stop-opacity=".95"/><stop offset="1" stop-color="${mix(b, '#070716', .7)}" stop-opacity=".9"/></linearGradient>
+          <linearGradient id="pcbm" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <linearGradient id="pcbt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070716" stop-opacity="0"/><stop offset="1" stop-color="#070716" stop-opacity=".95"/></linearGradient>
+          <filter id="pcsf" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="22"/></filter></defs>
+        <path d="M0 0 H600 L480 1350 H0 Z" fill="url(#pchl)" opacity="${up ? .38 : 1}"/><path d="M600 0 H1080 V1350 H480 Z" fill="url(#pchr)" opacity="${up ? .38 : 1}"/>
+        ${up ? '' : `<g filter="url(#pcsf)"><polygon points="-40,-40 60,-40 520,900 300,900" fill="url(#pcbm)" opacity=".5"/><polygon points="1020,-40 1120,-40 780,900 560,900" fill="url(#pcbm)" opacity=".5"/></g>
+        <g opacity=".35">${dots(30, 150)}${dots(1050, 150)}</g>`}
+        <rect x="0" y="800" width="1080" height="550" fill="url(#pcbt)"/></svg>`;
+      h = up + h;
+      h += mv('seam', `<svg class="full" viewBox="0 0 1080 1350"><defs><filter id="pcsg" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter></defs>
+        <path d="${seam}" fill="none" stroke="${pop}" stroke-width="22" filter="url(#pcsg)" opacity=".85"/><path d="${seam}" fill="none" stroke="#fff" stroke-width="5"/></svg>`);
+      h += mv('title', `<div class="ghost">${esc(st.title)}</div>`);
+      h += ph(0) + ph(1);
+      h += crestRing('crestA', A, 262, a, 1) + crestRing('crestB', B, 818, b, 2);
+      h += mv('vs', `<div class="hex"><span>V</span><span>S</span></div>`);
+      h += mv('teamA', `<div class="cn l"><b>${esc(A.player)}</b><span style="background:${a}">${esc(A.team)}</span></div>`);
+      h += mv('teamB', `<div class="cn r"><b>${esc(B.player)}</b><span style="background:${b}">${esc(B.team)}</span></div>`);
+      h += mv('info', `<div class="cinfo">${time ? `<span>${time}</span>` : ''}${date}${extra ? `<em></em>${extra}` : ''}</div>`);
+      h += mv('head', `<div class="thd">${brandT}<div class="kick">${esc(st.event)}</div>${st.tag ? `<div class="ttag">${esc(st.tag)}</div>` : ''}</div>`);
+    }
+
+    if (L === 'torn') {
+      const R2 = rng(29);
+      // the tear runs from (0, 1000) up to (1080, 520); the paper strip is ±95px around it with ragged edges
+      const yAt = (x, off) => 1000 - x * 480 / 1080 + off;
+      const edge = (off, j) => { const pts = []; for (let x = -20; x <= 1100; x += 18) pts.push(`${x},${(yAt(x, off) + (R2() - .5) * j).toFixed(1)}`); return pts; };
+      const top = edge(-95, 16), bot = edge(95, 16), topIn = edge(-80, 10), botIn = edge(80, 10);
+      const paper = `M${top.join(' L')} L${bot.slice().reverse().join(' L')} Z`, paper2 = `M${topIn.join(' L')} L${botIn.slice().reverse().join(' L')} Z`;
+      const dot = (id, c) => `<pattern id="${id}" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="8" cy="8" r="3.2" fill="${c}"/></pattern>`;
+      h = `${up}<svg class="full" viewBox="0 0 1080 1350"><defs>
+          <linearGradient id="ptta" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${mix(a, '#ffffff', .12)}"/><stop offset="1" stop-color="${mix(a, '#000000', .45)}"/></linearGradient>
+          <linearGradient id="pttb" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${mix(b, '#000000', .55)}"/><stop offset="1" stop-color="${mix(b, '#ffffff', .08)}"/></linearGradient>
+          ${dot('ptd1', 'rgba(0,0,0,.16)')}${dot('ptd2', 'rgba(255,255,255,.1)')}
+          <filter id="ptgr"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0"/></filter></defs>
+        <path d="M0 0 H1080 V${yAt(1080, 0)} L0 ${yAt(0, 0)} Z" fill="url(#ptta)" opacity="${up ? .42 : 1}"/>
+        <path d="M0 ${yAt(0, 0)} L1080 ${yAt(1080, 0)} V1350 H0 Z" fill="url(#pttb)" opacity="${up ? .42 : 1}"/>
+        ${up ? '' : `<path d="M0 0 H1080 V${yAt(1080, 0)} L0 ${yAt(0, 0)} Z" fill="url(#ptd1)" opacity=".8"/><path d="M0 ${yAt(0, 0)} L1080 ${yAt(1080, 0)} V1350 H0 Z" fill="url(#ptd2)"/>
+        <rect width="1080" height="1350" filter="url(#ptgr)"/>`}</svg>`;
+      h += ph(0);
+      h += mv('paper', `<svg class="full paper" viewBox="0 0 1080 1350"><defs><filter id="ptsh" x="-5%" y="-20%" width="110%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-opacity=".45"/></filter></defs>
+        <path d="${paper}" fill="#f1ece1" filter="url(#ptsh)"/><path d="${paper2}" fill="none" stroke="#d9d1bf" stroke-width="2" stroke-dasharray="2 7"/><path d="${paper}" fill="url(#ptd1)" opacity=".18"/></svg>`);
+      h += `<div class="front">${ph(1)}</div>`;
+      // player 1 block top right, player 2 block bottom left
+      h += mv('crestA', `<div class="tcr" style="left:715px;top:112px">${crest(A, 160, a)}</div>`);
+      h += mv('teamA', `<div class="tnm t1" style="left:560px;width:470px;top:290px"><b>${esc(A.player)}</b><span>${esc(A.team)}</span></div>`);
+      h += mv('crestB', `<div class="tcr" style="left:50px;top:1036px">${crest(B, 140, b)}</div>`);
+      h += mv('teamB', `<div class="tnm t2" style="left:210px;width:380px;top:1040px"><b>${esc(B.player)}</b><span>${esc(B.team)}</span></div>`);
+      h += mv('vs', `<div class="stamp"><div class="sk">${esc(st.event)}</div><div class="sn">VS</div>
+        <div class="sd"><b>${esc(st.title)}</b>${[date, time, extra].filter(Boolean).join(' · ')}</div></div>`);
+      if (st.tag) h += mv('tape', `<div class="tape">${esc(st.tag)}</div>`);
+      h += mv('head', `<div class="thd">${brandT}</div>`);
+    }
+
     root.innerHTML = `<div class="tvt ${L}${isUp ? ' up' : ''}">${h}${mv('partners', sp)}</div>`;
     const p = root.firstElementChild;
     [['--a', a], ['--a2', a2], ['--b', b], ['--b2', b2]].forEach(([k, v]) => p.style.setProperty(k, v));
@@ -218,7 +312,8 @@
   }
 
   // long team names shrink until they fit their space
-  const FIT = { bolt: [['.pl b', 400]], neon: [['.nm b', 460]], slash: [['.plA b', 320], ['.plB b', 420]], chrome: [['.tn', 300]], half: [['.tn b', 460]], smoke: [['.nm b', 440]], brush: [['.nm b', 420], ['.big', 400]] };
+  const FIT = { bolt: [['.pl b', 400]], neon: [['.nm b', 460]], slash: [['.plA b', 320], ['.plB b', 420]], chrome: [['.tn', 300]], half: [['.tn b', 460]], smoke: [['.nm b', 440]], brush: [['.nm b', 420], ['.big', 400]],
+    clash: [['.cn b', 440]], torn: [['.t1 b', 470], ['.t2 b', 380]] };
   function fitNames(p) {
     const L = [...p.classList].find(c => FIT[c]);
     for (const [sel, max] of FIT[L]) p.querySelectorAll(sel).forEach(el => {
@@ -230,6 +325,8 @@
       el.style.width = w0; el.style.display = d0;
     });
     const t = p.querySelector('.ttl b');
+    const g = p.querySelector('.ghost');
+    if (g) { g.style.fontSize = ''; let f = parseFloat(getComputedStyle(g).fontSize); g.style.display = 'inline-block'; while (g.offsetWidth > 1120 && f > 90) { f -= 4; g.style.fontSize = f + 'px'; } g.style.display = ''; }
     if (t) { t.style.fontSize = ''; let f = parseFloat(getComputedStyle(t).fontSize); t.style.display = 'inline-block'; while (t.offsetWidth > 980 && f > 30) { f -= 2; t.style.fontSize = f + 'px'; } t.style.display = ''; }
   }
 

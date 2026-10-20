@@ -4,7 +4,7 @@
   const team = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', short: '', m: null }, o);
   const state = {
     arrange: 'side',               // side | updown (players staggered; bolt, slash and half only)
-    layout: 'bolt',                // bolt | neon | slash | chrome | half | smoke | brush
+    layout: 'bolt',                // bolt | neon | slash | chrome | half | smoke | brush | clash | torn
     moves: {},                     // admin's drags/sizes per layout + arrangement: { 'half:ud': { vs: { x, y, s, ox, oy } } }
     hidden: {},                    // parts the admin switched off, per layout: { brush: { wordA: true } }
     bgMode: 'template',            // 'template' | 'jersey' | 'image'
@@ -34,7 +34,8 @@
   // names for the "Poster e ki ki thakbe" list and the editor bar (js/studio-edit.js)
   const PARTS = { head: 'Header (logo, tag, date)', title: 'Title', p0: 'Team 1 photo', p1: 'Team 2 photo',
     wordA: 'Team 1 boro outline lekha', wordB: 'Team 2 boro outline lekha', vs: 'VS', bar: 'VS bar', teamA: 'Team 1 name',
-    teamB: 'Team 2 name', info: 'Date / time line', partners: 'Partners strip' };
+    teamB: 'Team 2 name', info: 'Date / time line', partners: 'Partners strip',
+    crestA: 'Team 1 logo', crestB: 'Team 2 logo', seam: 'Lightning seam', paper: 'Torn paper strip', tape: 'Tape tag' };
   let editing = false;
 
   const render = () => {
@@ -312,7 +313,7 @@
   });
 
   render();
-  const fontsReady = Promise.all(['italic 900 40px Rubik', '40px Graduate', '800 20px Montserrat', 'italic 900 40px "Exo 2"', '40px Anton', '900 40px Orbitron']
+  const fontsReady = Promise.all(['italic 900 40px Rubik', '40px Graduate', '800 20px Montserrat', 'italic 900 40px "Exo 2"', '40px Anton', '900 40px Orbitron', '900 40px "Big Shoulders Display"', '700 20px "Chakra Petch"', '40px "Black Ops One"']
     .map(f => document.fonts.load(f))).catch(() => {});
   window.__ready = fontsReady.then(async () => {
     for (const t of state.teams) if (t.photo) t.m = await measure(t.photo).catch(() => null);

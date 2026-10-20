@@ -202,3 +202,49 @@
 .tvt.smoke .sp .row div,.tvt.brush .sp .row div{background:rgba(255,255,255,.06);border-radius:8px;color:#e7e9f3}
 .tvt.smoke .sp .w,.tvt.brush .sp .w{color:#5c6080}
 .tvt.smoke svg.full,.tvt.brush svg.full{pointer-events:none}
+
+/* ---------- Crest Clash and Torn Poster (from the Match Result team mode) ---------- */
+.tvt.clash{background:#070716;font-family:'Chakra Petch'}
+.tvt.torn{background:#111;font-family:'Chakra Petch'}
+.tvt.clash .sp,.tvt.torn .sp{top:1255px;height:95px;background:rgba(5,5,16,.82);z-index:7}
+.tvt.clash .sp::before,.tvt.torn .sp::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--a),#ffd23a,var(--b),transparent)}
+.tvt.clash .sp .k,.tvt.torn .sp .k{top:11px;font:700 11px/1 'Chakra Petch';letter-spacing:.6em;color:rgba(255,255,255,.55)}
+.tvt.clash .sp .row,.tvt.torn .sp .row{left:90px;right:90px;top:29px;gap:16px}
+.tvt.clash .sp .row div,.tvt.torn .sp .row div{height:42px;font:700 18px/1 'Chakra Petch';letter-spacing:.08em;color:rgba(255,255,255,.85)}
+.tvt.clash .sp .row img,.tvt.torn .sp .row img{max-height:32px;max-width:90%;object-fit:contain}
+.tvt.clash .sp .w,.tvt.torn .sp .w{bottom:8px;font:600 10px/1 'Chakra Petch';color:rgba(255,255,255,.5)}
+.tvt .cr{display:block;flex:none;object-fit:contain;filter:drop-shadow(0 10px 24px rgba(0,0,0,.45))}
+.tvt .cr.mono{display:grid;place-items:center;border-radius:50%;color:#fff;font-family:'Black Ops One';box-shadow:inset 0 0 0 5px rgba(255,255,255,.85),0 10px 24px rgba(0,0,0,.45)}
+.tvt .thd .tb{position:absolute;left:44px;top:40px;font:700 30px/1 'Chakra Petch';letter-spacing:.06em}
+.tvt .thd .tb img{height:56px;display:block}
+.tvt .thd .ttag{position:absolute;right:44px;top:40px;padding:9px 18px;font:700 18px/1 'Chakra Petch';letter-spacing:.14em;text-transform:uppercase;border:2px solid rgba(255,255,255,.7)}
+.tvt .thd .kick{position:absolute;left:250px;right:250px;top:50px;text-align:center;font:600 20px/1 'Chakra Petch';letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,.85);white-space:nowrap}
+/* clash */
+.tvt.clash .ghost{position:absolute;left:-40px;right:-40px;top:96px;text-align:center;white-space:nowrap;font:900 230px/1 'Big Shoulders Display';text-transform:uppercase;letter-spacing:.02em;color:transparent;-webkit-text-stroke:3px rgba(255,255,255,.4)}
+.tvt.clash .slot.fade{-webkit-mask-image:linear-gradient(#000 calc(100% - 140px),transparent);mask-image:linear-gradient(#000 calc(100% - 140px),transparent)}
+.tvt.clash .crw{position:absolute}
+.tvt.clash .hex{position:absolute;left:420px;top:450px;width:240px;height:200px;display:flex;align-items:center;justify-content:center;gap:4px;
+  font:900 170px/1 'Big Shoulders Display';background:linear-gradient(180deg,rgba(7,7,22,.92),rgba(20,16,44,.92));clip-path:polygon(14% 0,86% 0,100% 50%,86% 100%,14% 100%,0 50%)}
+.tvt.clash .hex::before,.tvt.clash .hex::after{content:'';position:absolute;left:0;right:0;height:6px;background:linear-gradient(90deg,var(--a),#ffd23a,var(--b))}
+.tvt.clash .hex::before{top:0}.tvt.clash .hex::after{bottom:0}
+.tvt.clash .hex span{background:linear-gradient(180deg,#fff 0%,#fff 42%,#ffd23a 60%,#fff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 8px 0 rgba(0,0,0,.45))}
+.tvt.clash .cn{position:absolute;top:990px;width:470px;text-align:center}
+.tvt.clash .cn.l{left:27px}.tvt.clash .cn.r{left:583px}
+.tvt.clash .cn b{display:block;white-space:nowrap;font:900 74px/1 'Big Shoulders Display';text-transform:uppercase;letter-spacing:.02em;text-shadow:0 6px 0 rgba(0,0,0,.4)}
+.tvt.clash .cn span{display:inline-block;margin-top:14px;padding:9px 22px;font:700 20px/1 'Chakra Petch';letter-spacing:.28em;text-transform:uppercase;transform:skewX(-12deg);box-shadow:0 0 22px rgba(0,0,0,.35)}
+.tvt.clash .cinfo{position:absolute;left:200px;width:680px;top:1172px;height:52px;background:rgba(7,7,22,.7);display:flex;align-items:center;justify-content:center;gap:16px;white-space:nowrap;font:600 22px/1 'Chakra Petch';letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.88)}
+.tvt.clash .cinfo span{padding:8px 14px;background:#ffd23a;color:#111;font-weight:700}
+.tvt.clash .cinfo em{width:8px;height:8px;background:#fff;transform:rotate(45deg)}
+/* torn */
+.tvt.torn .front{position:absolute;inset:0;z-index:3;pointer-events:none}
+.tvt.torn .tcr{position:absolute;z-index:4}
+.tvt.torn .tnm{position:absolute;z-index:4}
+.tvt.torn .tnm b{display:block;font:400 60px/1 'Black Ops One';text-transform:uppercase;white-space:nowrap;text-shadow:4px 4px 0 rgba(0,0,0,.35)}
+.tvt.torn .tnm span{display:inline-block;margin-top:10px;padding:7px 14px;background:rgba(0,0,0,.35);font:700 20px/1 'Chakra Petch';letter-spacing:.24em;text-transform:uppercase}
+.tvt.torn .tnm.t1{text-align:center}
+.tvt.torn .stamp{position:absolute;left:140px;width:800px;top:672px;text-align:center;transform:rotate(-23.96deg);color:#141414}
+.tvt.torn .stamp .sk{font:700 17px/1 'Chakra Petch';letter-spacing:.3em;text-transform:uppercase;color:#555;white-space:nowrap}
+.tvt.torn .stamp .sn{font:400 104px/1 'Black Ops One';margin:0;letter-spacing:.04em;color:var(--a);text-shadow:5px 5px 0 rgba(0,0,0,.12)}
+.tvt.torn .stamp .sd{font:600 20px/1 'Chakra Petch';letter-spacing:.2em;text-transform:uppercase;color:#333;white-space:nowrap}
+.tvt.torn .stamp .sd b{display:inline-block;margin-right:14px;padding:6px 12px;border:3px solid #c8102e;color:#c8102e;transform:rotate(-3deg);font-family:'Black Ops One';font-weight:400}
+.tvt.torn .tape{position:absolute;left:860px;top:470px;padding:9px 22px;background:#ffd23a;color:#111;font:400 24px/1 'Black Ops One';letter-spacing:.1em;text-transform:uppercase;transform:rotate(14deg);box-shadow:0 4px 10px rgba(0,0,0,.35)}
