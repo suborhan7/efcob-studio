@@ -302,7 +302,7 @@
       h += mv('crestB', `<div class="tcr" style="left:50px;top:1036px">${crest(B, 140, b)}</div>`);
       h += mv('teamB', `<div class="tnm t2" style="left:210px;width:340px;top:1040px"><b>${esc(B.player)}</b><span>${esc(B.team)}</span></div>`);
       h += mv('vs', `<div class="stamp"><div class="sk"><b>${esc(st.title)}</b>${esc(st.event)}</div><div class="sn">VS</div>
-        <div class="sd">${[date, time, extra].filter(Boolean).join(' · ')}</div></div>`);
+        <div class="sd">${time ? `<b>${time}</b>` : ''}${[date, extra].filter(Boolean).join(' · ')}</div></div>`);
       if (st.tag) h += mv('tape', `<div class="tape">${esc(st.tag)}</div>`);
       h += mv('head', `<div class="thd">${brandT}</div>`);
     }
