@@ -42,9 +42,11 @@
     return { c1: a.c, c2, pop };
   }
 
+  const monoColor = new Map();   // a team without a logo gets a disc in its own poster colour
   const crest = (t, s, cls = '') => t.logo ? `<img class="cr ${cls}" src="${esc(t.logo)}" style="width:${s}px;height:${s}px" alt="">`
-    : `<div class="cr mono ${cls}" style="width:${s}px;height:${s}px;font-size:${Math.round(s * .3)}px">${esc((t.short || t.name || '').slice(0, 3).toUpperCase())}</div>`;
+    : `<div class="cr mono ${cls}" style="width:${s}px;height:${s}px;background:${monoColor.get(t) || 'var(--c1)'};font-size:${Math.round(s * .3)}px">${esc((t.short || t.name || '').slice(0, 3).toUpperCase())}</div>`;
   // a captain cut-out standing on `bottom`, `h` px tall, centred on cx; the admin's drag/size on top
+  let capBase = 2;   // photo numbers of the two captains (0 / 1 when a 1v1 is drawn with these layouts)
   const captain = (t, n, cx, bottom, h, extra = '') => t.photo ? `<img class="cap" data-p="${n}" src="${esc(t.photo)}" alt=""
       style="left:${cx}px;top:${bottom - h}px;height:${h}px;transform:translateX(-50%) translate(${+t.dx || 0}px,${+t.dy || 0}px) scale(${+t.zoom || 1});${extra}">` : '';
 
@@ -101,14 +103,18 @@
       <path d="${seam}" fill="none" stroke="#fff" stroke-width="5"/>`, 'seam'));
     h += mv('title', `<div class="ghost">${esc(d.label || 'Full time')}</div>`);
     if (cap) {
-      h += captain(A, 2, 250, 860, 600);
-      h += captain(B, 3, 830, 860, 600);
+      h += captain(A, capBase, 250, 860, 600);
+      h += captain(B, capBase + 1, 830, 860, 600);
     }
     h += `<div class="floor"></div>`;
     h += mv('crest1', `<div class="ringbox">${svg('', ring(250, y0, rr, P.c1), 'rings')}<div class="crw" style="left:${250 - cs / 2}px;top:${y0 - cs / 2}px">${crest(A, cs)}</div></div>`);
     h += mv('crest2', `<div class="ringbox">${svg('', ring(830, y0, rr, P.c2), 'rings')}<div class="crw" style="left:${830 - cs / 2}px;top:${y0 - cs / 2}px">${crest(B, cs)}</div></div>`);
     h += mv('score', `<div class="score" style="top:${cap ? 300 : 475}px"><span class="${!draw && sa < sb ? 'lo' : ''}">${esc(A.score)}</span><i></i><span class="${!draw && sb < sa ? 'lo' : ''}">${esc(B.score)}</span></div>`);
     const ny = cap ? 900 : 830;
+    if (d.tm.player && cap) {
+      if (A.captain) h += mv('player1', `<div class="pchip" style="left:250px;top:${ny - 46}px">${esc(A.captain)}</div>`);
+      if (B.captain) h += mv('player2', `<div class="pchip" style="left:830px;top:${ny - 46}px">${esc(B.captain)}</div>`);
+    }
     const tag = (won) => draw ? '<b class="res dr">DRAW</b>' : won ? '<b class="res w">WINNER</b>' : '<b class="res l">DEFEAT</b>';
     h += mv('name1', `<div class="tn l" style="top:${ny}px">${esc(A.name)}</div>`);
     h += mv('name2', `<div class="tn r" style="top:${ny}px">${esc(B.name)}</div>`);
@@ -152,7 +158,7 @@
       h += `<div class="grp">${sq.map(o => o.html).join('')}</div>`;
       if (d.tm.nameTags) tags = sq.filter(o => o.name).map(o => `<div class="ntag${o.z > 3 ? ' star' : ''}" style="left:${o.tx.toFixed(0)}px;top:${Math.min(o.ty, 860).toFixed(0)}px">${esc(o.name).toUpperCase()}</div>`).join('');
     } else if (mode !== 'none' && W.photo) {
-      h += `<div class="grp">${captain(W, 2 + wi, 540, 960, 640)}</div>`;
+      h += `<div class="grp">${captain(W, capBase + wi, 540, 960, 640)}</div>`;
       if (d.tm.nameTags && W.captain) tags = `<div class="ntag star" style="left:540px;top:800px">${esc(W.captain).toUpperCase()}</div>`;
     } else {
       h += mv('hero', `<div class="hero">${crest(W, 400)}</div>`);
@@ -198,11 +204,11 @@
        <rect width="1080" height="1350" filter="url(#grit)"/>`}
        <path d="M0 1180 H1080 V1350 H0 Z" fill="#000" opacity=".35"/>`);
     // team 1 above the tear: captain on the left (behind the paper), crest + name top right
-    if (cap) h += captain(A, 2, 270, 880, 640);
+    if (cap) h += captain(A, capBase, 270, 880, 640);
     const papr = svg('', `<path d="${paper}" fill="#f1ece1" filter="url(#psh)"/><path d="${paper2}" fill="none" stroke="#d9d1bf" stroke-width="2" stroke-dasharray="2 7"/>
       <path d="${paper}" fill="url(#d1)" opacity=".18"/>`, 'paper');
     h += mv('paper', papr);
-    if (cap) h += captain(B, 3, 830, 1255, 540);
+    if (cap) h += captain(B, capBase + 1, 830, 1255, 540);
     const tape = won => draw ? '' : won ? '<b class="tape">WINNER</b>' : '';
     const cs = cap ? 210 : 260;
     // team 1 block top right, team 2 block bottom left (no captains: the crests take the captains' places)
@@ -212,6 +218,10 @@
     h += mv('crest2', `<div class="tcr" style="left:${b2.x}px;top:${b2.y + (cap ? 60 : 0)}px">${crest(B, b2.cs)}${tape(sb > sa)}</div>`);
     h += mv('name1', `<div class="tn t1" style="left:${b1.cx - b1.w / 2}px;width:${b1.w}px;top:${b1.cy + b1.cs + 14}px">${esc(A.name)}</div>`);
     h += mv('name2', `<div class="tn t2" style="left:${b2.tx}px;width:${b2.tw}px;top:${cap ? 990 : 1050}px">${esc(B.name)}</div>`);
+    if (d.tm.player && cap) {
+      if (A.captain) h += mv('player1', `<div class="pchip" style="left:270px;top:735px">${esc(A.captain)}</div>`);
+      if (B.captain) h += mv('player2', `<div class="pchip" style="left:830px;top:1196px">${esc(B.captain)}</div>`);
+    }
     const s1 = scorerList(A.scorers), s2 = scorerList(B.scorers);
     if (s1.length) h += mv('scorers1', `<div class="tsc t1" style="left:${b1.cx - b1.w / 2}px;width:${b1.w}px;top:${b1.cy + b1.cs + 86}px">${s1.slice(0, 4).map(x => `<span>${ball}${esc(x)}</span>`).join('')}</div>`);
     if (s2.length) h += mv('scorers2', `<div class="tsc t2" style="left:${b2.tx}px;width:${b2.tw}px;top:${cap ? 1062 : 1122}px">${s2.slice(0, 4).map(x => `<span>${ball}${esc(x)}</span>`).join('')}</div>`);
@@ -234,9 +244,11 @@
 
   window.renderMatchTeam = function (el, d) {
     const L = d.layout, T = d.tm.teams, up = d.bgMode === 'image' && !!d.bgImage;
+    capBase = d.tm.capBase ?? 2;
     // Victory Squad colours follow the winner
     const wi = num(T[1].score) > num(T[0].score) ? 1 : 0;
     const P = palette(d, L === 'victory' ? T[wi] : T[0], L === 'victory' ? T[1 - wi] : T[1]);
+    monoColor.clear(); monoColor.set(L === 'victory' ? T[wi] : T[0], P.c1); monoColor.set(L === 'victory' ? T[1 - wi] : T[1], P.c2);
     const body = (L === 'victory' ? victory : L === 'torn' ? torn : clash)(d, P, up);
     el.innerHTML = `<div class="mr tm ${L}${up ? ' custom-bg' : ''}" style="--c1:${P.c1};--c2:${P.c2};--pop:${P.pop};--l1:${mix(P.c1, '#ffffff', .55)};--l2:${mix(P.c2, '#ffffff', .55)};--d1:${mix(P.c1, '#000000', .5)};--d2:${mix(P.c2, '#000000', .5)};--g1:${rgba(P.c1, .6)};--g2:${rgba(P.c2, .6)}">${body}${mv('partners', partners(d))}</div>`;
     fitText(el.firstElementChild);

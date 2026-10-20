@@ -62,6 +62,8 @@ strip at the bottom, its own fonts and three layouts (`js/team.js`, `css/team.cs
 Per team: name, short name, goals, scorers, official club crest (a plain background is cut away; colours come from the crest),
 two colours, captain name + photo, squad of up to 5 players (name + photo, player 1 in the middle). **Chobi**: squad + captain,
 captain only, or logo only. Same 3 backgrounds; every part can be dragged, wheel-resized and removed, Reset puts it back.
+Crest Clash, Victory and Torn also work in **Player vs Player** mode: the player photo stands where the captain does, a name
+chip shows the player, the team logo (or a colour disc with initials) is the crest; moves are kept apart from team mode.
 
 The Player Stats Card is not in the studio; it lives on the client side of efcob.com
 (see efcob-player-cards).

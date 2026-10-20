@@ -6,6 +6,7 @@
   const squad = list => Array.from({ length: 5 }, (_, j) => ({ name: '', photo: '', ...(list[j] || {}), m: null, dx: 0, dy: 0, zoom: 1 }));
   const club = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', squad: squad([]) }, o);
   const state = {
+    mode: 'player',                // player (1v1) | team (crest vs crest)
     layout: 'wave',
     moves: {},                     // admin's drags/sizes per layout: { wave: { score: { x, y, s, ox, oy } } }
     hidden: {},                    // parts the admin switched off, per layout: { ticket: { barcode: true } }
@@ -54,7 +55,13 @@
     line: 'Dashed line', info: 'Result / date box', barcode: 'Barcode', footer: 'Footer',
     crest1: 'Team 1 logo', crest2: 'Team 2 logo', seam: 'Lightning', script: 'Script lekha', mark: 'Logo watermark', confetti: 'Confetti',
     tags: 'Player name tags', hero: 'Boro logo', scorebar: 'Score bar', paper: 'Chhera kagoj', p2: 'Team 1 captain', p3: 'Team 2 captain', partners: 'Partners strip' };
-  const isTeam = () => MR_TEAM_LAYOUTS.includes(state.layout);
+  const isTeam = () => state.mode === 'team';
+  const moveKey = () => state.layout + (MR_TEAM_LAYOUTS.includes(state.layout) && state.mode !== 'team' ? '-1v1' : '');
+  const isTL = () => MR_TEAM_LAYOUTS.includes(state.layout);   // Crest Clash / Victory / Torn, in either mode
+  // the 1v1 data drawn with a team layout: the player stands where the captain does, the team logo is the crest
+  const asTeams = () => ({ ...state, tm: { ...state.tm, photoMode: 'captain', capBase: 0, player: true,
+    teams: state.teams.map(t => ({ name: t.name, short: t.name.split(/\s+/).map(w => w[0] || '').join('').slice(0, 3), score: t.score, scorers: t.scorers, logo: t.logo, color: t.primary, color2: t.secondary,
+      captain: t.player, photo: t.photo, dx: t.dx, dy: t.dy, zoom: t.zoom, squad: [] })) } });
   // photo numbers on the poster: 0/1 = player mode photos, 2/3 = team mode captains, 10+j / 20+j = squad players
   const photoOf = n => n < 2 ? state.teams[n] : n < 10 ? state.tm.teams[n - 2] : state.tm.teams[Math.floor(n / 10) - 1].squad[n % 10];
   const allPhotos = () => [...state.teams, ...state.tm.teams, ...state.tm.teams.flatMap(t => t.squad)];
@@ -62,13 +69,13 @@
 
   const render = () => {
     state.tm.teams.forEach((t, i) => t.squad.forEach((p, j) => { if (p.photo) PARTS['p' + ((i + 1) * 10 + j)] = `Squad: ${p.name || 'Player ' + (j + 1)}`; }));
-    renderMatch(poster, state);
+    renderMatch(poster, isTL() && !isTeam() ? asTeams() : state);
     if (editing) StudioEdit.afterRender();
     $('#bgUploadRow').style.display = state.bgMode === 'image' ? '' : 'none';
-    const mode = isTeam() ? 'team' : 'player';
+    const mode = state.mode;
     $('#modeSel').value = mode;
-    $$('[data-only]').forEach(el => { el.style.display = el.dataset.only === mode ? '' : 'none'; });
-    $$('[data-k="layout"] option').forEach(o => { o.hidden = o.dataset.mode !== mode; });
+    $$('[data-only]').forEach(el => { el.style.display = (el.dataset.only === 'tl' ? isTL() : el.dataset.only === mode) ? '' : 'none'; });
+    $$('[data-k="layout"] option').forEach(o => { o.hidden = !o.dataset.mode.split(' ').includes(mode); });
   };
 
   // ---- poster fields ----
@@ -183,8 +190,8 @@
   // ---- mode: player vs player (Wave, Ticket) or team vs team (Crest Clash, Victory Squad, Torn Poster) ----
   const lastLayout = { player: 'wave', team: 'clash' };
   $('#modeSel').addEventListener('change', e => {
-    lastLayout[isTeam() ? 'team' : 'player'] = state.layout;
-    state.layout = lastLayout[e.target.value]; $('[data-k="layout"]').value = state.layout; render();
+    lastLayout[state.mode] = state.layout; state.mode = e.target.value;
+    state.layout = lastLayout[state.mode]; $('[data-k="layout"]').value = state.layout; render();
   });
 
   // ---- team mode fields ----
@@ -320,7 +327,7 @@
     t.dx = Math.round(drag.dx + (e.clientX - drag.x) / s);
     t.dy = Math.round(drag.dy + (e.clientY - drag.y) / s);
     // player mode: move only the photo while dragging (no full re-render); team mode places photos by head size, so draw again
-    if (isTeam()) render();
+    if (isTL()) render();
     else drag.img.setAttribute('style', matchPhotoTransform(t, state.layout === 'ticket' ? 'translateX(-50%)' : ''));
   });
   const endDrag = () => { drag = null; frame.classList.remove('dragging'); };
@@ -337,18 +344,18 @@
      as designed. Sections sit inside other boxes (team block, ticket card), so the kit's poster-px resize centre is turned
      into the wrapper's own px. A moved section comes above the untouched ones (and keeps the highest z-index inside it). */
   const styleOf = k => {
-    const m = (state.moves[state.layout] || {})[k] || {}, s = m.s || 1;
+    const m = (state.moves[moveKey()] || {})[k] || {}, s = m.s || 1;
     if (!m.x && !m.y && s === 1) return '';
     const el = poster.querySelector(`[data-move="${k}"]`), root = poster.firstElementChild;
     let ox = 0, oy = 0, z = 0;
     for (let e = el; e && e !== root; e = e.offsetParent) { ox += e.offsetLeft; oy += e.offsetTop; }
-    for (let a = el && el.parentElement.closest('[data-move]'); a; a = a.parentElement.closest('[data-move]')) { const q = (state.moves[state.layout] || {})[a.dataset.move] || {}; ox += q.x || 0; oy += q.y || 0; }
+    for (let a = el && el.parentElement.closest('[data-move]'); a; a = a.parentElement.closest('[data-move]')) { const q = (state.moves[moveKey()] || {})[a.dataset.move] || {}; ox += q.x || 0; oy += q.y || 0; }
     if (el) [el, ...el.querySelectorAll('*')].forEach(d => { z = Math.max(z, parseInt(getComputedStyle(d).zIndex) || 0); });
     return `transform:translate(${m.x || 0}px,${m.y || 0}px)${s !== 1 ? ` scale(${s})` : ''};transform-origin:${(m.ox || 540) - ox}px ${(m.oy || 675) - oy}px;z-index:${Math.max(1, z)}${el && !el.classList.contains('mv') ? ';position:relative' : ''}`;
   };
   StudioEdit.init({
     frame, poster, state, render, panel: $('#form'), partsBox: $('#parts'), parts: PARTS,
-    moveKey: () => state.layout, styleOf,
+    moveKey, styleOf,
     photo: { get: photoOf, changed: i => { if (i < 2) syncZoom(i); } },
     extras: { get: () => allPhotos().map(t => [t.dx, t.dy, t.zoom]), set: v => { allPhotos().forEach((t, i) => { [t.dx, t.dy, t.zoom] = v[i]; }); syncZoom(0); syncZoom(1); } },
   });
@@ -356,7 +363,8 @@
 
   // ---- reset: every section and both photos of this layout back to the default spot and size ----
   $('#resetAll').addEventListener('click', () => {
-    delete state.moves[state.layout]; delete state.hidden[state.layout];
+    const mk = moveKey();
+    delete state.moves[mk]; delete state.hidden[mk];
     if (isTeam()) [...state.tm.teams, ...state.tm.teams.flatMap(t => t.squad)].forEach(t => Object.assign(t, { dx: 0, dy: 0, zoom: 1 }));
     else state.teams.forEach((t, i) => { Object.assign(t, { dx: 0, dy: 0, zoom: 1 }); syncZoom(i); });
     render();
