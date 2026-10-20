@@ -110,7 +110,7 @@ their player). Neon Frames, Chrome Bar, Smoke and Brush are side by side only.
 Two more layouts come from the Match Result team mode: **Crest Clash** (team-colour halves split by a lightning seam, both
 players fading out behind their team crest on a glowing ring, a chrome VS in a hex plate, the stage title in giant outline
 letters, player name + team chip under each crest) and **Torn Poster** (a torn paper strip across the poster with VS, the
-event, title and date stamped on it, player 1 above the tear with crest + name top right, player 2 below it in front of the
+event, title and date stamped on it, both players the same size, player 1 above the tear (cut along the tear, under the paper) with crest + name top right, player 2 below it in front of the
 paper with crest + name bottom left, halftone dots, the small tag on a tape). The team logo is the crest; without a logo a
 disc in the team colour shows the team's initials. Both use the slim partners strip.
 Background: **Default template** (fixed colours for each layout), **Jersey / logo colours (auto)** (each side takes its

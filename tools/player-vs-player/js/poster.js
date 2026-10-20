@@ -41,8 +41,10 @@
              { x: 810, top: 430, head: 140, floor: 990, clip: 'inset(290px 60px 360px 600px)' }],
     // crest clash: players behind their crest rings, fading out at the bottom
     clash:  [{ x: 262, top: 290, head: 172, floor: 900, fade: 1 }, { x: 818, top: 290, head: 172, floor: 900, fade: 1 }],
-    // torn poster: player 1 above the tear (cut hidden under the paper), player 2 below it in front of the paper
-    torn:   [{ x: 285, top: 95, head: 215, floor: 900 }, { x: 805, top: 585, head: 150, floor: 1255 }],
+    // torn poster: both players the same size; player 1 above the tear (clipped along the tear line, under the paper),
+    // player 2 below it in front of the paper
+    torn:   [{ x: 285, top: 95, head: 215, floor: 900, clip: 'polygon(0 0,1080px 0,1080px 520px,0 1000px)' },
+             { x: 860, top: 650, head: 215, floor: 1255 }],
   };
   /* Upor-nich: player slots for the staggered arrangement (fade = the photo's cut line is open, so it fades out)
      and where the text sections move by default so names stay under their player. */
@@ -92,7 +94,7 @@
       : mv('head', `<div class="hdr">${brand}<div class="ev"><b>${esc(st.tag)}</b>${esc(st.date)}</div></div>`) + mv('title', `<div class="ttl"><b>${esc(st.title)}</b><span>${esc(st.event)}</span></div>`);
     const slots = tvtSlots(st);
     const ph = i => { const t = [A, B][i]; return t.photo
-      ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="height:${slots[i].floor}px"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : ''; };
+      ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="${slots[i].clip ? `height:1350px;clip-path:${slots[i].clip}` : `height:${slots[i].floor}px`}"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : ''; };
     const phs = [A, B].map((t, i) => t.photo
       ? `<div class="slot${slots[i].fade ? ' fade' : ''}" style="${slots[i].clip ? `height:1350px;clip-path:${slots[i].clip}` : `height:${slots[i].floor}px`}"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, slots[i])}" alt=""></div>` : '').join('');
     const date = esc(st.date), time = esc(st.time), extra = esc(st.extra);
@@ -298,9 +300,9 @@
       h += mv('crestA', `<div class="tcr" style="left:715px;top:112px">${crest(A, 160, a)}</div>`);
       h += mv('teamA', `<div class="tnm t1" style="left:560px;width:470px;top:290px"><b>${esc(A.player)}</b><span>${esc(A.team)}</span></div>`);
       h += mv('crestB', `<div class="tcr" style="left:50px;top:1036px">${crest(B, 140, b)}</div>`);
-      h += mv('teamB', `<div class="tnm t2" style="left:210px;width:380px;top:1040px"><b>${esc(B.player)}</b><span>${esc(B.team)}</span></div>`);
-      h += mv('vs', `<div class="stamp"><div class="sk">${esc(st.event)}</div><div class="sn">VS</div>
-        <div class="sd"><b>${esc(st.title)}</b>${[date, time, extra].filter(Boolean).join(' · ')}</div></div>`);
+      h += mv('teamB', `<div class="tnm t2" style="left:210px;width:340px;top:1040px"><b>${esc(B.player)}</b><span>${esc(B.team)}</span></div>`);
+      h += mv('vs', `<div class="stamp"><div class="sk"><b>${esc(st.title)}</b>${esc(st.event)}</div><div class="sn">VS</div>
+        <div class="sd">${[date, time, extra].filter(Boolean).join(' · ')}</div></div>`);
       if (st.tag) h += mv('tape', `<div class="tape">${esc(st.tag)}</div>`);
       h += mv('head', `<div class="thd">${brandT}</div>`);
     }
@@ -313,7 +315,7 @@
 
   // long team names shrink until they fit their space
   const FIT = { bolt: [['.pl b', 400]], neon: [['.nm b', 460]], slash: [['.plA b', 320], ['.plB b', 420]], chrome: [['.tn', 300]], half: [['.tn b', 460]], smoke: [['.nm b', 440]], brush: [['.nm b', 420], ['.big', 400]],
-    clash: [['.cn b', 440]], torn: [['.t1 b', 470], ['.t2 b', 380]] };
+    clash: [['.cn b', 440]], torn: [['.t1 b', 470], ['.t2 b', 340]] };
   function fitNames(p) {
     const L = [...p.classList].find(c => FIT[c]);
     for (const [sel, max] of FIT[L]) p.querySelectorAll(sel).forEach(el => {
