@@ -1,7 +1,10 @@
 /* Team vs Team poster renderer: renderTvt(el, state). Club crest vs club crest, four layouts from shifty's references:
    ball (crests wrapped round 3D footballs), smoke (team-colour smoke over a pitch), stad (floodlit stadium, crests on
-   shield cards) and brush (neon panels with paint strokes). In smoke and brush a team can show its captain's photo
-   instead of the crest; the crest then sits next to the team name.
+   shield cards), brush (neon panels with paint strokes), clash (Crest Clash: team-colour halves split by a lightning seam,
+   crests on glowing rings, a chrome VS in a hex plate, the stage title in giant outline letters behind) and torn (Torn
+   Poster: a torn paper strip with VS stamped on it, one team above it and one below, halftone dots). In smoke and brush a
+   team can show its captain's photo instead of the crest; the crest then sits next to the team name. In clash and torn the
+   captain stands behind (or in front of) the crest, which stays.
    Every text block sits in a .mv wrapper so the admin can drag it and wheel-resize it; see tvtMoveStyle. */
 (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -16,6 +19,8 @@
     smoke: ['#1f6bff', '#7fb0ff', '#ff2d7a', '#ff8fb8'],
     stad: ['#1f7a34', '#3fae5a', '#1f7a34', '#3fae5a'],
     brush: ['#e0213f', '#ff6b80', '#3fc3f0', '#a8e6ff'],
+    clash: ['#ff2e63', '#ff8fa8', '#19c7ff', '#9fe6ff'],
+    torn: ['#ff5a1f', '#ffa47a', '#2453ff', '#8fa6ff'],
   };
 
   /* Where each team's crest (box: centre + size) or captain photo (slot: body centre x, head-top line, head width,
@@ -27,8 +32,14 @@
     stad:  [{ box: { cx: 250, cy: 655, s: 250 } }, { box: { cx: 830, cy: 655, s: 250 } }],
     brush: [{ box: { cx: 270, cy: 640, s: 340 }, slot: { x: 270, top: 430, head: 140, floor: 990 }, clip: 'inset(290px 600px 360px 60px)' },
             { box: { cx: 810, cy: 640, s: 340 }, slot: { x: 810, top: 430, head: 140, floor: 990 }, clip: 'inset(290px 60px 360px 600px)' }],
+    // box = the crest spot without a captain (the crest itself is a movable section in these two)
+    // (cut = where the photo is cut off when it is lower than the floor it stands on)
+    clash: [{ box: { cx: 250, cy: 600, s: 250 }, slot: { x: 250, top: 280, head: 118, floor: 760, cut: 900 } },
+            { box: { cx: 830, cy: 600, s: 250 }, slot: { x: 830, top: 280, head: 118, floor: 760, cut: 900 } }],
+    torn:  [{ box: { cx: 540, cy: 220, s: 240 }, slot: { x: 270, top: 300, head: 118, floor: 900 } },
+            { box: { cx: 185, cy: 1075, s: 230 }, slot: { x: 830, top: 790, head: 104, floor: 1255 } }],
   };
-  const CAPTAIN = { smoke: 1, brush: 1 };
+  const CAPTAIN = { smoke: 1, brush: 1, clash: 1, torn: 1 };
   const showCaptain = (st, t) => CAPTAIN[st.layout] && t.captain && t.photo;
   window.tvtSlots = st => ITEMS[st.layout];
   window.tvtHasCaptain = L => !!CAPTAIN[L];
@@ -253,15 +264,109 @@
         ${mv('info', `<div class="info">${date}${time ? `<em>${time}</em>` : ' · '}${extra}</div>`)}`;
     }
 
-    root.innerHTML = `<div class="tvt ${L}${isUp ? ' up' : ''}">${h}${mv('partners', sp)}</div>`;
+    // ---- Crest Clash and Torn Poster (shifty's two favourites from the Match Result team mode, made pre-match) ----
+    const pal = () => {
+      if (tpl) return { c1: a, c2: b, pop: L === 'torn' ? '#ffe14a' : '#ffd23a' };
+      let c2 = B.c;
+      const [h1] = hue(A.c), [h2, s2] = hue(c2), dh = Math.min(Math.abs(h1 - h2), 360 - Math.abs(h1 - h2));
+      if (dh < 28) c2 = h1 > 150 && h1 < 270 ? '#ff4f6d' : '#2f7bff';   // same-colour clubs: team 2 gets a contrast colour
+      const gold = c => { const [h, s] = hue(c); return s > .4 && h > 30 && h < 70; };
+      return { c1: A.c, c2, pop: gold(A.c) || gold(c2) ? '#ffffff' : '#ffd23a' };
+    };
+    const mixc = (x, y, k) => { const p = [x, y].map(c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16))); return '#' + p[0].map((v, i) => Math.round(v + (p[1][i] - v) * k).toString(16).padStart(2, '0')).join(''); };
+    const crestImg = (t, s, c) => t.logo ? `<img class="cr" src="${t.logo}" style="width:${s}px;height:${s}px" alt="">`
+      : `<div class="cr mono" style="width:${s}px;height:${s}px;background:${c};font-size:${Math.round(s * .3)}px">${esc((t.short || t.team || '').slice(0, 3).toUpperCase())}</div>`;
+    // no z-index here: every .mv section is its own layer, so the order in the HTML decides what sits in front
+    const capImg = (t, i) => showCaptain(st, t) ? `<div class="slot" style="height:${its[i].slot.cut || its[i].slot.floor}px"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, its[i].slot)}" alt=""></div>` : '';
+    const chip = (t, k, x, y) => showCaptain(st, t) && t.player ? mv(k, `<div class="pchip" style="left:${x}px;top:${y}px">${esc(t.player)}</div>`) : '';
+    const head2 = mv('head', `<div class="hd l">${st.logo ? `<div class="brand2 logo"><img src="${st.logo}" alt=""></div>` : '<div class="brand2">eFCOB</div>'}</div>${st.tag ? `<div class="hd r"><div class="tag">${esc(st.tag)}</div></div>` : ''}`);
+    let vars = '';
+
+    if (L === 'clash') {
+      const P = pal(), capA = !!showCaptain(st, A), capB = !!showCaptain(st, B), cap = capA || capB, R2 = rng(5);
+      vars = `--c1:${P.c1};--c2:${P.c2};--pop:${P.pop}`;
+      let x = 600, seam = 'M600 -20';
+      for (let y = 40; y <= 1370; y += 60) { x = 600 - (y / 1350) * 120 + (R2() - .5) * 70; seam += ` L${x.toFixed(0)} ${y}`; }
+      const dots = cx => Array.from({ length: 12 }, (_, r) => Array.from({ length: 12 }, (_, k) => { const s = Math.max(0, 5.4 - Math.hypot(r, k) * .5);
+        return s > .5 ? `<circle cx="${cx + (cx < 540 ? k : -k) * 17}" cy="${150 + r * 17}" r="${s.toFixed(1)}" fill="#fff"/>` : ''; }).join('')).join('');
+      const y0 = cap ? 690 : 600, rr = cap ? 112 : 150, cs = cap ? 190 : 250;
+      const ring = (cx, c, n) => `<svg class="full rings" viewBox="0 0 1080 1350"><circle cx="${cx}" cy="${y0}" r="${rr + 40}" fill="url(#ccg${n})"/>
+        <circle cx="${cx}" cy="${y0}" r="${rr}" fill="none" stroke="${c}" stroke-width="10" filter="url(#ccglow)"/><circle cx="${cx}" cy="${y0}" r="${rr}" fill="none" stroke="${mixc(c, '#ffffff', .6)}" stroke-width="3"/>
+        <circle cx="${cx}" cy="${y0}" r="${rr + 22}" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="4 10" opacity=".8"/></svg>`;
+      const ny = cap ? 900 : 830;
+      h = `${isUp ? `<div class="upbg" style="background-image:url('${st.bgImage}')"></div><div class="wash" style="background:linear-gradient(180deg,rgba(5,5,16,.25),rgba(5,5,16,.85) 75%)"></div>` : ''}
+        <svg class="full" viewBox="0 0 1080 1350"><defs>
+          <linearGradient id="cchl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${P.c1}" stop-opacity=".95"/><stop offset="1" stop-color="${mixc(P.c1, '#070716', .7)}" stop-opacity=".9"/></linearGradient>
+          <linearGradient id="cchr" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P.c2}" stop-opacity=".95"/><stop offset="1" stop-color="${mixc(P.c2, '#070716', .7)}" stop-opacity=".9"/></linearGradient>
+          <radialGradient id="ccg1"><stop offset="0" stop-color="${P.c1}" stop-opacity=".7"/><stop offset="1" stop-color="${P.c1}" stop-opacity="0"/></radialGradient>
+          <radialGradient id="ccg2"><stop offset="0" stop-color="${P.c2}" stop-opacity=".7"/><stop offset="1" stop-color="${P.c2}" stop-opacity="0"/></radialGradient>
+          <linearGradient id="ccbeam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <linearGradient id="ccbot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070716" stop-opacity="0"/><stop offset="1" stop-color="#070716" stop-opacity=".95"/></linearGradient>
+          <filter id="ccglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9"/></filter>
+          <filter id="ccsoft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="22"/></filter></defs>
+          <path d="M0 0 H600 L480 1350 H0 Z" fill="url(#cchl)" opacity="${isUp ? .38 : 1}"/><path d="M600 0 H1080 V1350 H480 Z" fill="url(#cchr)" opacity="${isUp ? .38 : 1}"/>
+          ${isUp ? '' : `<g filter="url(#ccsoft)"><polygon points="-40,-40 60,-40 520,900 300,900" fill="url(#ccbeam)" opacity=".5"/><polygon points="1020,-40 1120,-40 780,900 560,900" fill="url(#ccbeam)" opacity=".5"/></g>
+          <g opacity=".35">${dots(30)}${dots(1050)}</g>`}
+          <rect x="0" y="780" width="1080" height="570" fill="url(#ccbot)"/></svg>
+        ${mv('seam', `<svg class="full seam" viewBox="0 0 1080 1350"><path d="${seam}" fill="none" stroke="${P.pop}" stroke-width="22" filter="url(#ccglow)" opacity=".85"/><path d="${seam}" fill="none" stroke="#fff" stroke-width="5"/></svg>`)}
+        ${mv('title', `<div class="ghost">${esc(st.title)}</div>`)}
+        ${capImg(A, 0)}${capImg(B, 1)}<div class="floor"></div>
+        ${mv('crestA', `<div class="ringbox">${ring(250, P.c1, 1)}<div class="crw" style="left:${250 - cs / 2}px;top:${y0 - cs / 2}px">${crestImg(A, cs, P.c1)}</div></div>`)}
+        ${mv('crestB', `<div class="ringbox">${ring(830, P.c2, 2)}<div class="crw" style="left:${830 - cs / 2}px;top:${y0 - cs / 2}px">${crestImg(B, cs, P.c2)}</div></div>`)}
+        ${mv('vs', `<div class="vsp" style="top:${cap ? 300 : 475}px"><b>VS</b>${time ? `<small>${time}</small>` : ''}</div>`)}
+        ${chip(A, 'capA', 250, ny - 46)}${chip(B, 'capB', 830, ny - 46)}
+        ${mv('teamA', `<div class="cn l" style="top:${ny}px">${esc(A.team)}</div>`)}${mv('teamB', `<div class="cn r" style="top:${ny}px">${esc(B.team)}</div>`)}
+        ${mv('info', `<div class="info" style="top:${cap ? 1060 : 1010}px">${date ? `<span>${date}</span>` : ''}${extra ? `<em></em>${extra}` : ''}</div>`)}
+        ${head2}${mv('event', `<div class="kick">${esc(st.event)}</div>`)}`;
+    }
+    if (L === 'torn') {
+      const P = pal(), capA = !!showCaptain(st, A), capB = !!showCaptain(st, B), R2 = rng(29);
+      vars = `--c1:${P.c1};--c2:${P.c2};--pop:${P.pop}`;
+      // the tear runs from (0, 1000) up to (1080, 520); the paper strip is ±95px around it with ragged edges
+      const yAt = (x, off) => 1000 - x * 480 / 1080 + off;
+      const edge = (off, j) => { const pts = []; for (let x = -20; x <= 1100; x += 18) pts.push(`${x},${(yAt(x, off) + (R2() - .5) * j).toFixed(1)}`); return pts; };
+      const top = edge(-95, 16), bot = edge(95, 16), topIn = edge(-80, 10), botIn = edge(80, 10);
+      const paper = `M${top.join(' L')} L${bot.slice().reverse().join(' L')} Z`, paper2 = `M${topIn.join(' L')} L${botIn.slice().reverse().join(' L')} Z`;
+      const dot = (id, c) => `<pattern id="${id}" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="8" cy="8" r="3.2" fill="${c}"/></pattern>`;
+      // team 1 block: top right next to its captain, else centred; team 2 block: bottom left
+      const b1 = capA ? { cx: 795, w: 470, cy: 110, cs: 180 } : { cx: 540, w: 700, cy: 100, cs: 240 };
+      const b2 = capB ? { x: 50, y: 1070, cs: 150, tx: 220, tw: 380, ny: 1000 } : { x: 70, y: 960, cs: 230, tx: 330, tw: 680, ny: 1040 };
+      h = `${isUp ? `<div class="upbg" style="background-image:url('${st.bgImage}')"></div>` : ''}
+        <svg class="full" viewBox="0 0 1080 1350"><defs>
+          <linearGradient id="tpa" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${mixc(P.c1, '#ffffff', .12)}"/><stop offset="1" stop-color="${mixc(P.c1, '#000000', .45)}"/></linearGradient>
+          <linearGradient id="tpb" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${mixc(P.c2, '#000000', .55)}"/><stop offset="1" stop-color="${mixc(P.c2, '#ffffff', .08)}"/></linearGradient>
+          ${dot('tpd1', 'rgba(0,0,0,.16)')}${dot('tpd2', 'rgba(255,255,255,.1)')}
+          <filter id="tpgrit"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .22 0"/></filter>
+          <filter id="tpsh" x="-5%" y="-20%" width="110%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-opacity=".45"/></filter></defs>
+          <path d="M0 0 H1080 V${yAt(1080, 0)} L0 ${yAt(0, 0)} Z" fill="url(#tpa)" opacity="${isUp ? .42 : 1}"/>
+          <path d="M0 ${yAt(0, 0)} L1080 ${yAt(1080, 0)} V1350 H0 Z" fill="url(#tpb)" opacity="${isUp ? .42 : 1}"/>
+          ${isUp ? '' : `<path d="M0 0 H1080 V${yAt(1080, 0)} L0 ${yAt(0, 0)} Z" fill="url(#tpd1)" opacity=".8"/><path d="M0 ${yAt(0, 0)} L1080 ${yAt(1080, 0)} V1350 H0 Z" fill="url(#tpd2)"/>
+          <rect width="1080" height="1350" filter="url(#tpgrit)"/>`}
+          <path d="M0 1180 H1080 V1350 H0 Z" fill="#000" opacity=".35"/></svg>
+        ${capImg(A, 0)}
+        ${mv('paper', `<svg class="full paper" viewBox="0 0 1080 1350"><path d="${paper}" fill="#f1ece1" filter="url(#tpsh)"/><path d="${paper2}" fill="none" stroke="#d9d1bf" stroke-width="2" stroke-dasharray="2 7"/><path d="${paper}" fill="url(#tpd1)" opacity=".18"/></svg>`)}
+        ${capImg(B, 1)}
+        ${mv('crestA', `<div class="tcr" style="left:${b1.cx - b1.cs / 2}px;top:${b1.cy}px">${crestImg(A, b1.cs, P.c1)}</div>`)}
+        ${mv('crestB', `<div class="tcr" style="left:${b2.x}px;top:${b2.y}px">${crestImg(B, b2.cs, P.c2)}</div>`)}
+        ${mv('teamA', `<div class="tn t1" style="left:${b1.cx - b1.w / 2}px;width:${b1.w}px;top:${b1.cy + b1.cs + 14}px">${esc(A.team)}</div>`)}
+        ${mv('teamB', `<div class="tn t2" style="left:${b2.tx}px;width:${b2.tw}px;top:${b2.ny}px">${esc(B.team)}</div>`)}
+        ${chip(A, 'capA', 270, 735)}${chip(B, 'capB', 830, 1190)}
+        ${mv('vs', `<div class="stamp"><div class="sn">VS</div><div class="sd">${st.title ? `<b>${esc(st.title)}</b>` : ''}${[date, time].filter(Boolean).join(' · ')}</div></div>`)}
+        ${extra ? mv('info', `<div class="tape">${extra}</div>`) : ''}
+        ${head2}${mv('event', `<div class="tk">${esc(st.event)}</div>`)}`;
+    }
+
+    root.innerHTML = `<div class="tvt ${L}${isUp ? ' up' : ''}"${vars ? ` style="${vars}"` : ''}>${h}${mv('partners', sp)}</div>`;
     fitNames(root.firstElementChild);
   }
 
   // long team names shrink until they fit their space
-  const FIT = { ball: [['.nm b', 440]], smoke: [['.nm b', 440]], stad: [['.ban', 370]], brush: [['.nm b', 420], ['.big', 400]] };
+  const FIT = { ball: [['.nm b', 440]], smoke: [['.nm b', 440]], stad: [['.ban', 370]], brush: [['.nm b', 420], ['.big', 400]],
+    clash: [['.cn', 470], ['.ghost', 1060], ['.kick', 560]], torn: [['.tn', 0], ['.tk', 520], ['.stamp .sd', 760]] };
   function fitNames(p) {
     const L = [...p.classList].find(c => FIT[c]);
-    for (const [sel, max] of FIT[L]) p.querySelectorAll(sel).forEach(el => {
+    for (const [sel, mx] of FIT[L]) p.querySelectorAll(sel).forEach(el => {
+      const max = mx || parseFloat(el.style.width);   // 0 = the block's own width
       el.style.fontSize = '';
       let f = parseFloat(getComputedStyle(el).fontSize);
       const w0 = el.style.width, d0 = el.style.display;
