@@ -124,15 +124,23 @@
 .line .when span { margin-top: 6px; font: 700 max(12px, calc(15px * var(--sz)))/1 'Exo 2'; letter-spacing: .14em; color: var(--c1); white-space: nowrap; }
 .line .when i { margin-top: 6px; font: 600 max(10px, calc(12px * var(--sz)))/1 'Exo 2'; font-style: normal; letter-spacing: .2em; color: #8f9bc4; text-transform: uppercase; white-space: nowrap; }
 .line .node { position: absolute; left: 187px; top: 50%; width: 22px; height: 22px; margin-top: -11px; border-radius: 50%; background: #0a0f22; border: 4px solid var(--c1); box-shadow: 0 0 0 5px rgba(10,15,34,.9), 0 0 18px var(--c1); }
-.line .pill { position: absolute; left: 236px; right: 0; top: 9%; bottom: 9%; border-radius: 999px; display: flex; align-items: center;
-  background: linear-gradient(100deg, color-mix(in srgb, var(--ka) 78%, #000) 0%, color-mix(in srgb, var(--ka) 30%, #0a0f22) 40%, #0a0f22 49.6%, #0a0f22 50.4%, color-mix(in srgb, var(--kb) 30%, #0a0f22) 60%, color-mix(in srgb, var(--kb) 78%, #000) 100%);
-  border: 1.5px solid rgba(255,255,255,.16); box-shadow: 0 12px 30px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.18); }
+.line .pill { position: absolute; left: 236px; right: 0; top: 12%; bottom: 12%; display: flex; align-items: center; isolation: isolate; filter: drop-shadow(0 12px 22px rgba(0,0,0,.5)); }
+/* the bar: slanted ends, the two team colours meeting on a hard diagonal, fine carbon lines, a glossy top half and a gold-to-blue top edge */
+.line .pill::before { content: ''; position: absolute; inset: 0; z-index: -1; clip-path: polygon(26px 0, 100% 0, calc(100% - 26px) 100%, 0 100%);
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 48%, rgba(0,0,0,.28)),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.045) 0 2px, transparent 2px 9px),
+    linear-gradient(105deg, color-mix(in srgb, var(--ka) 85%, #000) 0%, color-mix(in srgb, var(--ka) 45%, #0a0f22) 47%, #070a16 47%, #070a16 53%, color-mix(in srgb, var(--kb) 45%, #0a0f22) 53%, color-mix(in srgb, var(--kb) 85%, #000) 100%); }
+.line .pill::after { content: ''; position: absolute; left: 26px; right: 0; top: 0; height: 3px; z-index: -1; background: linear-gradient(90deg, var(--ka), #ffffff 50%, var(--kb)); opacity: .85; }
 .line .end { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 14px; }
 .line .end.r { flex-direction: row-reverse; text-align: right; }
-.line .badge { flex: none; position: relative; height: calc(100% + 16px); aspect-ratio: 1; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;
-  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--k) 45%, #1a2240), #070a16); border: 4px solid var(--k); box-shadow: 0 0 18px color-mix(in srgb, var(--k) 50%, transparent); }
-.line .end.l .badge { margin-left: -6px; } .line .end.r .badge { margin-right: -6px; }
-.line .ph.rd { left: 0; right: 0; top: 6%; height: 150%; }
+/* photo frame: a slanted panel in the team colour; the cut-out rises out of its top edge */
+.line .badge { flex: none; position: relative; height: 100%; width: calc(118px * var(--sz)); display: flex; align-items: center; justify-content: center; }
+.line .badge::before { content: ''; position: absolute; inset: 0; clip-path: polygon(22% 0, 100% 0, 78% 100%, 0 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--k) 70%, #ffffff), color-mix(in srgb, var(--k) 55%, #070a16) 60%, #070a16); }
+.line .end.l .badge { margin-left: 4px; } .line .end.r .badge { margin-right: 4px; }
+.line .end.r .badge::before { clip-path: polygon(22% 0, 100% 0, 78% 100%, 0 100%); }
+.line .badge > .lg, .line .badge > .mono { position: relative; }
+.line .ph.rd { left: 6%; right: 6%; bottom: 0; top: calc(-30px * var(--sz)); clip-path: polygon(-50% -50%, 150% -50%, 150% 100%, -50% 100%); }
 .line .nmb { flex: 1; min-width: 0; overflow: hidden; }
 .line .mini { display: inline-block; vertical-align: middle; margin-bottom: 4px; }
 .line .mini .lg, .line .mini .mono { display: inline-flex; }
