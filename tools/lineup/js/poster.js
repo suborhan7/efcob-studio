@@ -1,8 +1,8 @@
 /* Lineup poster renderer: renderLineup(el, state). Both teams' starting players before a match (number, name, position, captain),
-   subs, formation, the team's gamer / manager with a cut-out photo, three layouts:
-   face (Face-Off: crests with a big X on top, the two lists mirrored on a centre spine, the gamers at the edges; magenta + cyan),
+   subs, formation, the team's captain with a cut-out photo, three layouts:
+   face (Face-Off: crests with a big X on top, the two lists mirrored on a centre spine, the captains at the edges; magenta + cyan),
    shirts (Shirt Wall: dressing-room wall, every player a shirt on a hanger with name and number; orange + blue + volt) and
-   holo (Holo Panels: two glass panels with the gamer rising out of each, neon number squares; violet + mint).
+   holo (Holo Panels: two glass panels with the captain rising out of each, neon number squares; violet + mint).
    Every block sits in a .mv wrapper so the admin can drag it and wheel-resize it; see luMoveStyle. */
 (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -65,6 +65,8 @@
     const L = st.layout, P = palette(st), T = st.teams, isUp = st.bgMode === 'image' && st.bgImage;
     const K = [teamColor(st, T[0], 0), teamColor(st, T[1], 1)];
     const XI = T.map(t => luParse(t.xi)), SUBS = T.map(t => subsOf(t.subs));
+    // captain's name: typed in the form, else the player marked (C)
+    const CAP = T.map((t, i) => (t.gamer || '').trim() || ((XI[i].find(p => p.cap) || {}).name || ''));
     const n = Math.max(1, XI[0].length, XI[1].length);
     const mv = (key, html) => `<div class="mv" data-move="${key}" style="${luMoveStyle(st, key)}">${html}</div>`;
     const crest = (t, s, c) => t.logo ? `<img class="lg" src="${t.logo}" style="width:${s}px;height:${s}px" alt="">`
@@ -96,7 +98,7 @@
         h += mv('l' + i, `<div class="col ${i ? 'r' : 'l'}" style="top:${y0}px;--k:${K[i]};--rh:${rh}px">${xi.map(p =>
           `<div class="row">${st.showPos && p.pos ? `<i class="ps">${esc(p.pos)}</i>` : ''}<span class="nm">${esc(p.name).toUpperCase()}</span>${cap(p)}${st.showNum ? `<b class="no">${esc(p.no)}</b>` : ''}</div>`).join('')}</div>`);
         if (st.showSubs && SUBS[i].length) h += mv('s' + i, `<div class="subs ${i ? 'r' : 'l'}" style="--k:${K[i]}"><div class="k">SUBSTITUTES</div><div class="sl">${SUBS[i].map(esc).join(' · ')}</div></div>`);
-        if (T[i].gamer) h += mv('g' + i, `<div class="gp ${i ? 'r' : 'l'}" style="--k:${K[i]}"><span>${esc(st.gamerLabel).toUpperCase()}</span><b>${esc(T[i].gamer)}</b></div>`);
+        if (CAP[i]) h += mv('g' + i, `<div class="gp ${i ? 'r' : 'l'}" style="--k:${K[i]}"><span>${esc(st.gamerLabel).toUpperCase()}</span><b>${esc(CAP[i])}</b></div>`);
       });
       if (live) h += mv('info', `<div class="info">${live}</div>`);
     } else if (L === 'shirts') {
@@ -123,7 +125,7 @@
           <div class="bh">${crest(t, 64, K[i])}<div class="tn">${esc(t.name)}</div>${t.formation ? `<div class="fm">${esc(t.formation)}</div>` : ''}</div>
           ${rows.map(r => `<div class="rack"><div class="rail"></div><div class="shs">${r.map(p => shirt(p, i)).join('')}</div></div>`).join('')}</div>`);
         if (st.showSubs && SUBS[i].length) h += mv('s' + i, `<div class="subs ${i ? 'r' : 'l'}" style="top:${y + 412}px;--k:${K[i]}"><b>SUBS</b><span>${SUBS[i].map(esc).join(' · ')}</span></div>`);
-        if (t.gamer) h += mv('g' + i, `<div class="gp ${i ? 'r' : 'l'}" style="top:${y + (i ? 360 : 330)}px;--k:${K[i]}"><span>${esc(st.gamerLabel).toUpperCase()}</span><b>${esc(t.gamer)}</b></div>`);
+        if (CAP[i]) h += mv('g' + i, `<div class="gp ${i ? 'r' : 'l'}" style="top:${y + (i ? 360 : 330)}px;--k:${K[i]}"><span>${esc(st.gamerLabel).toUpperCase()}</span><b>${esc(CAP[i])}</b></div>`);
       });
       h += mv('band', `<div class="band"><div class="bl">${esc(st.stage)}</div><div class="vs">VS</div><div class="br">${when}</div></div>`);
     } else {
@@ -139,7 +141,7 @@
       const top = 652, area = 470, rh = Math.min(50, Math.floor(area / n));
       T.forEach((t, i) => {
         h += mv('t' + i, `<div class="pan ${i ? 'r' : 'l'}" style="--k:${K[i]};--rh:${rh}px">
-          <div class="ban">${crest(t, 62, K[i])}<div class="tb"><div class="tn">${esc(t.name)}</div><div class="mt">${t.formation ? `<b>${esc(t.formation)}</b>` : ''}${t.gamer ? `<span>${esc(st.gamerLabel)}: ${esc(t.gamer)}</span>` : ''}</div></div></div>
+          <div class="ban">${crest(t, 62, K[i])}<div class="tb"><div class="tn">${esc(t.name)}</div><div class="mt">${t.formation ? `<b>${esc(t.formation)}</b>` : ''}${CAP[i] ? `<span>${esc(st.gamerLabel)}: ${esc(CAP[i])}</span>` : ''}</div></div></div>
           <div class="list" style="top:${top - 560}px">${XI[i].map(p => `<div class="row">${st.showNum ? `<b class="no">${esc(p.no)}</b>` : ''}<span class="nm">${esc(p.name).toUpperCase()}</span>${cap(p)}${st.showPos && p.pos ? `<i class="ps">${esc(p.pos)}</i>` : ''}</div>`).join('')}</div>
           ${st.showSubs && SUBS[i].length ? `<div class="subs"><div class="k">SUBS</div><div class="sl">${SUBS[i].map(esc).join(' · ')}</div></div>` : ''}</div>`);
       });

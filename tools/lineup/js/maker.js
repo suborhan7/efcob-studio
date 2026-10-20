@@ -1,5 +1,5 @@
 /* Maker page: form -> state -> poster. Two teams, each with name, logo (a plain background is cut away, the colour comes from the
-   logo), colour, formation, the gamer / manager with a photo (auto cut-out, drag/size on the poster), up to 11 starters
+   logo), colour, formation, the captain with a photo (name taken from the (C) player unless typed) (auto cut-out, drag/size on the poster), up to 11 starters
    (one per line: number, name, position, (C) for the captain) and subs. HD PNG download. */
 (function () {
   const SL = window.SAMPLE_LOGOS || {}, S = window.SAMPLE_PHOTOS || {};
@@ -16,13 +16,13 @@
     date: '2026-10-28',
     time: '9:30 PM',
     live: 'facebook.com/efcob',
-    gamerLabel: 'Manager',
+    gamerLabel: 'Captain',
     showNum: true, showPos: true, showCap: true, showSubs: true, showPhotos: true,
     teams: [
-      { name: 'Barcelona', gamer: 'Rafi', color: '#a50044', logo: SL.barcelona || '', photo: S.cmf || '', dx: 0, dy: 0, zoom: 1, formation: '4-3-3',
+      { name: 'Barcelona', gamer: '', color: '#a50044', logo: SL.barcelona || '', photo: S.cmf || '', dx: 0, dy: 0, zoom: 1, formation: '4-3-3',
         xi: '13 Joan Garcia GK\n23 Kounde RB\n2 Cubarsi CB\n24 Eric Garcia CB\n3 Balde LB\n21 De Jong CM (C)\n8 Pedri CM\n16 Fermin AM\n10 Yamal RW\n11 Raphinha LW\n9 Lewandowski ST',
         subs: 'Szczesny, Araujo, Christensen, Gerard Martin, Casado, Gavi, Olmo, Rashford, Ferran Torres' },
-      { name: 'Real Madrid', gamer: 'Shanto', color: '#febe10', logo: SL['real-madrid'] || '', photo: S.llfc || '', dx: 0, dy: 0, zoom: 1, formation: '4-3-3',
+      { name: 'Real Madrid', gamer: '', color: '#febe10', logo: SL['real-madrid'] || '', photo: S.llfc || '', dx: 0, dy: 0, zoom: 1, formation: '4-3-3',
         xi: '1 Courtois GK\n8 Valverde RB (C)\n17 Asencio CB\n24 Huijsen CB\n18 Carreras LB\n14 Tchouameni DM\n6 Camavinga CM\n5 Bellingham CM\n11 Rodrygo RW\n7 Vinicius LW\n10 Mbappe ST',
         subs: 'Lunin, Carvajal, Alaba, Rudiger, Mendy, Arda Guler, Ceballos, Brahim, Mastantuono, Gonzalo' },
     ],
@@ -44,10 +44,10 @@
     const [a, b] = state.teams.map(t => t.name || 'Team');
     const L = state.layout;
     PARTS.head = 'Header / title';
-    if (L === 'face') Object.assign(PARTS, { crests: 'Logo + X + team name', spine: 'Majher line', l0: `List: ${a}`, l1: `List: ${b}`, s0: `Subs: ${a}`, s1: `Subs: ${b}`, g0: `Manager plate: ${a}`, g1: `Manager plate: ${b}`, info: 'Live line' });
-    if (L === 'shirts') Object.assign(PARTS, { t0: `Shirts: ${a}`, t1: `Shirts: ${b}`, s0: `Subs: ${a}`, s1: `Subs: ${b}`, g0: `Manager plate: ${a}`, g1: `Manager plate: ${b}`, band: 'VS band (stage, date)' });
+    if (L === 'face') Object.assign(PARTS, { crests: 'Logo + X + team name', spine: 'Majher line', l0: `List: ${a}`, l1: `List: ${b}`, s0: `Subs: ${a}`, s1: `Subs: ${b}`, g0: `Captain plate: ${a}`, g1: `Captain plate: ${b}`, info: 'Live line' });
+    if (L === 'shirts') Object.assign(PARTS, { t0: `Shirts: ${a}`, t1: `Shirts: ${b}`, s0: `Subs: ${a}`, s1: `Subs: ${b}`, g0: `Captain plate: ${a}`, g1: `Captain plate: ${b}`, band: 'VS band (stage, date)' });
     if (L === 'holo') Object.assign(PARTS, { vs: 'VS + stage + date', t0: `Panel: ${a}`, t1: `Panel: ${b}` });
-    PARTS.p0 = `Chobi: ${state.teams[0].gamer || a}`; PARTS.p1 = `Chobi: ${state.teams[1].gamer || b}`;
+    PARTS.p0 = `Captain er chobi: ${a}`; PARTS.p1 = `Captain er chobi: ${b}`;
     PARTS.partners = 'Partners strip';
   }
   let editing = false;
@@ -187,7 +187,7 @@
     pwrap.appendChild(row);
   });
 
-  // ---- gamer photos: drag = move, wheel = size (sections are moved by js/studio-edit.js) ----
+  // ---- captain photos: drag = move, wheel = size (sections are moved by js/studio-edit.js) ----
   const frame = $('#frame');
   const posterScale = () => frame.getBoundingClientRect().width / 1080;
   let drag = null;

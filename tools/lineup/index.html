@@ -17,7 +17,7 @@
       <h3>Poster</h3>
       <label>Layout
         <select data-k="layout">
-          <option value="face">Face-Off (majhe duita list, dui pashe manager)</option>
+          <option value="face">Face-Off (majhe duita list, dui pashe captain)</option>
           <option value="shirts">Shirt Wall (protiti player ekta jersey)</option>
           <option value="holo">Holo Panels (duita glass panel)</option>
         </select>
@@ -38,7 +38,7 @@
         <label>Kick-off<input data-k="time"></label>
       </div>
       <label>Live on<input data-k="live"></label>
-      <label>Photo r nicher lekha (jemon Manager / Captain)<input data-k="gamerLabel"></label>
+      <label>Chobir nicher lekha (Captain)<input data-k="gamerLabel"></label>
       <label>eFCOB logo (optional)<input type="file" accept="image/*" data-file="logo"></label>
     </section>
 
@@ -48,7 +48,7 @@
       <label class="check"><input type="checkbox" data-k="showPos"> Position (GK, CB, ST…)</label>
       <label class="check"><input type="checkbox" data-k="showCap"> Captain er (C) badge</label>
       <label class="check"><input type="checkbox" data-k="showSubs"> Substitutes</label>
-      <label class="check"><input type="checkbox" data-k="showPhotos"> Manager er chobi</label>
+      <label class="check"><input type="checkbox" data-k="showPhotos"> Captain er chobi</label>
       <label class="check"><input type="checkbox" id="cutout" checked> Auto cut-out (chobir background kete dao)</label>
       <div class="status" id="phStatus"></div>
       <template id="teamTpl">
@@ -59,10 +59,10 @@
             <label>Formation<input data-f="formation"></label>
           </div>
           <div class="two">
-            <label>Manager / gamer<input data-f="gamer"></label>
+            <label>Captain (khali rakhle (C) player er naam)<input data-f="gamer"></label>
             <label>Logo<input type="file" accept="image/*" data-logo></label>
           </div>
-          <label>Manager er chobi<input type="file" accept="image/*" data-photo></label>
+          <label>Captain er chobi<input type="file" accept="image/*" data-photo></label>
           <div class="colors"><span>Team colour</span><input type="color" data-f="color"><button type="button" data-auto>Auto from logo</button><button type="button" data-noph title="Remove photo">✕ photo</button></div>
           <label>Starting XI (protiti line e ekjon: number naam position, captain er pashe (C))<textarea rows="11" data-f="xi"></textarea></label>
           <label>Substitutes (comma diye)<textarea rows="3" data-f="subs"></textarea></label>
