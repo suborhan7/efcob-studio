@@ -16,7 +16,7 @@ One admin page for the eFCOB card makers. Open `index.html` in Chrome or Edge.
 | MVP | `tools/mvp/` | ready |
 | Match Result | `tools/match-result/` | ready |
 | Top 4 | `tools/top-4/` | ready |
-| Team vs Team | - | not built yet (not listed) |
+| Team vs Team | `tools/team-vs-team/` | ready |
 
 ### MVP
 One player, 1080 × 1350, "Big MVP" layout: huge MVP letters behind the player, stats row across
@@ -67,4 +67,14 @@ Background: **Default template** with a theme (Navy is the default; Jewel, Ocean
 themes with two diagonal bands), **Jersey colours** (blocks/rows take each player's kit colour) or **Upload my own**.
 Per player: name, team, points, W/D/L, photo (auto cut-out, drag/size), optional team logo, kit colour.
 Photos are auto-fitted by head size, so every head comes out the same size for its place.
+Partners strip at the bottom: up to 5 names or logos plus a website line.
+
+### Team vs Team
+Pre-match poster, 1080 × 1350 (downloads in HD, 2160 × 2700). Five layouts (dropdown at the top of the form):
+**Lightning Split**, **Neon Frames**, **Slash Plates**, **Chrome Bar** and **Halftone Slash**.
+Background: **Default template** (fixed colours for each layout), **Jersey / logo colours (auto)** (each side takes its
+team colour; white/black kits use their trim, plain black/white kits get purple) or **Upload my own**.
+Poster fields: title (stage), event, small tag, date, kick-off time, the text after the time, optional eFCOB logo.
+Per team: team, player, photo (auto cut-out, drag/size), optional team logo (sets the colours), main + light colour.
+Photos are fitted by head size and are not sharpened, so faces stay clean; use photos at least about 1000 px tall.
 Partners strip at the bottom: up to 5 names or logos plus a website line.
