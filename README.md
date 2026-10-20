@@ -20,6 +20,7 @@ One admin page for the eFCOB card makers. Open `index.html` in Chrome or Edge.
 | Team vs Team | `tools/team-vs-team/` | ready |
 | Transfer | `tools/transfer/` | ready |
 | Best XI | `tools/best-xi/` | ready |
+| Points Table | `tools/points-table/` | ready |
 
 ### MVP
 One player, 1080 × 1350, "Big MVP" layout: huge MVP letters behind the player, stats row across
@@ -149,3 +150,19 @@ logo; per player: name, team, rating, photo (auto cut-out; the head is auto-fitt
 of the same team), kit colour (auto from the jersey) and **Week er star** (gold badge). Drag a photo to move the face inside its
 badge, wheel to size it; drag a name plate to move the whole player. Every part can be dragged, wheel-resized and switched off
 under **Poster e ki ki thakbe**; **Reset to default** puts everything back.
+
+### Points Table
+League standings, 1080 × 1350 (HD download 2160 × 2700), with the partner strip. 2 to 16 teams; rows grow or shrink to fit.
+Per team: name, player / manager, W, D, L, GF, GA, form (last 5, like WWDLW), logo (a plain background is cut away; the colour
+comes from the logo) and team colour. Played, goal difference and points (3 × W + D) are worked out on their own; a number in the
+**Pts** box overrides the points (for deductions). **Auto sort** orders by points, then goal difference, then goals scored.
+Top zone (green, "Next round") and bottom zone (red, "Eliminated"): how many teams and the label are both editable.
+GF / GA and form columns switch on/off per layout; the player name under each team switches on/off. Three layouts:
+- **Spotlight** (default): gold table on the left, the leader's player cut-out on the right (auto cut-out, drag/size) with a
+  "Table topper" box and a big outline #1 behind.
+- **Neon Grid**: full-width slanted neon rows (magenta + cyan), gold / silver / bronze numbers for the top three, form squares.
+- **LED Scoreboard**: a stadium LED board with dot-matrix (Doto) text, green / red position numbers for the zones and LED form lights.
+
+Background: **Default template**, **Team colours** (from the leader's team colour; yellow/orange teams get purple, plain black/white
+teams gold + purple) or **Upload my own**. Every part (header, legend, table heading, each row, photo, topper box, #1, scoreboard
+frame, partners) can be dragged, wheel-resized and switched off under **Poster e ki ki thakbe**; **Reset to default** puts it all back.
