@@ -197,9 +197,8 @@
   }
 
 
-  /* Small photos (e.g. 500px) get stretched ~1.7x on the poster and look soft.
-     Upscale once with high-quality resampling, then apply a light unsharp mask so faces and
-     jersey prints stay crisp. Photos that are already big enough are only sharpened lightly. */
+  /* Small photos (e.g. 500px) get stretched ~1.7x on the poster. Upscale once with high-quality resampling.
+     No sharpening: on compressed photos it brings out blocky artifacts and halos (the "fete" look). */
   async function enhancePhoto(src, targetH = 1100) {
     const img = await loadImage(src);
     let w = img.naturalWidth, h = img.naturalHeight;
@@ -215,26 +214,8 @@
       cur = cv; w = nw; h = nh;
     }
     const out = document.createElement('canvas'); out.width = W; out.height = H;
-    const ox = out.getContext('2d', { willReadFrequently: true });
+    const ox = out.getContext('2d'); ox.imageSmoothingEnabled = true; ox.imageSmoothingQuality = 'high';
     ox.drawImage(cur, 0, 0, W, H);
-    const blur = document.createElement('canvas'); blur.width = W; blur.height = H;
-    const bx = blur.getContext('2d', { willReadFrequently: true });
-    bx.filter = 'blur(1.2px)'; bx.drawImage(out, 0, 0);
-    const o = ox.getImageData(0, 0, W, H), b = bx.getImageData(0, 0, W, H).data, d = o.data;
-    // edge-only sharpening: small differences (skin, fabric noise) are left alone so faces stay smooth;
-    // only real edges (eyes, glasses, beard outline, jersey print) get crisper
-    const amount = 0.45, threshold = 10, soft = 14;
-    for (let i = 0; i < d.length; i += 4) {
-      if (d[i + 3] === 0) continue;
-      const diffL = Math.abs((d[i] + d[i + 1] + d[i + 2]) - (b[i] + b[i + 1] + b[i + 2])) / 3;
-      if (diffL <= threshold) continue;
-      const k2 = amount * Math.min(1, (diffL - threshold) / soft);
-      for (let k = 0; k < 3; k++) {
-        const v = d[i + k] + k2 * (d[i + k] - b[i + k]);
-        d[i + k] = v < 0 ? 0 : v > 255 ? 255 : v;
-      }
-    }
-    ox.putImageData(o, 0, 0);
     return out.toDataURL('image/png');
   }
 
