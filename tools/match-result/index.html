@@ -26,9 +26,9 @@
         <select data-k="layout">
           <option value="wave" data-mode="player">Wave Split (winner upore)</option>
           <option value="ticket" data-mode="player">Match Ticket</option>
-          <option value="clash" data-mode="team">Crest Clash (logo vs logo, boro score)</option>
-          <option value="victory" data-mode="team">Victory Squad (jeta team er squad, score bar)</option>
-          <option value="torn" data-mode="team">Torn Poster (chhera kagoj e score)</option>
+          <option value="clash" data-mode="player team">Crest Clash (logo vs logo, boro score)</option>
+          <option value="victory" data-mode="player team">Victory Squad (jeta team er squad, score bar)</option>
+          <option value="torn" data-mode="player team">Torn Poster (chhera kagoj e score)</option>
         </select>
       </label>
       <label>Background
@@ -94,9 +94,12 @@
         </select>
       </label>
       <p class="tip">Crest Clash ar Torn Poster e captain der chobi thake; Victory Squad e jeta team er squad (squad na thakle captain, captain na thakle boro logo).</p>
-      <label>Boro title (Victory Squad)<input data-tm="title"></label>
       <label class="check"><input type="checkbox" data-tm="nameTags"> Player der naam (name tag)</label>
-      <label class="check"><input type="checkbox" data-tm="confetti"> Confetti (Victory Squad)</label>
+    </section>
+    <section data-only="tl">
+      <h3>Clash / Victory / Torn</h3>
+      <label>Boro title (Victory)<input data-tm="title"></label>
+      <label class="check"><input type="checkbox" data-tm="confetti"> Confetti (Victory)</label>
     </section>
     <template id="tteamTpl">
       <section class="team-sec">
@@ -136,7 +139,7 @@
     </section>
     <button type="button" id="resetAll" class="reset-all">Reset to default (sob position, sob ongsho)</button>
 
-    <section data-only="team">
+    <section data-only="tl">
       <h3>Partners (niche)</h3>
       <label>Label<input data-k="partnersLabel"></label>
       <template id="partnerTpl">
