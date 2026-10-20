@@ -31,29 +31,15 @@
   const readFile = f => new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(f); });
   const loadImage = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
 
-  /* Every part of the poster can be switched off (per layout). Parts are the movable text sections plus the two
-     photos/crests; the list is read from the rendered poster so each layout shows only what it has. */
-  const PARTS = { head: 'Header (logo, tag, date)', title: 'Title', p0: 'Team 1 photo / logo', p1: 'Team 2 photo / logo',
+  // names for the "Poster e ki ki thakbe" list and the editor bar (js/studio-edit.js)
+  const PARTS = { head: 'Header (logo, tag, date)', title: 'Title', p0: 'Team 1 photo', p1: 'Team 2 photo',
     wordA: 'Team 1 boro outline lekha', wordB: 'Team 2 boro outline lekha', vs: 'VS', bar: 'VS bar', teamA: 'Team 1 name',
     teamB: 'Team 2 name', info: 'Date / time line', partners: 'Partners strip' };
-  const hiddenOf = () => (state.hidden[tvtMoveKey(state)] ||= {});
-  function applyParts() {
-    const hid = hiddenOf(), keys = [];
-    $$('[data-move]', poster).forEach(el => { keys.push(el.dataset.move); if (hid[el.dataset.move]) el.style.display = 'none'; });
-    [0, 1].forEach(i => { const el = $(`[data-p="${i}"]`, poster); if (!el) return; keys.push('p' + i);
-      if (hid['p' + i]) (el.closest('.slot') || el).style.display = 'none'; });
-    const box = $('#parts'), order = Object.keys(PARTS).filter(k => keys.includes(k));
-    if (box.dataset.keys !== order.join() || box.dataset.layout !== tvtMoveKey(state)) {
-      box.dataset.keys = order.join(); box.dataset.layout = tvtMoveKey(state);
-      box.innerHTML = order.map(k => `<label class="check"><input type="checkbox" data-part="${k}"> ${PARTS[k]}</label>`).join('');
-    }
-    $$('[data-part]', box).forEach(c => c.checked = !hid[c.dataset.part]);
-  }
-  $('#parts').addEventListener('change', e => { const k = e.target.dataset.part; if (!k) return; hiddenOf()[k] = !e.target.checked; render(); });
+  let editing = false;
 
   const render = () => {
     renderTvt(poster, state);
-    applyParts();
+    if (editing) StudioEdit.afterRender();
     $('#bgUploadRow').style.display = state.bgMode === 'image' ? '' : 'none';
     $$('[data-hide]').forEach(el => el.style.display = el.dataset.hide === state.layout ? 'none' : '');
     $$('[data-show]').forEach(el => el.style.display = el.dataset.show.split(' ').includes(state.layout) ? '' : 'none');
@@ -269,55 +255,41 @@
     $('[data-zoom]', sec).value = z; $('[data-zoom-val]', sec).textContent = z + '%';
   }
 
-  // ---- drag a photo or any text section on the poster, wheel to resize a photo ----
+  // ---- photos: drag and wheel-resize (sections, selection, nudge, remove and undo live in js/studio-edit.js) ----
   const frame = $('#frame');
   const posterScale = () => frame.getBoundingClientRect().width / 1080;
   const target = e => e.target.closest('[data-p]');
   let drag = null;
   frame.addEventListener('pointerdown', e => {
-    const el = target(e);
-    if (el) {
-      const i = +el.dataset.p, t = state.teams[i];
-      drag = { t, i, el, x: e.clientX, y: e.clientY, dx: t.dx, dy: t.dy };
-    } else {
-      const mv = e.target.closest('[data-move]'); if (!mv) return;
-      const k = mv.dataset.move, o = sectionOf(k);
-      drag = { o, k, el: mv, x: e.clientX, y: e.clientY, dx: o.x, dy: o.y };
-    }
+    const el = target(e); if (!el) return;
+    const i = +el.dataset.p, t = state.teams[i];
+    drag = { t, i, el, x: e.clientX, y: e.clientY, dx: t.dx, dy: t.dy };
     frame.setPointerCapture(e.pointerId); frame.classList.add('dragging');
   });
   frame.addEventListener('pointermove', e => {
     if (!drag) return;
-    const s = posterScale(), x = Math.round(drag.dx + (e.clientX - drag.x) / s), y = Math.round(drag.dy + (e.clientY - drag.y) / s);
-    if (drag.o) { Object.assign(drag.o, { x, y }); drag.el.style.cssText = tvtMoveStyle(state, drag.k); return; }
-    Object.assign(drag.t, { dx: x, dy: y });
+    const s = posterScale();
+    Object.assign(drag.t, { dx: Math.round(drag.dx + (e.clientX - drag.x) / s), dy: Math.round(drag.dy + (e.clientY - drag.y) / s) });
     drag.el.style.cssText = tvtPhotoStyle(drag.t, tvtSlots(state)[drag.i]);   // move only the photo while dragging
   });
-  const endDrag = () => { drag = null; frame.classList.remove('dragging'); };
+  const endDrag = () => { if (drag) { drag = null; frame.classList.remove('dragging'); } };
   frame.addEventListener('pointerup', endDrag); frame.addEventListener('pointercancel', endDrag);
-  const sectionOf = k => ((state.moves[tvtMoveKey(state)] ||= {})[k] ||= { x: 0, y: 0 });
-  // wheel over a text section: grow/shrink it around its own centre (measured once, unscaled, in poster px)
-  function resizeSection(mv, e) {
-    const k = mv.dataset.move, o = sectionOf(k), up = e.deltaY < 0;
-    if (!o.ox) {
-      const pr = frame.getBoundingClientRect(), s = posterScale();
-      let l = 1e9, t = 1e9, r = -1e9, b = -1e9;
-      mv.querySelectorAll('*').forEach(c => { const q = c.getBoundingClientRect(); if (!q.width || !q.height) return; l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom); });
-      if (r < l) return;
-      const cur = new DOMMatrix(getComputedStyle(mv).transform);   // undo the current move so the centre is in layout px
-      o.ox = Math.round(((l + r) / 2 - pr.left) / s - cur.e); o.oy = Math.round(((t + b) / 2 - pr.top) / s - cur.f);
-    }
-    o.s = Math.min(2.5, Math.max(0.4, +((o.s || 1) * (up ? 1.05 : 0.95)).toFixed(3)));
-    mv.style.cssText = tvtMoveStyle(state, k);
-  }
   frame.addEventListener('wheel', e => {
-    const el = target(e);
-    if (!el) { const mv = e.target.closest('[data-move]'); if (mv) { e.preventDefault(); resizeSection(mv, e); } return; }
+    const el = target(e); if (!el) return;
     e.preventDefault();
     const i = +el.dataset.p, t = state.teams[i];
-    t.zoom = Math.min(2, Math.max(0.5, +(t.zoom * (e.deltaY < 0 ? 1.05 : 0.95)).toFixed(3)));
+    t.zoom = Math.min(2.5, Math.max(0.4, +(t.zoom * (e.deltaY < 0 ? 1.05 : 0.95)).toFixed(3)));
     render(); syncZoom(i);
   }, { passive: false });
+
+  StudioEdit.init({
+    frame, poster, state, render, panel: $('#form'), partsBox: $('#parts'), parts: PARTS,
+    moveKey: () => tvtMoveKey(state), styleOf: k => tvtMoveStyle(state, k),
+    defaultHidden: { brush: { wordA: true, wordB: true } },   // Brush's big outline names are optional for players: off until ticked
+    photo: { get: i => state.teams[i], changed: i => syncZoom(i) },
+    extras: { get: () => state.teams.map(t => [t.dx, t.dy, t.zoom]), set: v => v.forEach((p, i) => { [state.teams[i].dx, state.teams[i].dy, state.teams[i].zoom] = p; syncZoom(i); }) },
+  });
+  editing = true;
 
   // ---- reset: every section and both photos of this layout back to the default spot and size ----
   $('#resetAll').addEventListener('click', () => {
@@ -344,7 +316,7 @@
     .map(f => document.fonts.load(f))).catch(() => {});
   window.__ready = fontsReady.then(async () => {
     for (const t of state.teams) if (t.photo) t.m = await measure(t.photo).catch(() => null);
-    render();
+    render(); StudioEdit.reset();
   });
   window.__posterState = state;
   window.__render = render;
