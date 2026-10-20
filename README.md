@@ -24,6 +24,7 @@ One admin page for the eFCOB card makers. Open `index.html` in Chrome or Edge.
 | Fixtures | `tools/fixtures/` | ready |
 | Lineup | `tools/lineup/` | ready |
 | Team Performance | `tools/team-performance/` | ready |
+| Achievement | `tools/achievement/` | ready |
 
 ### MVP
 One player, 1080 × 1350, "Big MVP" layout: huge MVP letters behind the player, stats row across
@@ -215,6 +216,24 @@ Three layouts:
   in one row in front of it, the team name in script over a huge slanted title, skewed stat boxes (blue + pink).
 - **Neon Tunnel**: a holographic tunnel, the short name huge behind the heads, the squad behind a glowing platform with the
   crest, angled HUD stat tiles (violet + lime).
+
+Background: **Default template**, **Team colours** (gold/yellow and plain kits get purple as the second colour) or
+**Upload my own**. Every part and photo can be dragged, wheel-resized and switched off under **Poster e ki ki thakbe**;
+**Reset to default** puts it all back.
+
+### Achievement
+Trophy poster for one team, 1080 × 1350 (HD download 2160 × 2700), with the partner strip. Award: **Champions**, **Runners Up**,
+**3rd Place** or an own title. Fields: script word over the title (Grand Final), event, season / date line, optional eFCOB logo;
+team name, short name, logo (a plain background is cut away), two colours (auto from the logo or the star's jersey); up to 3
+highlights (Final 3-1, Prize, Record; empty ones are hidden). Photos: up to 7 player cut-outs arranged into a squad on their own
+(every head fitted to the same size, player 1 is the star), or one group photo; a name tag on each player (or one names line),
+an **MVP badge** on one player, confetti (on by default). Three layouts:
+- **Golden Glory** (default): sunburst rays and corner brackets, a two-row squad, a huge medal-coloured title IN FRONT of the
+  players (gold for champions, silver for runners up, bronze for 3rd) with the script word across it, a trophy seal with the place.
+- **Neon Spotlight**: stage spotlights and haze, a neon script word over a huge condensed title BEHIND the heads, one row of
+  players, lightning bolts at the bottom corners (teal + magenta).
+- **Ink Splash**: light paper with brush strokes and paint drops, the star big in front with the rest stepping up behind, a dark
+  ink pool at the bottom with a slanted chrome title and a light streak (indigo + pink).
 
 Background: **Default template**, **Team colours** (gold/yellow and plain kits get purple as the second colour) or
 **Upload my own**. Every part and photo can be dragged, wheel-resized and switched off under **Poster e ki ki thakbe**;
