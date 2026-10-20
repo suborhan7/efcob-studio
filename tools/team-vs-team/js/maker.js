@@ -350,7 +350,7 @@
   document.addEventListener('tvt-redraw', render);   // a wrapped ball finished drawing
   render();
   const fontsReady = Promise.all(['italic 900 40px Rubik', '800 20px Montserrat', '40px Anton', '900 40px Orbitron',
-    '900 40px "Big Shoulders Display"', '700 20px "Chakra Petch"', '600 20px "Chakra Petch"', '40px "Black Ops One"']
+    '900 40px "Big Shoulders Display"', '700 20px "Chakra Petch"', '600 20px "Chakra Petch"', '40px "Black Ops One"', '600 40px Teko']
     .map(f => document.fonts.load(f))).catch(() => {});
   window.__ready = fontsReady.then(async () => {
     for (const t of state.teams) if (t.photo) t.m = await measure(t.photo).catch(() => null);
