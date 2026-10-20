@@ -17,30 +17,23 @@
       <h3>Poster</h3>
       <label>Layout
         <select data-k="layout">
-          <option value="bolt">Lightning Split</option>
-          <option value="neon">Neon Frames</option>
-          <option value="slash">Slash Plates</option>
-          <option value="chrome">Chrome Bar</option>
-          <option value="half">Halftone Slash</option>
-        </select>
-      </label>
-      <label data-show="bolt slash half">Teams
-        <select data-k="arrange">
-          <option value="side">Side by side</option>
-          <option value="updown">Upor-nich (Team 1 upore, Team 2 niche)</option>
+          <option value="ball">Ball</option>
+          <option value="smoke">Smoke</option>
+          <option value="stad">Stadium Shield</option>
+          <option value="brush">Brush</option>
         </select>
       </label>
       <label>Background
         <select data-k="bgMode">
           <option value="template">Default template</option>
-          <option value="jersey">Team / logo colours (auto)</option>
+          <option value="jersey">Team colours (auto from logo)</option>
           <option value="image">Upload my own</option>
         </select>
       </label>
       <label id="bgUploadRow" style="display:none">Background image (1080 × 1350)<input type="file" accept="image/*" data-file="bgImage"></label>
       <label>Title (stage)<input data-k="title"></label>
       <label>Event name<input data-k="event"></label>
-      <label data-hide="slash">Small tag (top right)<input data-k="tag"></label>
+      <label>Small tag (top right)<input data-k="tag"></label>
       <div class="two">
         <label>Date<input data-k="date"></label>
         <label>Kick-off time<input data-k="time"></label>
@@ -53,9 +46,10 @@
       <section class="team-sec">
         <h3></h3>
         <label>Team name<input data-t="team"></label>
+        <label data-show="brush">Short name (Brush panel e boro outline lekha)<input data-t="short" placeholder="e.g. BARCA"></label>
         <label>Team logo (PNG best; white/black background auto kete jay)<input type="file" accept="image/*" data-logo></label>
-        <label class="check"><input type="checkbox" data-captain> Captain er chobi soho</label>
-        <div class="cap" data-cap hidden>
+        <label class="check" data-show="smoke brush"><input type="checkbox" data-captain> Captain er chobi soho (Smoke ar Brush e)</label>
+        <div class="cap" data-cap data-show="smoke brush" hidden>
           <label>Captain name<input data-t="player"></label>
           <label>Captain photo<input type="file" accept="image/*" data-photo></label>
           <label class="check"><input type="checkbox" data-cutout checked> Auto cut-out (background kete dao)</label>
@@ -79,7 +73,7 @@
       </section>
     </template>
     <div id="teams"></div>
-    <p class="tip">Poster er upor logo, captain er chobi ar sob lekha (title, VS, team name, date) drag kore shorano jay, ar mouse wheel e sobkichu boro-choto hoy. Captain er chobi komoshe 1000px uchu dile bhalo quality ashe.</p>
+    <p class="tip">Poster er upor logo/ball, captain er chobi ar sob lekha (title, VS, team name, date) drag kore shorano jay, ar mouse wheel e sobkichu boro-choto hoy. Captain er chobi komoshe 1000px uchu dile bhalo quality ashe.</p>
     <button type="button" id="resetAll" class="reset-all">Reset to default (sob position)</button>
 
     <section>

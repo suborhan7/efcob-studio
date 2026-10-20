@@ -86,8 +86,14 @@ wheel, like the photos; this is kept separately for each layout and arrangement.
 Partners strip at the bottom: up to 5 names or logos plus a website line.
 
 ### Team vs Team
-Team logo vs team logo, 1080 × 1350 (HD download 2160 × 2700), on the same five layouts, background modes, partner strip
-and Side by side / Upor-nich choice as Player vs Player. Per team: team name and logo (a plain white/black background is
-cut away automatically; colours come from the logo). Tick **Captain er chobi soho** to show the captain's cut-out photo
-instead of the big logo; the logo then sits next to the team name under the photo, with the captain's name below.
-Logos, photos and every text block can be dragged and resized with the mouse wheel; **Reset to default** puts them back.
+Club crest vs club crest, 1080 × 1350 (HD download 2160 × 2700), with the partner strip. Four layouts:
+- **Ball**: each crest is wrapped round a 3D football in the team colours (a crest in the same colour as its team gets a white ball).
+- **Smoke**: team-colour smoke over a pitch, fiery VS.
+- **Stadium Shield**: floodlit stadium, crests on white shield cards with a team-colour banner.
+- **Brush**: neon panels with paint strokes and a big outline short name; chrome cyberpunk (Orbitron) VS under a gold ball.
+
+Background: Default template (fixed colours), Team colours (auto from the logo) or Upload my own. Per team: team name, logo
+(a plain white/black background is cut away automatically; colours come from the logo), and a short name for Brush.
+In Smoke and Brush, tick **Captain er chobi soho** to show the captain's cut-out photo instead of the crest; the crest then
+sits next to the team name, with the captain's name below. Crests, photos and every text block can be dragged and resized
+with the mouse wheel; **Reset to default** puts them back.

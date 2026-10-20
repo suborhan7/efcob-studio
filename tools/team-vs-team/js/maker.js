@@ -4,10 +4,9 @@
   const S = window.SAMPLE_PHOTOS || {}, SL = window.SAMPLE_LOGOS || {};
   const team = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', captain: false, m: null }, o);
   const state = {
-    arrange: 'side',               // side | updown (players staggered; bolt, slash and half only)
-    layout: 'bolt',                // bolt | neon | slash | chrome | half
-    moves: {},                     // admin's drags/sizes per layout + arrangement: { 'half:ud': { vs: { x, y, s, ox, oy } } }
-    bgMode: 'template',            // 'template' | 'jersey' | 'image'
+    layout: 'ball',                // ball | smoke | stad | brush
+    moves: {},                     // admin's drags/sizes per layout: { smoke: { vs: { x, y, s, ox, oy } } }
+    bgMode: 'jersey',              // 'template' | 'jersey' (team colours) | 'image'
     bgImage: '',
     logo: '',
     title: 'Quarter Final',
@@ -20,8 +19,8 @@
     partnersLabel: 'Official partners',
     partners: ['NOVAPAY', 'Pixel Arena', 'BOLT', 'zenith', 'KICKOFF+'].map(name => ({ name, logo: '' })),
     teams: [
-      team({ team: 'Dhaka United FC',     player: 'Nexus_Arif', photo: S.a || '', logo: SL.a || '', c: '#1f8a3e', c2: '#6fd68b' }),
-      team({ team: 'Rajshahi Blazers FC', player: 'PNG_Moreno', photo: S.b || '', logo: SL.b || '', c: '#d11a2a', c2: '#ff7682' }),
+      team({ team: 'FC Barcelona', short: 'Barça', player: 'Nexus_Arif', photo: S.a || '', logo: SL.a || '', c: '#a50044', c2: '#2b5fc4' }),
+      team({ team: 'Real Madrid',  short: 'Real',  player: 'PNG_Moreno', photo: S.b || '', logo: SL.b || '', c: '#d9ad3c', c2: '#f4f1e8' }),
     ],
   };
 
@@ -34,7 +33,6 @@
   const render = () => {
     renderTvt(poster, state);
     $('#bgUploadRow').style.display = state.bgMode === 'image' ? '' : 'none';
-    $$('[data-hide]').forEach(el => el.style.display = el.dataset.hide === state.layout ? 'none' : '');
     $$('[data-show]').forEach(el => el.style.display = el.dataset.show.split(' ').includes(state.layout) ? '' : 'none');
   };
 
@@ -301,9 +299,15 @@
     const s = posterScale(), x = Math.round(drag.dx + (e.clientX - drag.x) / s), y = Math.round(drag.dy + (e.clientY - drag.y) / s);
     if (drag.o) { Object.assign(drag.o, { x, y }); drag.el.style.cssText = tvtMoveStyle(state, drag.k); return; }
     Object.assign(drag.t, { dx: x, dy: y });
-    tvtItemStyle(drag.t, tvtSlots(state)[drag.i]).split(';').forEach(kv => { const [k, v] = kv.split(':'); drag.el.style[k] = v; });   // move only this image while dragging
+    // move only this image while dragging (a Stadium crest sits inside its shield card, so its spot is card-relative)
+    const card = drag.el.dataset.inCard;
+    tvtItemStyle(drag.t, tvtSlots(state)[drag.i], state).split(';').forEach(kv => {
+      let [k, v] = kv.split(':');
+      if (card && (k === 'left' || k === 'top')) v = parseFloat(v) - (k === 'left' ? +card : 430) + 'px';
+      drag.el.style[k] = v;
+    });
   });
-  const endDrag = () => { drag = null; frame.classList.remove('dragging'); };
+  const endDrag = () => { const was = drag && drag.t; drag = null; frame.classList.remove('dragging'); if (was) render(); };   // redraw so shadows/reflections follow
   frame.addEventListener('pointerup', endDrag); frame.addEventListener('pointercancel', endDrag);
   const sectionOf = k => ((state.moves[tvtMoveKey(state)] ||= {})[k] ||= { x: 0, y: 0 });
   // wheel over a text section: grow/shrink it around its own centre (measured once, unscaled, in poster px)
@@ -349,11 +353,14 @@
     btn.disabled = false; btn.textContent = 'Download PNG (HD)';
   });
 
+  document.addEventListener('tvt-redraw', render);   // a wrapped ball finished drawing
   render();
-  const fontsReady = Promise.all(['italic 900 40px Rubik', '40px Graduate', '800 20px Montserrat', 'italic 900 40px "Exo 2"', '40px Anton']
+  const fontsReady = Promise.all(['italic 900 40px Rubik', '800 20px Montserrat', '40px Anton', '900 40px Orbitron']
     .map(f => document.fonts.load(f))).catch(() => {});
   window.__ready = fontsReady.then(async () => {
     for (const t of state.teams) if (t.photo) t.m = await measure(t.photo).catch(() => null);
+    render();
+    for (let k = 0; k < 100 && !tvtSpheresReady(); k++) await new Promise(r => setTimeout(r, 100));
     render();
   });
   window.__posterState = state;
