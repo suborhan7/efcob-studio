@@ -71,10 +71,12 @@ Photos are auto-fitted by head size, so every head comes out the same size for i
 Partners strip at the bottom: up to 5 names or logos plus a website line.
 
 ### Player vs Player
-Pre-match poster, 1080 × 1350 (downloads in HD, 2160 × 2700). Five layouts:
-**Lightning Split**, **Neon Frames**, **Slash Plates**, **Chrome Bar** and **Halftone Slash**. Lightning, Slash and Halftone
+Pre-match poster, 1080 × 1350 (downloads in HD, 2160 × 2700). Seven layouts:
+**Lightning Split**, **Neon Frames**, **Slash Plates**, **Chrome Bar**, **Halftone Slash**, **Smoke** and **Brush** (the last
+two are shared with Team vs Team; Brush shows a big outline short name per player, taken from the "Short name" field or
+the first part of the player name). Lightning, Slash and Halftone
 also have a **Players** choice: *Side by side* or *Upor-nich* (team 1 high on the left, team 2 low on the right, names follow
-their player). Neon Frames and Chrome Bar are side by side only.
+their player). Neon Frames, Chrome Bar, Smoke and Brush are side by side only.
 Background: **Default template** (fixed colours for each layout), **Jersey / logo colours (auto)** (each side takes its
 team colour; white/black kits use their trim, plain black/white kits get purple) or **Upload my own**.
 Poster fields: title (stage), event, small tag, date, kick-off time, the text after the time, optional eFCOB logo.

@@ -157,3 +157,47 @@
 
 /* upor-nich: a raised player whose cut line is in the open fades out instead of ending in a hard edge */
 .tvt .slot.fade{-webkit-mask-image:linear-gradient(#000 calc(100% - 60px),transparent);mask-image:linear-gradient(#000 calc(100% - 60px),transparent)}
+
+/* ===== 6. SMOKE (shared with Team vs Team) ===== */
+.tvt.smoke{background:#050809}
+.tvt.smoke .ttl b{font:900 italic 104px/1 'Rubik';color:#fff;text-shadow:0 0 30px rgba(255,255,255,.25),0 8px 20px rgba(0,0,0,.6)}
+.tvt.smoke .ttl span{color:#dfe6ef}
+.tvt.smoke .vs{position:absolute;left:340px;top:520px;width:400px;height:240px;display:flex;align-items:center;justify-content:center}
+.tvt.smoke .vs b{font:900 italic 190px/1 'Rubik';letter-spacing:-.04em;background:linear-gradient(180deg,#fff7c2 0%,#ffd04a 35%,#ff7a12 75%,#e63a00);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 10px #ffb02e) drop-shadow(0 0 34px #ff5a00);padding:0 .1em}
+.tvt.smoke .nm{top:880px}.tvt.smoke .nmA{left:40px}.tvt.smoke .nmB{left:600px}
+.tvt.smoke .nm b{font:900 italic 44px/1 'Rubik';text-shadow:0 0 22px rgba(0,0,0,.7),0 4px 10px rgba(0,0,0,.8)}
+.tvt.smoke .nm span{text-shadow:0 2px 10px rgba(0,0,0,.9)}
+.tvt.smoke .info{top:1118px;font:800 26px/1 'Montserrat';letter-spacing:.24em}
+.tvt.smoke .info div{display:inline-block;padding:14px 30px;background:rgba(6,10,14,.78);border:1px solid rgba(255,255,255,.18);border-radius:40px}
+.tvt.smoke .info em{font:900 italic 38px/1 'Rubik';color:#ffc23a;margin:0 14px;font-style:normal;vertical-align:-4px}
+
+/* ===== 7. BRUSH (shared with Team vs Team) ===== */
+.tvt.brush{background:#050507}
+.tvt.brush .ttl{top:130px}
+.tvt.brush .ttl b{font:400 104px/1 'Anton';letter-spacing:.03em;color:#fff}
+.tvt.brush .ttl span{color:#a9adbd}
+.tvt.brush .panel{position:absolute;top:290px;width:420px;height:700px;overflow:hidden;border:3px solid;background:#0b0b10}
+.tvt.brush .panel .big{position:absolute;left:-10px;top:-24px;font:400 300px/.82 'Anton';color:transparent;-webkit-text-stroke:3px rgba(255,255,255,.85);text-transform:uppercase;white-space:nowrap;letter-spacing:-.01em}
+/* VS: cyberpunk Orbitron, chrome face, thin rails and a slight split in the two team colours */
+.tvt.brush .vs{position:absolute;left:390px;top:712px;width:300px;height:110px;display:flex;align-items:center;justify-content:center}
+.tvt.brush .vs::before,.tvt.brush .vs::after{content:'';position:absolute;top:50%;width:46px;height:2px}
+.tvt.brush .vs::before{left:16px;background:linear-gradient(90deg,transparent,var(--a))}
+.tvt.brush .vs::after{right:16px;background:linear-gradient(90deg,var(--b),transparent)}
+.tvt.brush .vs b{font:900 76px/1 'Orbitron';letter-spacing:.08em;padding-left:.08em;background:linear-gradient(180deg,#ffffff 0%,#e9ecf4 46%,#9aa1b4 54%,#f4f6fb 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(-3px 0 0 var(--a)) drop-shadow(3px 0 0 var(--b)) drop-shadow(0 6px 14px rgba(0,0,0,.85))}
+.tvt.brush .nm{top:1012px;width:420px}.tvt.brush .nmA{left:60px}.tvt.brush .nmB{left:600px}
+.tvt.brush .nm b{font:400 46px/1 'Anton';letter-spacing:.05em}
+.tvt.brush .info{top:1110px;font:700 22px/1 'Montserrat';letter-spacing:.3em;color:#cfd1dc}
+.tvt.brush .info em{font:900 30px/1 'Orbitron';color:#fff;margin:0 14px;font-style:normal;letter-spacing:.06em;vertical-align:-3px}
+.tvt.smoke .nm,.tvt.brush .nm{position:absolute;width:440px;text-align:center;text-transform:uppercase}
+.tvt.smoke .nm b,.tvt.brush .nm b{display:block;white-space:nowrap}
+.tvt.smoke .nm span,.tvt.brush .nm span{display:block;margin-top:10px;font:700 20px/1 'Montserrat';letter-spacing:.3em;color:rgba(255,255,255,.8)}
+.tvt.smoke .nm span:empty,.tvt.brush .nm span:empty{display:none}
+.tvt.smoke .info,.tvt.brush .info{position:absolute;left:0;right:0;text-align:center}
+.tvt.smoke .hdr .brand,.tvt.brush .hdr .brand{background:#fff;color:#111}
+.tvt.smoke .hdr .ev,.tvt.brush .hdr .ev{color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+.tvt.smoke .sp,.tvt.brush .sp{background:#07080e;border-top:1px solid rgba(255,255,255,.08)}
+.tvt.smoke .sp .k,.tvt.brush .sp .k{color:#8a8ea8}
+.tvt.smoke .sp .row div,.tvt.brush .sp .row div{background:rgba(255,255,255,.06);border-radius:8px;color:#e7e9f3}
+.tvt.smoke .sp .w,.tvt.brush .sp .w{color:#5c6080}
+.tvt.smoke svg.full,.tvt.brush svg.full{pointer-events:none}
