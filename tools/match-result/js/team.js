@@ -107,8 +107,9 @@
       h += captain(B, capBase + 1, 830, 860, 600);
     }
     h += `<div class="floor"></div>`;
-    h += mv('crest1', `<div class="ringbox">${svg('', ring(250, y0, rr, P.c1), 'rings')}<div class="crw" style="left:${250 - cs / 2}px;top:${y0 - cs / 2}px">${crest(A, cs)}</div></div>`);
-    h += mv('crest2', `<div class="ringbox">${svg('', ring(830, y0, rr, P.c2), 'rings')}<div class="crw" style="left:${830 - cs / 2}px;top:${y0 - cs / 2}px">${crest(B, cs)}</div></div>`);
+    // with photos the crests sit in front of the team names, so they never cover a player; without photos they take the rings
+    if (!cap) h += mv('crest1', `<div class="ringbox">${svg('', ring(250, y0, rr, P.c1), 'rings')}<div class="crw" style="left:${250 - cs / 2}px;top:${y0 - cs / 2}px">${crest(A, cs)}</div></div>`);
+    if (!cap) h += mv('crest2', `<div class="ringbox">${svg('', ring(830, y0, rr, P.c2), 'rings')}<div class="crw" style="left:${830 - cs / 2}px;top:${y0 - cs / 2}px">${crest(B, cs)}</div></div>`);
     h += mv('score', `<div class="score" style="top:${cap ? 300 : 475}px"><span class="${!draw && sa < sb ? 'lo' : ''}">${esc(A.score)}</span><i></i><span class="${!draw && sb < sa ? 'lo' : ''}">${esc(B.score)}</span></div>`);
     const ny = cap ? 900 : 830;
     if (d.tm.player && cap) {
@@ -116,8 +117,9 @@
       if (B.captain) h += mv('player2', `<div class="pchip" style="left:830px;top:${ny - 46}px">${esc(B.captain)}</div>`);
     }
     const tag = (won) => draw ? '<b class="res dr">DRAW</b>' : won ? '<b class="res w">WINNER</b>' : '<b class="res l">DEFEAT</b>';
-    h += mv('name1', `<div class="tn l" style="top:${ny}px">${esc(A.name)}</div>`);
-    h += mv('name2', `<div class="tn r" style="top:${ny}px">${esc(B.name)}</div>`);
+    const ic = (k, t) => cap ? `<span class="ic" data-move="${k}">${crest(t, 78)}</span>` : '';
+    h += mv('name1', `<div class="tn l" style="top:${ny}px">${ic('crest1', A)}<span>${esc(A.name)}</span></div>`);
+    h += mv('name2', `<div class="tn r" style="top:${ny}px">${ic('crest2', B)}<span>${esc(B.name)}</span></div>`);
     h += mv('result1', `<div class="rs l" style="top:${ny + 78}px">${tag(sa > sb)}</div>`);
     h += mv('result2', `<div class="rs r" style="top:${ny + 78}px">${tag(sb > sa)}</div>`);
     const li = s => scorerList(s).slice(0, 4).map(x => `<li>${ball}${esc(x)}</li>`).join('');
@@ -159,7 +161,7 @@
       if (d.tm.nameTags) tags = sq.filter(o => o.name).map(o => `<div class="ntag${o.z > 3 ? ' star' : ''}" style="left:${o.tx.toFixed(0)}px;top:${Math.min(o.ty, 860).toFixed(0)}px">${esc(o.name).toUpperCase()}</div>`).join('');
     } else if (mode !== 'none' && W.photo) {
       h += `<div class="grp">${captain(W, capBase + wi, 540, 960, 640)}</div>`;
-      if (d.tm.nameTags && W.captain) tags = `<div class="ntag star" style="left:540px;top:800px">${esc(W.captain).toUpperCase()}</div>`;
+      if (d.tm.nameTags && W.captain && !d.tm.player) tags = `<div class="ntag star" style="left:540px;top:800px">${esc(W.captain).toUpperCase()}</div>`;
     } else {
       h += mv('hero', `<div class="hero">${crest(W, 400)}</div>`);
     }
@@ -168,10 +170,11 @@
     h += mv('script', `<div class="scr">${esc(d.label || 'Full time')}</div>`);
     // the broadcast score bar: winner panel in the team colour, the score box, the other team
     const L1 = draw ? T[0] : W, L2 = draw ? T[1] : Lz;
+    const pl = t => d.tm.player ? (t.captain || t.name) : t.name;   // a 1v1 puts the player's name first, the team under it
     h += mv('scorebar', `<div class="bar">
-        <div class="pnl a">${crest(L1, 92)}<div><small>${draw ? 'DRAW' : 'WINNER'}</small><b>${esc(L1.name)}</b></div></div>
+        <div class="pnl a">${crest(L1, 92)}<div><small>${draw ? 'DRAW' : 'WINNER'}</small><b>${esc(pl(L1))}</b>${d.tm.player ? `<em>${esc(L1.name)}</em>` : ''}</div></div>
         <div class="box"><span>${esc(L1.score)}</span><i>–</i><span>${esc(L2.score)}</span></div>
-        <div class="pnl b"><div><small>${draw ? 'DRAW' : 'DEFEAT'}</small><b>${esc(L2.name)}</b></div>${crest(L2, 92)}</div></div>`);
+        <div class="pnl b"><div><small>${draw ? 'DRAW' : 'DEFEAT'}</small><b>${esc(pl(L2))}</b>${d.tm.player ? `<em>${esc(L2.name)}</em>` : ''}</div>${crest(L2, 92)}</div></div>`);
     const s1 = scorerList(L1.scorers), s2 = scorerList(L2.scorers);
     if (s1.length) h += mv('scorers1', `<div class="vsc l">${s1.slice(0, 4).map(esc).join(' · ')}${ball}</div>`);
     if (s2.length) h += mv('scorers2', `<div class="vsc r">${ball}${s2.slice(0, 4).map(esc).join(' · ')}</div>`);
@@ -204,7 +207,7 @@
        <rect width="1080" height="1350" filter="url(#grit)"/>`}
        <path d="M0 1180 H1080 V1350 H0 Z" fill="#000" opacity=".35"/>`);
     // team 1 above the tear: captain on the left (behind the paper), crest + name top right
-    if (cap) h += captain(A, capBase, 270, 880, 640);
+    if (cap) h += captain(A, capBase, 270, 810, 650);
     const papr = svg('', `<path d="${paper}" fill="#f1ece1" filter="url(#psh)"/><path d="${paper2}" fill="none" stroke="#d9d1bf" stroke-width="2" stroke-dasharray="2 7"/>
       <path d="${paper}" fill="url(#d1)" opacity=".18"/>`, 'paper');
     h += mv('paper', papr);
@@ -219,7 +222,7 @@
     h += mv('name1', `<div class="tn t1" style="left:${b1.cx - b1.w / 2}px;width:${b1.w}px;top:${b1.cy + b1.cs + 14}px">${esc(A.name)}</div>`);
     h += mv('name2', `<div class="tn t2" style="left:${b2.tx}px;width:${b2.tw}px;top:${cap ? 990 : 1050}px">${esc(B.name)}</div>`);
     if (d.tm.player && cap) {
-      if (A.captain) h += mv('player1', `<div class="pchip" style="left:270px;top:735px">${esc(A.captain)}</div>`);
+      if (A.captain) h += mv('player1', `<div class="pchip" style="left:270px;top:690px">${esc(A.captain)}</div>`);
       if (B.captain) h += mv('player2', `<div class="pchip" style="left:830px;top:1196px">${esc(B.captain)}</div>`);
     }
     const s1 = scorerList(A.scorers), s2 = scorerList(B.scorers);

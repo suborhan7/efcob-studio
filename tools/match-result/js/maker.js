@@ -20,8 +20,8 @@
     footerRight: 'eFootball Council of Bangladesh',
     logo: '',
     teams: [
-      team({ name: 'Dhaka Strikers', player: 'Nova_10', score: '3', scorers: "Mbappé 12', Mbappé 54', Vinícius 88'", photo: S.a || '', primary: '#f2c200', secondary: '#111111' }),
-      team({ name: 'Chattogram Kings', player: 'Red Wolf', score: '1', scorers: "Kane 67'", photo: S.b || '', primary: '#d61f35', secondary: '#111111' }),
+      team({ name: 'Al Nassr', player: 'Nova_10', logo: SC.alnassr || '', score: '3', scorers: "Mbappé 12', Mbappé 54', Vinícius 88'", photo: S.a || '', primary: '#f2c200', secondary: '#111111' }),
+      team({ name: 'AC Milan', player: 'Red Wolf', logo: SC.milan || '', score: '1', scorers: "Kane 67'", photo: S.b || '', primary: '#d61f35', secondary: '#111111' }),
     ],
     // team mode (layouts clash / victory / torn, js/team.js)
     tm: {
