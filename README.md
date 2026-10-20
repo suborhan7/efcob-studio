@@ -16,7 +16,7 @@ One admin page for the eFCOB card makers. Open `index.html` in Chrome or Edge.
 | MVP | `tools/mvp/` | ready |
 | Match Result | `tools/match-result/` | ready |
 | Top 4 | `tools/top-4/` | ready |
-| Team vs Team | `tools/team-vs-team/` | ready |
+| Player vs Player | `tools/player-vs-player/` | ready |
 
 ### MVP
 One player, 1080 × 1350, "Big MVP" layout: huge MVP letters behind the player, stats row across
@@ -69,7 +69,7 @@ Per player: name, team, points, W/D/L, photo (auto cut-out, drag/size), optional
 Photos are auto-fitted by head size, so every head comes out the same size for its place.
 Partners strip at the bottom: up to 5 names or logos plus a website line.
 
-### Team vs Team
+### Player vs Player
 Pre-match poster, 1080 × 1350 (downloads in HD, 2160 × 2700). Five layouts:
 **Lightning Split**, **Neon Frames**, **Slash Plates**, **Chrome Bar** and **Halftone Slash**. Lightning, Slash and Halftone
 also have a **Players** choice: *Side by side* or *Upor-nich* (team 1 high on the left, team 2 low on the right, names follow

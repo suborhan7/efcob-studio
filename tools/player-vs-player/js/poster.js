@@ -1,4 +1,4 @@
-/* Team vs Team poster renderer: renderTvt(el, state). Five layouts from shifty's VS references:
+/* Player vs Player poster renderer: renderTvt(el, state). Five layouts from shifty's VS references:
    bolt (lightning split), neon (neon frames), slash (slash plates), chrome (chrome bar), half (halftone slash).
    st.arrange: 'side' (players side by side) or 'updown' (team 1 high on the left, team 2 low on the right; bolt, slash, half).
    Every text block sits in a .mv wrapper so the admin can drag it and wheel-resize it; see tvtMoveStyle. */

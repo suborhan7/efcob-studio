@@ -1,4 +1,4 @@
-/* Team vs Team poster, 1080 x 1350. Five layouts: bolt (lightning split), neon (neon frames), slash (slash plates),
+/* Player vs Player poster, 1080 x 1350. Five layouts: bolt (lightning split), neon (neon frames), slash (slash plates),
    chrome (chrome bar), half (halftone slash). Colours come in as --a/--a2 (team 1) and --b/--b2 (team 2). */
 .tvt{position:relative;width:1080px;height:1350px;overflow:hidden;color:#fff;box-sizing:border-box}
 .tvt *{box-sizing:border-box;margin:0;padding:0}
