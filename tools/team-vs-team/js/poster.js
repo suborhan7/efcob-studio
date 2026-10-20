@@ -36,8 +36,9 @@
     // (cut = where the photo is cut off when it is lower than the floor it stands on)
     clash: [{ box: { cx: 250, cy: 600, s: 250 }, slot: { x: 250, top: 280, head: 118, floor: 760, cut: 900 } },
             { box: { cx: 830, cy: 600, s: 250 }, slot: { x: 830, top: 280, head: 118, floor: 760, cut: 900 } }],
-    torn:  [{ box: { cx: 540, cy: 220, s: 240 }, slot: { x: 270, top: 300, head: 118, floor: 900 } },
-            { box: { cx: 185, cy: 1075, s: 230 }, slot: { x: 830, top: 790, head: 104, floor: 1255 } }],
+    // a vs card: both captains get the same head size
+    torn:  [{ box: { cx: 540, cy: 220, s: 240 }, slot: { x: 270, top: 300, head: 112, floor: 900 } },
+            { box: { cx: 185, cy: 1075, s: 230 }, slot: { x: 830, top: 780, head: 112, floor: 1255 } }],
   };
   const CAPTAIN = { smoke: 1, brush: 1, clash: 1, torn: 1 };
   const showCaptain = (st, t) => CAPTAIN[st.layout] && t.captain && t.photo;
@@ -277,7 +278,7 @@
     const crestImg = (t, s, c) => t.logo ? `<img class="cr" src="${t.logo}" style="width:${s}px;height:${s}px" alt="">`
       : `<div class="cr mono" style="width:${s}px;height:${s}px;background:${c};font-size:${Math.round(s * .3)}px">${esc((t.short || t.team || '').slice(0, 3).toUpperCase())}</div>`;
     // no z-index here: every .mv section is its own layer, so the order in the HTML decides what sits in front
-    const capImg = (t, i) => showCaptain(st, t) ? `<div class="slot" style="height:${its[i].slot.cut || its[i].slot.floor}px"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, its[i].slot)}" alt=""></div>` : '';
+    const capImg = (t, i, clip = '') => showCaptain(st, t) ? `<div class="slot" style="height:${its[i].slot.cut || its[i].slot.floor}px;${clip}"><img data-p="${i}" src="${t.photo}" style="${tvtPhotoStyle(t, its[i].slot)}" alt=""></div>` : '';
     const chip = (t, k, x, y) => showCaptain(st, t) && t.player ? mv(k, `<div class="pchip" style="left:${x}px;top:${y}px">${esc(t.player)}</div>`) : '';
     const head2 = mv('head', `<div class="hd l">${st.logo ? `<div class="brand2 logo"><img src="${st.logo}" alt=""></div>` : '<div class="brand2">eFCOB</div>'}</div>${st.tag ? `<div class="hd r"><div class="tag">${esc(st.tag)}</div></div>` : ''}`);
     let vars = '';
@@ -329,8 +330,8 @@
       const paper = `M${top.join(' L')} L${bot.slice().reverse().join(' L')} Z`, paper2 = `M${topIn.join(' L')} L${botIn.slice().reverse().join(' L')} Z`;
       const dot = (id, c) => `<pattern id="${id}" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="8" cy="8" r="3.2" fill="${c}"/></pattern>`;
       // team 1 block: top right next to its captain, else centred; team 2 block: bottom left
-      const b1 = capA ? { cx: 795, w: 470, cy: 110, cs: 180 } : { cx: 540, w: 700, cy: 100, cs: 240 };
-      const b2 = capB ? { x: 50, y: 1070, cs: 150, tx: 220, tw: 380, ny: 1000 } : { x: 70, y: 960, cs: 230, tx: 330, tw: 680, ny: 1040 };
+      const b1 = capA ? { cx: 795, w: 470, cy: 110, cs: 170 } : { cx: 540, w: 700, cy: 100, cs: 240 };
+      const b2 = capB ? { x: 50, y: 1060, cs: 170, tx: 220, tw: 380, ny: 1000 } : { x: 70, y: 960, cs: 230, tx: 330, tw: 680, ny: 1040 };
       h = `${isUp ? `<div class="upbg" style="background-image:url('${st.bgImage}')"></div>` : ''}
         <svg class="full" viewBox="0 0 1080 1350"><defs>
           <linearGradient id="tpa" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${mixc(P.c1, '#ffffff', .12)}"/><stop offset="1" stop-color="${mixc(P.c1, '#000000', .45)}"/></linearGradient>
@@ -343,7 +344,7 @@
           ${isUp ? '' : `<path d="M0 0 H1080 V${yAt(1080, 0)} L0 ${yAt(0, 0)} Z" fill="url(#tpd1)" opacity=".8"/><path d="M0 ${yAt(0, 0)} L1080 ${yAt(1080, 0)} V1350 H0 Z" fill="url(#tpd2)"/>
           <rect width="1080" height="1350" filter="url(#tpgrit)"/>`}
           <path d="M0 1180 H1080 V1350 H0 Z" fill="#000" opacity=".35"/></svg>
-        ${capImg(A, 0)}
+        ${capImg(A, 0, `clip-path:polygon(0 0,1080px 0,1080px ${yAt(1080, 0)}px,0 ${yAt(0, 0)}px)`)}
         ${mv('paper', `<svg class="full paper" viewBox="0 0 1080 1350"><path d="${paper}" fill="#f1ece1" filter="url(#tpsh)"/><path d="${paper2}" fill="none" stroke="#d9d1bf" stroke-width="2" stroke-dasharray="2 7"/><path d="${paper}" fill="url(#tpd1)" opacity=".18"/></svg>`)}
         ${capImg(B, 1)}
         ${mv('crestA', `<div class="tcr" style="left:${b1.cx - b1.cs / 2}px;top:${b1.cy}px">${crestImg(A, b1.cs, P.c1)}</div>`)}
