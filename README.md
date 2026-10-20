@@ -17,6 +17,7 @@ One admin page for the eFCOB card makers. Open `index.html` in Chrome or Edge.
 | Match Result | `tools/match-result/` | ready |
 | Top 4 | `tools/top-4/` | ready |
 | Player vs Player | `tools/player-vs-player/` | ready |
+| Team vs Team | `tools/team-vs-team/` | ready |
 
 ### MVP
 One player, 1080 × 1350, "Big MVP" layout: huge MVP letters behind the player, stats row across
@@ -83,3 +84,10 @@ Every text block (header, title, VS, team names, date line) can be dragged on th
 wheel, like the photos; this is kept separately for each layout and arrangement.
 **Reset to default** puts all sections and both photos of the current layout back.
 Partners strip at the bottom: up to 5 names or logos plus a website line.
+
+### Team vs Team
+Team logo vs team logo, 1080 × 1350 (HD download 2160 × 2700), on the same five layouts, background modes, partner strip
+and Side by side / Upor-nich choice as Player vs Player. Per team: team name and logo (a plain white/black background is
+cut away automatically; colours come from the logo). Tick **Captain er chobi soho** to show the captain's cut-out photo
+instead of the big logo; the logo then sits next to the team name under the photo, with the captain's name below.
+Logos, photos and every text block can be dragged and resized with the mouse wheel; **Reset to default** puts them back.
