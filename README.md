@@ -129,15 +129,20 @@ Every part (header, title, photos/crests, Brush outline words, VS, names, date l
 under **Poster e ki ki thakbe**, per layout; **Reset to default** brings back positions, sizes and hidden parts.
 
 ### Team vs Team
-Club crest vs club crest, 1080 × 1350 (HD download 2160 × 2700), with the partner strip. Four layouts:
+Club crest vs club crest, 1080 × 1350 (HD download 2160 × 2700), with the partner strip. Six layouts:
 - **Ball**: each crest is wrapped round a 3D football in the team colours (a crest in the same colour as its team gets a white ball).
 - **Smoke**: team-colour smoke over a pitch, fiery VS.
 - **Stadium Shield**: floodlit stadium, crests on white shield cards with a team-colour banner.
 - **Brush**: neon panels with paint strokes and a big outline short name; chrome cyberpunk (Orbitron) VS under a gold ball.
+- **Crest Clash** (from the Match Result team mode): team-colour halves split by a lightning seam, crests on glowing rings, a
+  chrome VS with the kick-off time in a hex plate, the stage title in giant outline letters behind, date strip under the names.
+- **Torn Poster** (from the Match Result team mode): a torn paper strip with VS, a red title stamp and the date/time stamped on
+  it, team 1 above the tear and team 2 below, halftone dots, a tape with the "after the time" line.
 
 Background: Default template (fixed colours), Team colours (auto from the logo) or Upload my own. Per team: team name, logo
 (a plain white/black background is cut away automatically; colours come from the logo), and a short name for Brush.
-In Smoke and Brush, tick **Captain er chobi soho** to show the captain's cut-out photo instead of the crest; the crest then
+In Crest Clash and Torn Poster the same tick puts the captain behind the crest (Torn: team 2's captain stands in front of
+the paper) with a name chip; the crest stays. In Smoke and Brush, tick **Captain er chobi soho** to show the captain's cut-out photo instead of the crest; the crest then
 sits next to the team name, with the captain's name below. Crests, photos and every text block can be dragged and resized
 with the mouse wheel; **Reset to default** puts them back.
 

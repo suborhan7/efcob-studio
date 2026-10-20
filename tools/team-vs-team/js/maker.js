@@ -4,7 +4,7 @@
   const S = window.SAMPLE_PHOTOS || {}, SL = window.SAMPLE_LOGOS || {};
   const team = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', captain: false, m: null }, o);
   const state = {
-    layout: 'ball',                // ball | smoke | stad | brush
+    layout: 'ball',                // ball | smoke | stad | brush | clash | torn
     moves: {},                     // admin's drags/sizes per layout: { smoke: { vs: { x, y, s, ox, oy } } }
     hidden: {},                    // parts the admin switched off, per layout: { brush: { wordA: true } }
     bgMode: 'jersey',              // 'template' | 'jersey' (team colours) | 'image'
@@ -34,7 +34,8 @@
   // names for the "Poster e ki ki thakbe" list and the editor bar (js/studio-edit.js)
   const PARTS = { head: 'Header (logo, tag, date)', title: 'Title', p0: 'Team 1 logo / captain', p1: 'Team 2 logo / captain',
     wordA: 'Team 1 boro outline lekha', wordB: 'Team 2 boro outline lekha', vs: 'VS', teamA: 'Team 1 name', teamB: 'Team 2 name',
-    info: 'Date / time line', partners: 'Partners strip' };
+    info: 'Date / time line', partners: 'Partners strip', event: 'Event name', seam: 'Lightning seam', paper: 'Torn paper strip',
+    crestA: 'Team 1 logo', crestB: 'Team 2 logo', capA: 'Team 1 captain name', capB: 'Team 2 captain name' };
   let editing = false;
 
   const render = () => {
@@ -348,7 +349,8 @@
 
   document.addEventListener('tvt-redraw', render);   // a wrapped ball finished drawing
   render();
-  const fontsReady = Promise.all(['italic 900 40px Rubik', '800 20px Montserrat', '40px Anton', '900 40px Orbitron']
+  const fontsReady = Promise.all(['italic 900 40px Rubik', '800 20px Montserrat', '40px Anton', '900 40px Orbitron',
+    '900 40px "Big Shoulders Display"', '700 20px "Chakra Petch"', '600 20px "Chakra Petch"', '40px "Black Ops One"', '600 40px Teko']
     .map(f => document.fonts.load(f))).catch(() => {});
   window.__ready = fontsReady.then(async () => {
     for (const t of state.teams) if (t.photo) t.m = await measure(t.photo).catch(() => null);
