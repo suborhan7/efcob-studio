@@ -69,7 +69,7 @@
   };
 
   // where each player sits on the poster (centre of the photo), and how big, for the current layout + formation
-  const PITCH = { top: 290, bot: 1170, tw: 700, bw: 1060 };
+  const PITCH = { top: 290, bot: 1225, tw: 700, bw: 1060 };
   const pitchPt = (x, y) => { const w = PITCH.tw + (PITCH.bw - PITCH.tw) * y; return [540 + (x - .5) * w, PITCH.top + (PITCH.bot - PITCH.top) * y]; };
   window.xiSlots = st => {
     const F = FORMATIONS[st.formation] || FORMATIONS['4-3-3'];
@@ -79,7 +79,7 @@
       // a row of five, or a formation with five lines (4-2-3-1), gets slightly smaller badges so nothing overlaps
       const crowd = Math.min(rowN(pos, y) >= 5 ? .9 : 1, lines >= 5 ? .84 : 1);
       if (st.layout === 'pitch') { const [px, py] = pitchPt(x, y * .9 + .04), s = .84 + .26 * y; return { pos, x: px, y: py, d: Math.round(118 * s * crowd), ps: (.88 + .16 * y) * crowd, z: Math.round(y * 100) }; }
-      return { pos, x: 52 + 70 + x * 836, y: 262 + 82 + y * 740, w: Math.round(118 * crowd), h: Math.round(132 * crowd), z: Math.round(y * 100) };
+      return { pos, x: 52 + 70 + x * 836, y: 262 + 86 + y * 790, w: Math.round(118 * crowd), h: Math.round(132 * crowd), z: Math.round(y * 100) };
     });
   };
 
@@ -124,7 +124,7 @@
       });
       h += mv('avg', `<div class="avg"><b>${avg}</b><i>${esc(st.avgLabel)}</i></div>`);
     } else {
-      const W = 976, H = 910;
+      const W = 976, H = 966;
       const page = isUp ? `<div class="upbg" style="background-image:url('${st.bgImage}')"></div><div class="wash" style="background:rgba(6,10,24,.25)"></div>`
         : `<div class="wash" style="background:linear-gradient(135deg,${P.g1},${P.g2})"></div><svg class="full" style="opacity:.14"><g stroke="#fff" stroke-width="2">${Array.from({ length: 30 }, (_, i) => `<line x1="${i * 70 - 400}" y1="0" x2="${i * 70}" y2="1350"/>`).join('')}</g></svg>`;
       const stripes = isUp ? `<rect width="${W}" height="${H}" fill="rgba(8,20,40,.55)"/>` : Array.from({ length: 8 }, (_, i) => `<rect x="0" y="${i * H / 8}" width="${W}" height="${H / 8}" fill="${i % 2 ? P.b1 : P.b2}"/>`).join('');
