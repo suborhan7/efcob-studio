@@ -1,6 +1,6 @@
 /* Team vs Team poster renderer: renderTvt(el, state). Five layouts from shifty's VS references:
    bolt (lightning split), neon (neon frames), slash (slash plates), chrome (chrome bar), half (halftone slash).
-   st.arrange: 'side' (players side by side) or 'updown' (team 1 high on the left, team 2 low on the right) for every layout.
+   st.arrange: 'side' (players side by side) or 'updown' (team 1 high on the left, team 2 low on the right; bolt, slash, half).
    Every text block sits in a .mv wrapper so the admin can drag it and wheel-resize it; see tvtMoveStyle. */
 (function () {
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -27,13 +27,12 @@
   /* Upor-nich: player slots for the staggered arrangement (fade = the photo's cut line is open, so it fades out)
      and where the text sections move by default so names stay under their player. */
   const UPDOWN = {
-    bolt:   { slots: [{ x: 260, top: 300, head: 140, floor: 842, fade: 1 }, { x: 820, top: 560, head: 140, floor: 1012 }], moves: { teamA: { y: -170 } } },
-    neon:   { slots: [{ x: 262, top: 385, head: 130, floor: 890, fade: 1 }, { x: 818, top: 575, head: 130, floor: 1026 }], moves: { teamA: { y: -140 } } },
+    bolt:   { slots: [{ x: 215, top: 280, head: 150, floor: 740 }, { x: 820, top: 525, head: 150, floor: 1004 }], moves: { teamA: { x: -30, y: -272 }, teamB: { y: -8 } } },
     slash:  { slots: [{ x: 260, top: 330, head: 130, floor: 722 },  { x: 820, top: 590, head: 130, floor: 942 }],  moves: { teamA: { y: -70 } } },
-    chrome: { slots: [{ x: 285, top: 340, head: 140, floor: 905 },  { x: 795, top: 600, head: 140, floor: 905 }],  moves: {} },
     half:   { slots: [{ x: 250, top: 330, head: 132, floor: 770, fade: 1 }, { x: 830, top: 600, head: 132, floor: 1032 }], moves: { title: { y: -20 }, vs: { y: 20 }, teamA: { y: -262 } } },
   };
-  const isUD = st => st.arrange === 'updown';
+  // only these layouts have an upor-nich version (neon frames and the chrome bar look best side by side)
+  const isUD = st => st.arrange === 'updown' && !!UPDOWN[st.layout];
   window.tvtSlots = st => isUD(st) ? UPDOWN[st.layout].slots : SLOTS[st.layout];
   // admin's own drags/sizes, kept apart for each layout and each arrangement
   window.tvtMoveKey = st => st.layout + (isUD(st) ? ':ud' : '');

@@ -3,7 +3,7 @@
   const S = window.SAMPLE_PHOTOS || {};
   const team = o => Object.assign({ dx: 0, dy: 0, zoom: 1, logo: '', photo: '', m: null }, o);
   const state = {
-    arrange: 'side',               // side | updown (players staggered)
+    arrange: 'side',               // side | updown (players staggered; bolt, slash and half only)
     layout: 'bolt',                // bolt | neon | slash | chrome | half
     moves: {},                     // admin's drags/sizes per layout + arrangement: { 'half:ud': { vs: { x, y, s, ox, oy } } }
     bgMode: 'template',            // 'template' | 'jersey' | 'image'
@@ -34,6 +34,7 @@
     renderTvt(poster, state);
     $('#bgUploadRow').style.display = state.bgMode === 'image' ? '' : 'none';
     $$('[data-hide]').forEach(el => el.style.display = el.dataset.hide === state.layout ? 'none' : '');
+    $$('[data-show]').forEach(el => el.style.display = el.dataset.show.split(' ').includes(state.layout) ? '' : 'none');
   };
 
   /* Measures a cut-out from its transparency: size, head width, head-top row and body centre (natural px).
