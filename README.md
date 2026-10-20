@@ -19,6 +19,7 @@ One admin page for the eFCOB card makers. Open `index.html` in Chrome or Edge.
 | Player vs Player | `tools/player-vs-player/` | ready |
 | Team vs Team | `tools/team-vs-team/` | ready |
 | Transfer | `tools/transfer/` | ready |
+| Best XI | `tools/best-xi/` | ready |
 
 ### MVP
 One player, 1080 × 1350, "Big MVP" layout: huge MVP letters behind the player, stats row across
@@ -131,3 +132,20 @@ or Upload my own. Fields: title, small line, window name, date, time (News), con
 the two big News words, player name and photo (auto cut-out, head-size auto-fit), both clubs (short + full name, logo,
 colours) and up to 4 stats (an empty stat is hidden). Every part can be dragged, wheel-resized and switched off under
 **Poster e ki ki thakbe**; **Reset to default** puts everything back.
+
+### Best XI
+Team of the Week: eleven players in a formation, 1080 × 1350 (HD download 2160 × 2700), with the partner strip.
+Formation dropdown: **4-3-3**, **4-4-2**, **4-2-3-1**, **3-5-2**, **3-4-3**, **5-3-2**; every player moves to their spot on their own.
+The form lists the players in formation order (1 = keeper, then defenders, midfielders and forwards, left to right), and each
+box shows the spot (GK / DF / MF / FW) the player takes in the chosen formation. Two layouts:
+- **Tactic Pitch**: a tilted 3D pitch; round photo badges with a ring in the player's kit colour, rating chip, name plate with
+  position, team and logo; average rating box bottom left.
+- **Tactics Board**: a flat green board on a bright blue page; photo tiles with colour-coded position tags (FW red, MF green,
+  DF blue, GK yellow), rating chip and name card; average rating and top player boxes at the top.
+
+Background: **Default template**, **Jersey / logo colours** (from the star player's kit; yellow/orange kits get purple, plain
+black/white kits get gold + purple) or **Upload my own**. Fields: title, event, week, small tag, the two box labels, optional eFCOB
+logo; per player: name, team, rating, photo (auto cut-out; the head is auto-fitted in the badge), team logo (given to every player
+of the same team), kit colour (auto from the jersey) and **Week er star** (gold badge). Drag a photo to move the face inside its
+badge, wheel to size it; drag a name plate to move the whole player. Every part can be dragged, wheel-resized and switched off
+under **Poster e ki ki thakbe**; **Reset to default** puts everything back.
