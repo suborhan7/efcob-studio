@@ -6,7 +6,7 @@
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 
-const ROOT = path.resolve(__dirname, '..'), PORT = 8765;
+const ROOT = path.resolve(__dirname, '..'), PORT = +process.env.PORT || 8765;
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.json': 'application/json', '.wasm': 'application/wasm', '.onnx': 'application/octet-stream' };
 // selects that change which parts are on the poster (colour-only and text-only selects are left out)
 const DIMS = ['#layoutSel', '#modeSel', '[data-k="layout"]', '[data-k="bgMode"]', '[data-k="bgStyle"]', '[data-k="arrange"]',

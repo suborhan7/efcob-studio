@@ -10,7 +10,7 @@
 const { chromium } = require('playwright');
 const http = require('http'), fs = require('fs'), os = require('os'), path = require('path');
 
-const ROOT = path.resolve(__dirname, '..'), PORT = 8766;
+const ROOT = path.resolve(__dirname, '..'), PORT = +process.env.PORT || 8766;
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.json': 'application/json', '.wasm': 'application/wasm' };
 const ONLY = process.env.ONLY;   // parts | upload | phone: run just that round
 const LAYOUT_DIMS = ['#modeSel', '#layoutSel', '[data-k="layout"]'];
@@ -179,6 +179,8 @@ async function journey(page, t, say) {
     const box = await page.$(`#form [data-part="${t.id}"]`);
     if (!box) fail('removed, but it has no tick in the parts list to bring it back');
     else {
+      // the parts list may be folded: open it by its heading, as an admin would
+      if (!(await box.isVisible())) await box.evaluate(b => { const h = b.closest('section') && b.closest('section').querySelector(':scope > h3'); if (h) h.click(); });
       await box.scrollIntoViewIfNeeded(); await box.check(); await page.waitForTimeout(80);
       if (!(await g())) fail('ticking it in the parts list does not bring it back');
     }
