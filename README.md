@@ -85,6 +85,9 @@ part of a cut-out) are skipped, so a decoration lying over a player never blocks
 **Test:** `node tests/movable.js [card ...]` (needs Playwright) opens every card, walks every layout × background (and
 photo mode / arrangement / formation), and checks that each visible section and photo can be clicked, selected and dragged.
 Run it after adding a card or a layout.
+`node tests/journey.js [card ...]` does what an admin does on every part of every layout: select, − / +, arrows (buttons and
+keys), Majhe, Reset, mouse wheel, drag and grab again, Ctrl+Z / Ctrl+Y, Delete and bring back from the parts list, Reset to
+default; then uploads own pictures into every file box, finger-drags on a phone-sized screen, and downloads the PNG.
 
 ## Adding a new card type
 

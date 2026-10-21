@@ -24,7 +24,10 @@ function targets() {
   const shown = el => { for (let e = el; e && e !== frame; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) return false; } return true; };
   const pts = q => { const out = [], n = 9; for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) out.push([q.left + q.width * (i + .5) / n, q.top + q.height * (j + .5) / n]); return out; };
   const inFrame = ([x, y]) => x > fr.left + 1 && x < fr.right - 1 && y > fr.top + 1 && y < fr.bottom - 1;
-  const at = (x, y) => window.StudioEdit.pick ? window.StudioEdit.pick(x, y) : document.elementFromPoint(x, y);   // what a press there grabs
+  const at1 = (x, y) => window.StudioEdit.pick ? window.StudioEdit.pick(x, y) : document.elementFromPoint(x, y);   // what a press there grabs
+  // a point well inside the part (its neighbours 4px away grab it too), not on a sliver at its edge
+  const at = (x, y) => { const h = at1(x, y); if (!h) return h; const k = e => e && (e.closest('[data-p]') || e.closest('[data-move]'));
+    return [[4, 0], [-4, 0], [0, 4], [0, -4]].every(([a, b]) => k(at1(x + a, y + b)) === k(h)) ? h : null; };
   const res = [];
   document.querySelectorAll('#poster [data-p]').forEach(el => {
     if (!shown(el)) return;

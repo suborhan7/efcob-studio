@@ -8,6 +8,7 @@
     frame.style.width = Math.floor(1080 * s) + 'px';
     frame.style.height = Math.floor(1350 * s) + 'px';
     poster.style.transform = `scale(${s})`;
+    document.documentElement.style.setProperty('--stage-h', stage.offsetHeight + 'px');   // phones: the edit toolbar sticks just under the poster
   }
   window.addEventListener('resize', fit);
   new ResizeObserver(fit).observe(stage);

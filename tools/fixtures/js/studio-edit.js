@@ -87,21 +87,41 @@
     if (tag === 'img') return alphaAt(el, x, y);
     if (tag === 'canvas' || tag === 'video') return true;
     if (el instanceof SVGElement) return SHAPES.test(el.tagName);
+    // a photo box whose picture lets clicks through to it: painted where its picture is
+    if (el.matches('[data-p]') && el.querySelector('img') && [...el.querySelectorAll('img')].some(i => getComputedStyle(i).pointerEvents === 'none' && alphaAt(i, x, y))) return true;
     const cs = getComputedStyle(el);
     if (cs.backgroundImage !== 'none' || !/rgba\(.*,\s*0\)|transparent/.test(cs.backgroundColor)) return true;
     if (parseFloat(cs.borderTopWidth) || parseFloat(cs.borderLeftWidth) || parseFloat(cs.borderRightWidth) || parseFloat(cs.borderBottomWidth)) return true;
     return [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   }
-  function pick(x, y) {
-    const fr = o.frame.getBoundingClientRect(), all = document.elementsFromPoint(x, y).filter(el => o.poster.contains(el) && el !== o.poster);
+  function paintedAt(x, y) {
+    const fr = o.frame.getBoundingClientRect();
     let big = null;
-    for (const el of all) {
-      if (!el.closest('[data-move], [data-p]') || !painted(el, x, y)) continue;
+    for (const el of document.elementsFromPoint(x, y)) {
+      if (!o.poster.contains(el) || el === o.poster || !el.closest('[data-move], [data-p]') || !painted(el, x, y)) continue;
       const q = el.getBoundingClientRect();
       if (q.width * q.height > fr.width * fr.height * 0.85 && !el.closest('[data-p]')) { big ||= el; continue; }
-      return el;
+      return { el };
     }
-    return big || all[0] || null;
+    return { big };
+  }
+  // thin lines and small tags get a few px of slack: with nothing painted right under the mouse, look just around it
+  const NEAR = [[5, 0], [-5, 0], [0, 5], [0, -5], [5, 5], [-5, 5], [5, -5], [-5, -5], [10, 0], [-10, 0], [0, 10], [0, -10]];
+  const partOf = el => el.closest('[data-p]') || el.closest('[data-move]');
+  function pick(x, y) {
+    const h = paintedAt(x, y);
+    if (h.el) {
+      // on a big panel, a thin line of another part a few px away wins (it is too thin to hit exactly)
+      const fr = o.frame.getBoundingClientRect(), q = h.el.getBoundingClientRect();
+      if (q.width * q.height > fr.width * fr.height * 0.15) for (const [dx, dy] of NEAR) {
+        const n = paintedAt(x + dx, y + dy).el; if (!n || partOf(n) === partOf(h.el)) continue;
+        const r = n.getBoundingClientRect();
+        if (Math.min(r.width, r.height) / scale() < 16) return n;
+      }
+      return h.el;
+    }
+    for (const [dx, dy] of NEAR) { const n = paintedAt(x + dx, y + dy); if (n.el) return n.el; }
+    return h.big || o.poster;   // nothing painted here: a press on the bare poster (clears the selection)
   }
 
   // ---- overlay: selection box + centre guide ----
@@ -153,10 +173,25 @@
     else { const m = originOf(sel.key); m.s = Math.min(3, Math.max(0.3, +((m.s || 1) * f).toFixed(3))); secEl(sel.key).style.cssText = styleOf(sel.key); overlay(); }
     refreshBar();
   }
+  // centre: a part on the poster's centre line; a photo inside a frame (a face circle, a slot) in the middle of its frame
   function centre() {
-    const q = rectOf(sel); if (!q) return;
-    const pr = o.frame.getBoundingClientRect(), d = Math.round(540 - ((q.left + q.right) / 2 - pr.left) / scale());
+    // (looked up again on every measure: a photo nudge re-renders the poster)
+    const imgOf = () => { const el = sel.kind === 'photo' && photoEl(sel.i); return el && (el.tagName === 'IMG' ? el : el.querySelector('img')); };
+    const el = sel.kind === 'photo' ? photoEl(sel.i) : null, img = imgOf();
+    let box = null;   // the frame the photo sits in: its own box, or the nearest clipping box around it
+    if (img && img !== el) box = el;
+    else if (img) for (let p = el.parentElement; p && p !== o.poster; p = p.parentElement) if (getComputedStyle(p).overflow !== 'visible') { box = p; break; }
+    const mid = () => { const q = img ? imgOf().getBoundingClientRect() : rectOf(sel); return q && (q.left + q.right) / 2; };
+    const pr = o.frame.getBoundingClientRect(), goal = box ? (() => { const q = box.getBoundingClientRect(); return (q.left + q.right) / 2; })() : pr.left + 540 * scale();
+    const c0 = mid(); if (c0 == null) return;
+    const d = Math.round((goal - c0) / scale()); if (!d) return;
     nudge(d, 0);
+    // some photos move at a fraction of the poster px (a scaled face): measure and finish the move
+    const k = (mid() - c0) / (d * scale());
+    if (k > 0.05 && Math.abs(k - 1) > 0.05) for (let i = 0; i < 3; i++) {
+      const left = Math.round((goal - mid()) / scale() / k); if (!left) break;
+      nudge(left, 0);
+    }
   }
   function act(a) {
     if (a === 'undo') return undo();
@@ -176,7 +211,18 @@
   }
 
   // ---- undo / redo ----
-  const snap = () => JSON.stringify({ m: o.state.moves, h: o.state.hidden, x: o.extras ? o.extras.get() : null });
+  // entries made just by looking a part up (empty, or not moved / sized) are not a change: they never become an undo step
+  const idle = m => m && typeof m === 'object' && !m.x && !m.y && (!m.s || m.s === 1) && Object.keys(m).every(k => ['x', 'y', 's', 'ox', 'oy'].includes(k));
+  const prune = (v, drop) => {
+    const out = {};
+    for (const [l, parts] of Object.entries(v || {})) {
+      const keep = {};
+      for (const [k, m] of Object.entries(parts || {})) if (!drop(m)) keep[k] = m;
+      if (Object.keys(keep).length) out[l] = keep;
+    }
+    return out;
+  };
+  const snap = () => JSON.stringify({ m: prune(o.state.moves, idle), h: prune(o.state.hidden, h => h === undefined), x: o.extras ? o.extras.get() : null });
   function commit() {
     const s = snap();
     if (s !== last) { undoStack.push(last); if (undoStack.length > 100) undoStack.shift(); redoStack.length = 0; last = s; }
@@ -231,8 +277,13 @@
     // send presses and wheel turns to what is really under the mouse (see pick), for this kit and the card's photo drag
     const redirect = (e, make) => {
       if (e.__se) return;
-      const t = pick(e.clientX, e.clientY);
-      if (!t || t === e.target) return;
+      let t = pick(e.clientX, e.clientY);
+      // on a bare spot inside the selected part's box (between confetti bits, beside a thin line) keep working on that part
+      if (t === o.poster && sel) {
+        const q = rectOf(sel), el = sel.kind === 'photo' ? photoEl(sel.i) : secEl(sel.key);
+        if (q && el && e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom) t = sel.kind === 'photo' ? el : (el.firstElementChild || el);
+      }
+      if (t === e.target || !o.poster.contains(e.target)) return;
       e.stopImmediatePropagation();
       if (e.type === 'wheel' && t.closest('[data-move], [data-p]')) e.preventDefault();
       const ev = make(e); ev.__se = true; t.dispatchEvent(ev);

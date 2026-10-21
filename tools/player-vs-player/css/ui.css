@@ -119,4 +119,6 @@ button:disabled { opacity: .4; cursor: default; }
   .form { overflow: visible; }
   .form > button.primary { bottom: 0; margin: 14px -20px 0; }
   .stage { box-shadow: 0 8px 20px rgba(0, 0, 0, .5); }
+  /* the poster sticks to the top of the screen: the edit toolbar sticks under it instead of over it */
+  .se-bar.pro { top: var(--stage-h, 0px); z-index: 1; }
 }
