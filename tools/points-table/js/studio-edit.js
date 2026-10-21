@@ -53,6 +53,57 @@
     return m;
   }
 
+  // ---- what the mouse really grabs ----
+  // Big see-through layers (a full-poster SVG, an empty wrapper div, the clear part of a cut-out) would otherwise catch
+  // the click and hide whatever is under them. pick() walks down the stack at the point and returns the first element
+  // that actually paints a pixel there; poster-sized layers only win when nothing smaller is under the mouse.
+  const SHAPES = /^(path|circle|ellipse|rect|polygon|polyline|line|text|tspan|textPath|image|use)$/;
+  const alphaCache = new Map();
+  function alphaAt(img, x, y) {
+    if (!img.complete || !img.naturalWidth) return true;
+    let c = alphaCache.get(img.src);
+    if (!c) {
+      const w = Math.min(256, img.naturalWidth), h = Math.max(1, Math.round(w * img.naturalHeight / img.naturalWidth));
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      try { const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, w, h); c = { w, h, d: g.getImageData(0, 0, w, h).data }; }
+      catch (err) { c = { w: 0 }; }
+      if (alphaCache.size > 60) alphaCache.clear();
+      alphaCache.set(img.src, c);
+    }
+    if (!c.w) return true;
+    // map the client point into the picture, following object-fit / object-position
+    const q = img.getBoundingClientRect(), cs = getComputedStyle(img), fit = cs.objectFit, ar = c.w / c.h;
+    let w = q.width, h = q.height;
+    if (fit === 'contain' || fit === 'scale-down') { if (q.width / q.height > ar) w = q.height * ar; else h = q.width / ar; }
+    else if (fit === 'cover') { if (q.width / q.height > ar) h = q.width / ar; else w = q.height * ar; }
+    const pos = cs.objectPosition.split(' ').map(v => v.endsWith('%') ? parseFloat(v) / 100 : null);
+    const left = q.left + (q.width - w) * (pos[0] ?? .5), top = q.top + (q.height - h) * (pos[1] ?? .5);
+    const px = Math.floor((x - left) / w * c.w), py = Math.floor((y - top) / h * c.h);
+    if (px < 0 || py < 0 || px >= c.w || py >= c.h) return false;
+    return c.d[(py * c.w + px) * 4 + 3] > 24;
+  }
+  function painted(el, x, y) {
+    const tag = el.tagName.toLowerCase();
+    if (tag === 'img') return alphaAt(el, x, y);
+    if (tag === 'canvas' || tag === 'video') return true;
+    if (el instanceof SVGElement) return SHAPES.test(el.tagName);
+    const cs = getComputedStyle(el);
+    if (cs.backgroundImage !== 'none' || !/rgba\(.*,\s*0\)|transparent/.test(cs.backgroundColor)) return true;
+    if (parseFloat(cs.borderTopWidth) || parseFloat(cs.borderLeftWidth) || parseFloat(cs.borderRightWidth) || parseFloat(cs.borderBottomWidth)) return true;
+    return [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+  }
+  function pick(x, y) {
+    const fr = o.frame.getBoundingClientRect(), all = document.elementsFromPoint(x, y).filter(el => o.poster.contains(el) && el !== o.poster);
+    let big = null;
+    for (const el of all) {
+      if (!el.closest('[data-move], [data-p]') || !painted(el, x, y)) continue;
+      const q = el.getBoundingClientRect();
+      if (q.width * q.height > fr.width * fr.height * 0.85 && !el.closest('[data-p]')) { big ||= el; continue; }
+      return el;
+    }
+    return big || all[0] || null;
+  }
+
   // ---- overlay: selection box + centre guide ----
   let box, guide;
   function overlay() {
@@ -177,6 +228,19 @@
     o.panel.insertBefore(bar(), o.panel.querySelector('h2') ? o.panel.querySelector('h2').nextSibling : o.panel.firstChild);
 
     const f = o.frame;
+    // send presses and wheel turns to what is really under the mouse (see pick), for this kit and the card's photo drag
+    const redirect = (e, make) => {
+      if (e.__se) return;
+      const t = pick(e.clientX, e.clientY);
+      if (!t || t === e.target) return;
+      e.stopImmediatePropagation();
+      if (e.type === 'wheel' && t.closest('[data-move], [data-p]')) e.preventDefault();
+      const ev = make(e); ev.__se = true; t.dispatchEvent(ev);
+    };
+    const base = e => ({ bubbles: true, cancelable: true, composed: true, clientX: e.clientX, clientY: e.clientY, screenX: e.screenX, screenY: e.screenY,
+      button: e.button, buttons: e.buttons, shiftKey: e.shiftKey, altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey });
+    f.addEventListener('pointerdown', e => redirect(e, e => new PointerEvent('pointerdown', { ...base(e), pointerId: e.pointerId, pointerType: e.pointerType, isPrimary: e.isPrimary })), true);
+    f.addEventListener('wheel', e => redirect(e, e => new WheelEvent('wheel', { ...base(e), deltaX: e.deltaX, deltaY: e.deltaY, deltaMode: e.deltaMode })), { capture: true, passive: false });
     f.addEventListener('pointerdown', e => {
       const p = e.target.closest('[data-p]');
       if (p) { select({ kind: 'photo', i: +p.dataset.p }); return; }   // the card drags photos itself
@@ -231,5 +295,5 @@
   // positions settle after fonts/photos load: start the undo history from there
   const reset = () => { last = snap(); undoStack.length = 0; redoStack.length = 0; refreshBar(); };
 
-  window.StudioEdit = { init, afterRender, commit, reset, hiddenOf: () => hiddenOf() };
+  window.StudioEdit = { init, afterRender, commit, reset, pick, hiddenOf: () => hiddenOf() };
 })();
