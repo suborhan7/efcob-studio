@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>eFCOB Admin Studio</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#11141b">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="eFCOB Studio">
 <style>
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; background: #11141b; }
@@ -57,9 +63,29 @@ window.addEventListener("message", e => {
   const m = e.data || {};
   const id = Object.keys(frames).find(k => frames[k].contentWindow === e.source);
   if (m.type === "studio-ready" && id)
-    e.source.postMessage({ type: "studio-cards", cards: CARD_TYPES.map(({ id, name }) => ({ id, name })), current: id }, "*");
+    e.source.postMessage({ type: "studio-cards", cards: CARD_TYPES.map(({ id, name }) => ({ id, name })), current: id, install: installState() }, "*");
   if (m.type === "studio-select") select(m.id);
+  if (m.type === "studio-install" && installEvent) {
+    installEvent.prompt();
+    installEvent.userChoice.finally(() => { installEvent = null; tellInstall(); });
+  }
 });
+
+/* Install as an app. The browser's install offer arrives here; each card's "Install app" button (js/studio-nav.js) asks for it. */
+let installEvent = null;
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+function installState() {
+  if (standalone) return null;
+  if (installEvent) return "ready";
+  if (/iphone|ipad/i.test(navigator.userAgent)) return "ios";
+  return null;
+}
+function tellInstall() {
+  for (const f of Object.values(frames)) f.contentWindow && f.contentWindow.postMessage({ type: "studio-install-state", install: installState() }, "*");
+}
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvent = e; tellInstall(); });
+window.addEventListener("appinstalled", () => { installEvent = null; tellInstall(); });
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
 
 select(location.hash.slice(1));
 window.addEventListener("hashchange", () => select(location.hash.slice(1)));
