@@ -11,8 +11,9 @@
     template: 'shatter',          // fixed design used when bgMode is 'template'
     bgImage: '',                  // admin's uploaded background (data URL)
     premiumAccent: 'gold-purple', // colour pair for the template, an upload, or a plain black/white jersey
-    footerLeft: 'efcob.com',
-    footerRight: 'eFootball Council of Bangladesh',
+    site: 'efcob.com',
+    partnersLabel: 'Official partners',
+    partners: ['NOVAPAY', 'Pixel Arena', 'BOLT', 'zenith', 'KICKOFF+'].map(name => ({ name, logo: '' })),
     logo: '',
     player: { dx: 0, dy: 0, zoom: 1, name: 'Nova_10', team: 'Dhaka Strikers', photo: (window.SAMPLE_PHOTOS || {}).a || '', primary: '#f2c200', secondary: '#111111' },
     match: { label: 'Full time', score: '3 – 1', opponent: 'Chattogram Kings' },
@@ -33,7 +34,7 @@
   // names for the "Poster e ki ki thakbe" list and the editor bar (js/studio-edit.js)
   const PARTS = { brand: 'Logo', tag: 'Tag (top right)', title: 'Title', bigword: 'MVP boro lekha', info: 'Info panel (dane)',
     stats: 'Stats', rating: 'Rating (boro number)', grid: 'Baki stats', name: 'Player name', team: 'Team name', score: 'Score box',
-    footer: 'Footer', p0: 'Player photo' };
+    partners: 'Partners strip', p0: 'Player photo' };
   const moveKey = () => state.layout || 'current';
   let editing = false;
   const render = () => {
@@ -90,6 +91,17 @@
   $$('[data-k]').forEach(i => { i.value = state[i.dataset.k]; i.addEventListener('input', () => { state[i.dataset.k] = i.value; render(); }); });
   $$('[data-m]').forEach(i => { i.value = state.match[i.dataset.m]; i.addEventListener('input', () => { state.match[i.dataset.m] = i.value; render(); }); });
   $('[data-file="logo"]').addEventListener('change', async e => { const f = e.target.files[0]; state.logo = f ? await readFile(f) : ''; render(); });
+
+  // ---- partners strip (bottom of the poster) ----
+  const ptpl = $('#partnerTpl');
+  state.partners.forEach((p, i) => {
+    const row = ptpl.content.firstElementChild.cloneNode(true);
+    const name = $('[data-pname]', row); name.value = p.name; name.placeholder = `Partner ${i + 1}`;
+    name.addEventListener('input', () => { p.name = name.value; render(); });
+    $('[data-plogo]', row).addEventListener('change', async e => { const f = e.target.files[0]; p.logo = f ? await readFile(f) : ''; render(); });
+    $('[data-pclear]', row).addEventListener('click', () => { p.logo = ''; p.name = ''; name.value = ''; $('[data-plogo]', row).value = ''; render(); });
+    $('#partners').appendChild(row);
+  });
 
   // player fields
   $$('[data-p]', sec).forEach(i => {
