@@ -204,3 +204,14 @@ button { font-size: 14px; }
 .se-field small { font-size: 11px; }
 .se-size .se-pct { font-size: 13.5px; }
 .se-bar .tip { font-size: 13px; }
+
+/* Caption & hashtags box */
+.cap-sec .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.cap-sec .chips button { min-height: 36px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--ui-line2); background: #232836; font-weight: 600; font-size: 14.5px; }
+.cap-sec .chips button.on { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); }
+.cap-sec textarea { min-height: 220px; line-height: 1.5; font-size: 15px !important; }
+.cap-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 10px 0 8px; }
+.cap-actions button { min-height: 44px; border-radius: 10px; font-weight: 700; }
+.cap-actions .cap-copy { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); letter-spacing: .04em; text-transform: uppercase; }
+.cap-actions .cap-copy:hover { background: #3df0a0; }
+.cap-actions .cap-again { padding: 0 18px; }
