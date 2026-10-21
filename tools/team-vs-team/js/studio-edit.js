@@ -90,9 +90,13 @@
     // a photo box whose picture lets clicks through to it: painted where its picture is
     if (el.matches('[data-p]') && el.querySelector('img') && [...el.querySelectorAll('img')].some(i => getComputedStyle(i).pointerEvents === 'none' && alphaAt(i, x, y))) return true;
     const cs = getComputedStyle(el);
-    if (cs.backgroundImage !== 'none' || !/rgba\(.*,\s*0\)|transparent/.test(cs.backgroundColor)) return true;
+    const clip = (cs.backgroundClip || cs.webkitBackgroundClip) === 'text';   // gradient letters paint like text
+    if (!clip && (cs.backgroundImage !== 'none' || !/rgba\(.*,\s*0\)|transparent/.test(cs.backgroundColor))) return true;
     if (parseFloat(cs.borderTopWidth) || parseFloat(cs.borderLeftWidth) || parseFloat(cs.borderRightWidth) || parseFloat(cs.borderBottomWidth)) return true;
-    return [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+    if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) return false;
+    // text alone: only the band where the letters are, not the empty top / bottom of a big title's line box
+    const q = el.getBoundingClientRect(), k = el.offsetHeight ? q.height / el.offsetHeight : scale();
+    return Math.abs(y - (q.top + q.bottom) / 2) <= Math.max(0.42 * parseFloat(cs.fontSize) * k, 3);
   }
   function paintedAt(x, y) {
     const fr = o.frame.getBoundingClientRect();
