@@ -120,3 +120,33 @@ button:disabled { opacity: .4; cursor: default; }
   .form > button.primary { bottom: 0; margin: 14px -20px 0; }
   .stage { box-shadow: 0 8px 20px rgba(0, 0, 0, .5); }
 }
+
+/* phones: the poster sticks at the top, so the editor must never sit over it.
+   Nothing selected = one slim row stuck just under the poster (--stage-h is set by js/ui.js).
+   Something selected = the same bar becomes a compact sheet at the bottom of the screen. */
+@media (max-width: 620px) {
+  .se-bar.pro { top: var(--stage-h, 0px); display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 8px;
+    margin: 0 -20px 8px; padding: 8px 16px; border-bottom: 1px solid var(--ui-line); }
+  .se-bar.pro > .se-row:first-child, .se-bar.pro .se-panel { display: contents; }
+  .se-bar.pro .se-help { order: 1; }
+  .se-bar.pro .se-head { padding: 0; min-width: 0; background: none !important; border: 0 !important; }
+  .se-bar.pro .se-head i { display: none; }
+  .se-bar.pro .se-title { font-size: 11px; }
+  .se-bar.pro .tip { grid-column: 1 / -1; order: 2; margin: 0; }
+  .se-bar.pro .se-group .se-ic span { display: none; }
+
+  .se-bar.pro.has-sel { position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0;
+    grid-template-columns: auto minmax(0, 1fr); row-gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    border: 1px solid rgba(25, 226, 138, .45); border-bottom: 0; border-radius: 14px 14px 0 0;
+    background: #171b24; box-shadow: 0 -12px 30px rgba(0, 0, 0, .6); }
+  .se-bar.pro.has-sel .se-tag, .se-bar.pro.has-sel .se-help, .se-bar.pro.has-sel .tip { display: none; }
+  .se-bar.pro.has-sel .se-head { gap: 6px; padding: 0 0 0 4px; }
+  .se-bar.pro.has-sel .se-head i { display: inline-flex; }
+  .se-bar.pro.has-sel .se-title { font-size: 13px; }
+  .se-bar.pro.has-sel .se-close { min-height: 30px; min-width: 30px; border: 1px solid var(--ui-line2); }
+  .se-bar.pro .se-panel .se-row:not([hidden]) { grid-column: 1 / -1; padding: 0; gap: 8px; }
+  .se-bar.pro .se-field small { display: none; }
+  .se-bar.pro.has-sel .se-ic { min-height: 36px; min-width: 36px; }
+  .se-bar.pro.has-sel .se-size .se-pct { min-width: 46px; }
+  body:has(.se-bar.has-sel) .form { padding-bottom: 150px; }
+}

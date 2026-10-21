@@ -146,4 +146,8 @@
   setInterval(() => form.querySelectorAll('select').forEach(splitSelect), 800);
   enhance();
   window.addEventListener('load', enhance);
+
+  // phones: the poster sticks at the top; tell the CSS how tall it is so the editor row sticks just below it
+  const stage = document.querySelector('.stage');
+  if (stage && window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty('--stage-h', stage.offsetHeight + 'px')).observe(stage);
 })();
