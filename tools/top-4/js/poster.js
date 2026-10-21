@@ -108,7 +108,7 @@
     return `<div class="sp"><div class="lab">${esc(s.partnersLabel || 'Official partners')}</div><div class="logos">${list.map((p, i) => {
       const [f, ls] = FONTS[i % FONTS.length];
       return p.logo ? `<div class="logo"><img src="${p.logo}" alt=""></div>`
-        : `<div class="logo" style="font:${f};letter-spacing:${ls};font-size:${Math.min(parseInt(f.match(/(\d+)px/)[1]), Math.floor(170 / (p.name.length * 0.62)))}px">${esc(p.name)}</div>`;
+        : `<div class="logo" style="font:${f};letter-spacing:${ls};font-size:${Math.min(parseInt(f.match(/(\d+)px/)[1]), Math.floor(170 * 5 / Math.max(5, list.length) / (p.name.length * 0.62)))}px">${esc(p.name)}</div>`;
     }).join('')}</div>${s.site ? `<div class="site">${esc(s.site)}</div>` : ''}</div>`;
   }
 

@@ -270,3 +270,16 @@ button { font-size: 14px; }
 .form section.ui-card.folded > h3 { color: #7fdcb0; }
 .form label:not(.check):not(.star-pick), .form .colors > span:first-child, .form .pos > span:first-child { color: #8fe3bd; }
 .form .pdet > summary { color: #e8ecf3; }
+
+/* "+ Add partner" under the partners list */
+.form .p-add { display: block; width: 100%; margin: 4px 0 12px; min-height: 40px; border: 1px dashed rgba(25, 226, 138, .55); border-radius: 10px;
+  background: rgba(25, 226, 138, .06); color: var(--ui-accent); font-weight: 700; font-size: 14.5px; }
+.form .p-add:hover { background: rgba(25, 226, 138, .14); }
+
+/* poster partners strip: any number of partners on one line (the cards' own CSS was a fixed 5-column grid) */
+#poster .sprow, #poster .sp .row { grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+#poster .sprow > div, #poster .sp .row > div { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#poster .sprow:has(> :nth-child(6)), #poster .sp .row:has(> :nth-child(6)) { gap: 10px !important; }
+#poster .sprow:has(> :nth-child(6)) > div, #poster .sp .row:has(> :nth-child(6)) > div { font-size: 15px !important; letter-spacing: .03em !important; }
+#poster .sprow:has(> :nth-child(8)) > div, #poster .sp .row:has(> :nth-child(8)) > div { font-size: 12.5px !important; letter-spacing: .01em !important; }
+#poster .sprow:has(> :nth-child(8)), #poster .sp .row:has(> :nth-child(8)) { gap: 7px !important; }
