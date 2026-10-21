@@ -2,7 +2,9 @@
    - file inputs show the chosen file name
    - long dropdown choices "Name (what it looks like)" show just the name; the rest goes in a hint line under the box
    - long section headings "Title (note)" put the note in smaller text
-   - the editor toolbar becomes grouped icon buttons with a selection panel; its help text folds behind a "?" button */
+   - the editor toolbar becomes grouped icon buttons with a selection panel; its help text folds behind a "?" button
+   - every form section is a card whose heading folds it (remembered per card)
+   - Download / Share / Copy sit in a small bar right under the poster */
 (function () {
   const form = document.getElementById('form');
   if (!form) return;
@@ -119,6 +121,143 @@
     });
   }
 
+
+  // ---- section cards: tap a heading to fold the section; "Poster e ki ki thakbe" and Partners start folded ----
+  const FOLD_KEY = 'ui-fold:' + location.pathname;
+  let folds = {};
+  try { folds = JSON.parse(localStorage.getItem(FOLD_KEY) || '{}'); } catch (e) {}
+  const FOLDED_FIRST = /ki ki thakbe|partners/i;
+  function cards() {
+    form.querySelectorAll(':scope > section, :scope > div > section').forEach(sec => {
+      const h = sec.querySelector(':scope > h3');
+      if (!h || sec.classList.contains('ui-card')) return;
+      sec.classList.add('ui-card');
+      const key = () => (h.firstChild ? h.firstChild.textContent : h.textContent).trim().toLowerCase();
+      const k = key();
+      if (k in folds ? folds[k] : FOLDED_FIRST.test(k)) sec.classList.add('folded');
+      h.title = 'Khulo / bondho koro';
+      h.addEventListener('click', () => {
+        sec.classList.toggle('folded');
+        folds[key()] = sec.classList.contains('folded');
+        try { localStorage.setItem(FOLD_KEY, JSON.stringify(folds)); } catch (e) {}
+      });
+    });
+  }
+
+  // ---- Download / Share / Copy under the poster ----
+  // Share and Copy reuse the maker's own HD export: the maker ends its download with a.click() on a link
+  // holding the PNG; while we wait for an image that click is caught here instead of saving a file.
+  let catcher = null;
+  const nativeClick = HTMLAnchorElement.prototype.click;
+  HTMLAnchorElement.prototype.click = function () {
+    if (catcher && this.download) { const c = catcher; catcher = null; c({ url: this.href, name: this.download }); return; }
+    return nativeClick.call(this);
+  };
+  function exportImage() {
+    const dl = document.getElementById('download');
+    return new Promise((res, rej) => {
+      catcher = res;
+      setTimeout(() => { if (catcher === res) { catcher = null; rej(new Error('timeout')); } }, 60000);
+      dl.click();
+    }).then(async ({ url, name }) => ({ blob: await (await fetch(url)).blob(), name }));
+  }
+  function note(t) {
+    let n = document.querySelector('.act-note');
+    if (!n) { n = document.createElement('div'); n.className = 'act-note'; document.body.appendChild(n); }
+    n.textContent = t; n.hidden = false;
+    clearTimeout(note.t); note.t = setTimeout(() => { n.hidden = true; }, 2600);
+  }
+  const AIC = {
+    download: '<path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/>',
+    share: '<circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>'
+  };
+  const aic = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${AIC[k]}</svg>`;
+  function actionBar() {
+    const stage = document.querySelector('.stage'), dl = document.getElementById('download');
+    if (!stage || !dl || stage.querySelector('.act-bar')) return;
+    const bar = document.createElement('div'); bar.className = 'act-bar';
+    dl.innerHTML = aic('download') + '<span>Download</span>'; dl.title = 'HD PNG (2160 × 2700)';
+    // the maker swaps the button text while it renders; put the icon back once it is done
+    new MutationObserver(() => { if (!dl.disabled && !dl.querySelector('svg')) dl.innerHTML = aic('download') + '<span>Download</span>'; })
+      .observe(dl, { childList: true, attributes: true, attributeFilter: ['disabled'] });
+    const mk = (k, label, title, fn) => {
+      const b = document.createElement('button'); b.type = 'button'; b.innerHTML = aic(k) + `<span>${label}</span>`; b.title = title;
+      b.addEventListener('click', async () => {
+        b.disabled = true;
+        try { await fn(); } catch (e) { if (e && e.name !== 'AbortError') note('Hoy nai, abar try koro'); }
+        b.disabled = false;
+      });
+      return b;
+    };
+    const canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [new File([''], 'x.png', { type: 'image/png' })] }));
+    const share = mk('share', 'Share', 'Facebook / WhatsApp / Messenger e pathao', async () => {
+      const { blob, name } = await exportImage();
+      await navigator.share({ files: [new File([blob], name, { type: 'image/png' })] });
+    });
+    const copy = mk('copy', 'Copy', 'Chobi copy koro, tarpor post e paste (Ctrl+V)', async () => {
+      const { blob } = await exportImage();
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      note('Chobi copy hoise, ekhon paste koro');
+    });
+    bar.append(dl);
+    if (canShareFiles) bar.append(share);
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) bar.append(copy);
+    stage.appendChild(bar);
+    window.dispatchEvent(new Event('resize'));
+  }
+  // the form font (Barlow), the same face the reference studio uses; falls back to the system font offline
+  if (!document.querySelector('link[data-ui-font]')) {
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.uiFont = '1';
+    l.href = 'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap';
+    document.head.appendChild(l);
+  }
+
+
+  // ---- Caption & hashtags (js/caption.js writes it from the card's data) ----
+  const CARD = (location.pathname.match(/tools\/([^/]+)\//) || [])[1];
+  function captionBox() {
+    if (!window.CaptionGen || !CARD || !CaptionGen.cards.includes(CARD) || form.querySelector('.cap-sec')) return;
+    const LANGS = [['en', 'English'], ['bn', 'বাংলা'], ['bl', 'Banglish']];
+    let lang = 'en', variant = 0, edited = false, last = '';
+    try { lang = localStorage.getItem('ui-caplang') || 'en'; } catch (e) {}
+    const sec = document.createElement('section'); sec.className = 'cap-sec';
+    sec.innerHTML = `<h3>Caption &amp; hashtags</h3>
+      <p class="tip">Card er lekha theke nije banay. Dorkar hole edit koro, tarpor copy kore post e paste koro.</p>
+      <div class="chips">${LANGS.map(([k, n]) => `<button type="button" data-lang="${k}">${n}</button>`).join('')}</div>
+      <textarea rows="9" aria-label="Caption"></textarea>
+      <div class="cap-actions"><button type="button" class="cap-copy">Copy caption</button><button type="button" class="cap-again">Rewrite</button></div>`;
+    const ta = sec.querySelector('textarea'), copyBtn = sec.querySelector('.cap-copy');
+    const chips = () => sec.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+    const update = (force) => {
+      if (edited && !force) return;
+      const txt = CaptionGen.make(CARD, window.__posterState, lang, variant);
+      if (txt !== last || force) { last = txt; ta.value = txt; }
+    };
+    sec.addEventListener('click', e => {
+      const b = e.target.closest('[data-lang]');
+      if (b) { lang = b.dataset.lang; try { localStorage.setItem('ui-caplang', lang); } catch (err) {} chips(); edited = false; update(true); }
+    });
+    sec.querySelector('.cap-again').addEventListener('click', () => { variant++; edited = false; update(true); });
+    ta.addEventListener('input', () => { edited = true; });
+    copyBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(ta.value); } catch (e) { ta.select(); document.execCommand('copy'); }
+      copyBtn.textContent = 'Copied ✓'; setTimeout(() => { copyBtn.textContent = 'Copy caption'; }, 1600);
+    });
+    chips();
+    const anchor = form.querySelector(':scope > button.primary') || null;
+    form.insertBefore(sec, anchor);
+    update(true);
+    // the card changes from the form and from the poster editor; follow it until the admin edits the text
+    form.addEventListener('input', e => { if (!sec.contains(e.target)) setTimeout(update, 0); });
+    form.addEventListener('change', e => { if (!sec.contains(e.target)) setTimeout(update, 0); });
+    setInterval(update, 1500);
+  }
+  if (CARD && !window.CaptionGen) {
+    const sc = document.createElement('script'); sc.src = 'js/caption.js'; sc.onload = () => { captionBox(); enhance(); };
+    document.head.appendChild(sc);
+  }
+
   let busy = false;
   function enhance() {
     if (busy) return;
@@ -129,6 +268,7 @@
     toolbar();
     syncName();
     shortReset();
+    cards();
     obs.takeRecords();
     busy = false;
   }
@@ -145,5 +285,10 @@
   form.addEventListener('input', e => { if (e.target.matches('select')) splitSelect(e.target); });
   setInterval(() => form.querySelectorAll('select').forEach(splitSelect), 800);
   enhance();
+  actionBar();
   window.addEventListener('load', enhance);
+
+  // phones: the poster sticks at the top; tell the CSS how tall it is so the editor row sticks just below it
+  const stage = document.querySelector('.stage');
+  if (stage && window.ResizeObserver) new ResizeObserver(() => document.documentElement.style.setProperty('--stage-h', stage.offsetHeight + 'px')).observe(stage);
 })();

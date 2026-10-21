@@ -101,12 +101,6 @@ button:disabled { opacity: .4; cursor: default; }
 .se-bar .se-actions .se-hide { color: #ff8a9a; }
 .se-bar .se-actions .se-hide:hover { background: rgba(255, 77, 109, .12); border-color: rgba(255, 77, 109, .5); color: #ffb3c0; }
 
-/* Download always in reach at the bottom of the column */
-.form > button.primary { position: sticky; bottom: -20px; z-index: 3; margin: 14px -20px -20px; width: calc(100% + 40px); border-radius: 0;
-  padding: 14px; background: #19a463; box-shadow: 0 -10px 20px rgba(17, 20, 27, .85); font-size: 14px; }
-.form > button.primary:hover { background: #1db872; }
-.form > button.primary:disabled { opacity: .7; }
-
 /* Best XI: star radio sits on the same line as Rating */
 .form label.star-pick { margin-top: 0; align-self: end; align-items: center; min-height: 34px; margin-bottom: 10px; white-space: nowrap; }
 .form label.star-pick input { margin-top: 0; }
@@ -117,8 +111,107 @@ button:disabled { opacity: .4; cursor: default; }
 
 @media (max-width: 620px) {
   .form { overflow: visible; }
-  .form > button.primary { bottom: 0; margin: 14px -20px 0; }
   .stage { box-shadow: 0 8px 20px rgba(0, 0, 0, .5); }
-  /* the poster sticks to the top of the screen: the edit toolbar sticks under it instead of over it */
-  .se-bar.pro { top: var(--stage-h, 0px); z-index: 1; }
 }
+
+/* phones: the poster sticks at the top, so the editor must never sit over it.
+   Nothing selected = one slim row stuck just under the poster (--stage-h is set by js/ui.js).
+   Something selected = the same bar becomes a compact sheet at the bottom of the screen. */
+@media (max-width: 620px) {
+  .se-bar.pro { top: var(--stage-h, 0px); display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 8px;
+    margin: 0 -20px 8px; padding: 8px 16px; border-bottom: 1px solid var(--ui-line); }
+  .se-bar.pro > .se-row:first-child, .se-bar.pro .se-panel { display: contents; }
+  .se-bar.pro .se-help { order: 1; }
+  .se-bar.pro .se-head { padding: 0; min-width: 0; background: none !important; border: 0 !important; }
+  .se-bar.pro .se-head i { display: none; }
+  .se-bar.pro .se-title { font-size: 11px; }
+  .se-bar.pro .tip { grid-column: 1 / -1; order: 2; margin: 0; }
+  .se-bar.pro .se-group .se-ic span { display: none; }
+
+  .se-bar.pro.has-sel { position: fixed; top: auto; left: 0; right: 0; bottom: 0; z-index: 30; margin: 0;
+    grid-template-columns: auto minmax(0, 1fr); row-gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    border: 1px solid rgba(25, 226, 138, .45); border-bottom: 0; border-radius: 14px 14px 0 0;
+    background: #171b24; box-shadow: 0 -12px 30px rgba(0, 0, 0, .6); }
+  .se-bar.pro.has-sel .se-tag, .se-bar.pro.has-sel .se-help, .se-bar.pro.has-sel .tip { display: none; }
+  .se-bar.pro.has-sel .se-head { gap: 6px; padding: 0 0 0 4px; }
+  .se-bar.pro.has-sel .se-head i { display: inline-flex; }
+  .se-bar.pro.has-sel .se-title { font-size: 13px; }
+  .se-bar.pro.has-sel .se-close { min-height: 30px; min-width: 30px; border: 1px solid var(--ui-line2); }
+  .se-bar.pro .se-panel .se-row:not([hidden]) { grid-column: 1 / -1; padding: 0; gap: 8px; }
+  .se-bar.pro .se-field small { display: none; }
+  .se-bar.pro.has-sel .se-ic { min-height: 36px; min-width: 36px; }
+  .se-bar.pro.has-sel .se-size .se-pct { min-width: 46px; }
+  body:has(.se-bar.has-sel) .form { padding-bottom: 150px; }
+}
+
+/* ---------- v2: bigger, easier form; section cards; poster action bar ---------- */
+.form, .form button, .form input, .form select, .form textarea, .act-bar button, .act-note { font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+@media (min-width: 621px) { .app { grid-template-columns: clamp(360px, 31vw, 460px) 1fr; } }
+.form { padding: 18px 18px 28px; font-size: 15px; }
+.form label { font-size: 13.5px; font-weight: 500; color: #b4bdd0; margin-bottom: 12px; }
+.form input:not([type=color]):not([type=file]):not([type=checkbox]):not([type=radio]):not([type=range]), .form select, .form textarea {
+  min-height: 42px; margin-top: 5px; padding: 9px 12px; border-radius: 9px; font-size: 15.5px; font-weight: 500; }
+.form select { padding-right: 32px; }
+.form .hint { font-size: 12.5px; }
+.form .tip { font-size: 13px; line-height: 1.45; color: #8590a6; }
+.form label.check { font-size: 14px; color: #d3d9e6; }
+.form input[type=checkbox], .form input[type=radio], .form input[type=radio]:not([type=color]):not([type=file]):not([type=checkbox]) { width: 17px; height: 17px; }
+.colors { font-size: 13.5px; }
+.colors input[type=color] { width: 42px; height: 36px; border-radius: 8px; }
+button { font-size: 14px; }
+.form input[type=file]::file-selector-button { padding: 8px 14px; min-height: 38px; font: 600 13.5px 'Barlow', system-ui, sans-serif; }
+.form .fname { font-size: 12.5px; }
+
+/* each section is its own card; tap the heading to fold it */
+.form section.ui-card { margin: 14px 0; padding: 4px 16px 6px; border: 1px solid var(--ui-line); border-top: 1px solid var(--ui-line); border-radius: 12px; background: #1b202b; }
+.form section.ui-card > h3 { margin: 0 -16px; padding: 14px 16px 12px; cursor: pointer; user-select: none; font-size: 13px; letter-spacing: .12em; color: #9aa5bb; }
+.form section.ui-card > h3::after { content: ''; margin-left: auto; align-self: center; width: 8px; height: 8px; border-right: 2px solid #6b768d; border-bottom: 2px solid #6b768d;
+  transform: rotate(45deg) translate(-2px, -2px); transition: transform .15s; }
+.form section.ui-card > h3:hover { color: #fff; }
+.form section.ui-card.folded > h3::after { transform: rotate(-45deg); }
+.form section.ui-card.folded > :not(h3) { display: none !important; }
+.form section.ui-card.folded { padding-bottom: 0; }
+.form section.ui-card .pdet { background: #161a23; }
+.form > .tip { margin: 8px 2px; }
+.reset-all { min-height: 40px; border-radius: 10px; }
+
+/* Download / Share / Copy right under the poster */
+.stage { flex-direction: column; gap: 12px; }
+.act-bar { display: flex; gap: 8px; flex: none; }
+.act-bar button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 16px; border-radius: 10px;
+  border: 1px solid var(--ui-line2); background: #1b202b; color: #e8ecf3; font-size: 14px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+.act-bar button:hover:not(:disabled) { background: #252b38; border-color: #445069; }
+.act-bar button svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.act-bar button.primary, .act-bar #download { width: auto; margin: 0; padding: 0 22px; border-color: var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-ink); }
+.act-bar #download:hover:not(:disabled) { background: #3df0a0; }
+.act-bar button:disabled { opacity: .6; cursor: progress; }
+.act-note { position: fixed; left: 50%; bottom: 24px; z-index: 50; transform: translateX(-50%); padding: 10px 16px; border-radius: 10px; background: #0c0f15;
+  border: 1px solid var(--ui-line2); color: #e8ecf3; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+@media (max-width: 620px) {
+  .stage { gap: 8px; }
+  .act-bar { width: 100%; max-width: 420px; }
+  .act-bar button { flex: 1; min-height: 38px; padding: 0 10px; font-size: 13px; }
+  .act-bar #download { flex: 1.4; }
+}
+/* header sizes to match the bigger form */
+.studio-brand { font-size: 19px; }
+.card-pick span { font-size: 15.5px; }
+.card-pick b { font-size: 14px; }
+.card-opt { font-size: 16px; }
+.se-tag { font-size: 12px; }
+.se-bar .se-ic { font-size: 13.5px; min-height: 34px; }
+.se-title { font-size: 13.5px; }
+.se-field small { font-size: 11px; }
+.se-size .se-pct { font-size: 13.5px; }
+.se-bar .tip { font-size: 13px; }
+
+/* Caption & hashtags box */
+.cap-sec .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.cap-sec .chips button { min-height: 36px; padding: 0 16px; border-radius: 99px; border: 1px solid var(--ui-line2); background: #232836; font-weight: 600; font-size: 14.5px; }
+.cap-sec .chips button.on { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); }
+.cap-sec textarea { min-height: 220px; line-height: 1.5; font-size: 15px !important; }
+.cap-actions { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 10px 0 8px; }
+.cap-actions button { min-height: 44px; border-radius: 10px; font-weight: 700; }
+.cap-actions .cap-copy { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); letter-spacing: .04em; text-transform: uppercase; }
+.cap-actions .cap-copy:hover { background: #3df0a0; }
+.cap-actions .cap-again { padding: 0 18px; }

@@ -47,10 +47,6 @@
         <label>Date<input data-k="date"></label>
       </div>
       <label>eFCOB logo (optional)<input type="file" accept="image/*" data-file="logo"></label>
-      <div class="two">
-        <label>Footer left<input data-k="footerLeft"></label>
-        <label>Footer right<input data-k="footerRight"></label>
-      </div>
     </section>
 
     <template id="teamTpl">
@@ -132,7 +128,7 @@
       <div class="prow"><input type="text" data-sn><input type="file" accept="image/*" data-sp title="Photo"><button type="button" data-sx title="Remove photo">✕</button></div>
     </template>
     <div id="tteams" data-only="team"></div>
-    <p class="tip">Poster er upor player er chobi ar sob lekha (logo, team name, score, tag, scorers, footer) drag kore shorano jay, mouse wheel e boro-choto hoy, ar niche "Poster e ki ki thakbe" theke je kono ongsho remove kora jay.</p>
+    <p class="tip">Poster er upor player er chobi ar sob lekha (logo, team name, score, tag, scorers, partners) drag kore shorano jay, mouse wheel e boro-choto hoy, ar niche "Poster e ki ki thakbe" theke je kono ongsho remove kora jay.</p>
     <section>
       <h3>Poster e ki ki thakbe</h3>
       <div id="parts" class="parts"></div>
@@ -140,7 +136,7 @@
     </section>
     <button type="button" id="resetAll" class="reset-all">Reset to default (sob position, sob ongsho)</button>
 
-    <section data-only="tl">
+    <section>
       <h3>Partners (niche)</h3>
       <label>Label<input data-k="partnersLabel"></label>
       <template id="partnerTpl">
