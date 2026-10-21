@@ -206,6 +206,26 @@
     stage.appendChild(bar);
     window.dispatchEvent(new Event('resize'));
   }
+  // phones: undo / redo / help also sit in the Download row (copies that press the real ones), so the idle EDIT row can go
+  function dockEdit() {
+    const bar = form.querySelector('.se-bar.pro'), act = document.querySelector('.act-bar');
+    if (!bar || !act || act.querySelector('.act-edit')) return;
+    const dock = document.createElement('div'); dock.className = 'act-edit';
+    ['undo', 'redo'].forEach(k => {
+      const real = bar.querySelector(`[data-se="${k}"]`); if (!real) return;
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'se-ic'; b.title = LABEL[k]; b.innerHTML = svg(k);
+      b.addEventListener('click', () => real.click());
+      const sync = () => { b.disabled = real.disabled; };
+      new MutationObserver(sync).observe(real, { attributes: true, attributeFilter: ['disabled'] }); sync();
+      dock.append(b);
+    });
+    const realHelp = bar.querySelector('.se-help');
+    const help = document.createElement('button'); help.type = 'button'; help.className = 'se-ic se-help'; help.title = 'Kivabe edit korbo'; help.innerHTML = svg('help');
+    help.addEventListener('click', () => realHelp && realHelp.click());
+    new MutationObserver(() => help.classList.toggle('on', bar.classList.contains('show-help'))).observe(bar, { attributes: true, attributeFilter: ['class'] });
+    dock.append(help);
+    act.append(dock);
+  }
   // the form font (Barlow), the same face the reference studio uses; falls back to the system font offline
   if (!document.querySelector('link[data-ui-font]')) {
     const l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.uiFont = '1';
@@ -245,8 +265,16 @@
       copyBtn.textContent = 'Copied ✓'; setTimeout(() => { copyBtn.textContent = 'Copy caption'; }, 1600);
     });
     chips();
-    const anchor = form.querySelector(':scope > button.primary') || null;
-    form.insertBefore(sec, anchor);
+    // wide screens: the box gets its own column right of the poster; otherwise it sits at the end of the form
+    const app = document.querySelector('.app'), wide = matchMedia('(min-width: 1280px)');
+    const aside = document.createElement('aside'); aside.className = 'cap-aside';
+    const place = () => {
+      if (wide.matches && app) { aside.append(sec); app.append(aside); app.classList.add('has-cap'); }
+      else { form.insertBefore(sec, form.querySelector(':scope > button.primary') || null); aside.remove(); if (app) app.classList.remove('has-cap'); }
+      window.dispatchEvent(new Event('resize'));
+    };
+    wide.addEventListener ? wide.addEventListener('change', place) : wide.addListener(place);
+    place();
     update(true);
     // the card changes from the form and from the poster editor; follow it until the admin edits the text
     form.addEventListener('input', e => { if (!sec.contains(e.target)) setTimeout(update, 0); });
@@ -286,6 +314,7 @@
   setInterval(() => form.querySelectorAll('select').forEach(splitSelect), 800);
   enhance();
   actionBar();
+  dockEdit();
   window.addEventListener('load', enhance);
 
   // phones: the poster sticks at the top; tell the CSS how tall it is so the editor row sticks just below it
