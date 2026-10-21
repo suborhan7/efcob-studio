@@ -27,7 +27,7 @@
 .wave .kick { left: 48px; top: 128px; font-size: 19px; font-weight: 500; letter-spacing: .2em; color: var(--on-a); opacity: .85; text-transform: uppercase; }
 .wave .tname { width: max-content; font-weight: 900; text-transform: uppercase; line-height: .92; font-size: 84px; letter-spacing: -.01em; }
 .wave .ta { left: 48px; top: 205px; color: var(--on-a); }
-.wave .tb { right: 48px; top: 995px; text-align: right; color: var(--on-b); }
+.wave .tb { right: 48px; bottom: 118px; text-align: right; color: var(--on-b); }   /* grows upward: always clear of the partners strip, however many lines */
 .wave .tb .tname { font-size: 54px; margin-left: auto; }
 .wave .crest { position: relative; width: 80px; height: 80px; font-size: 28px; margin-bottom: 16px; }
 .wave .ta .crest { background: var(--on-a); color: var(--a1d); }
