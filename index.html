@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>eFCOB Admin Studio</title>
 <link rel="manifest" href="manifest.webmanifest">
+<script src="version.js"></script>
 <meta name="theme-color" content="#11141b">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -63,7 +64,7 @@ window.addEventListener("message", e => {
   const m = e.data || {};
   const id = Object.keys(frames).find(k => frames[k].contentWindow === e.source);
   if (m.type === "studio-ready" && id)
-    e.source.postMessage({ type: "studio-cards", cards: CARD_TYPES.map(({ id, name }) => ({ id, name })), current: id, install: installState() }, "*");
+    e.source.postMessage({ type: "studio-cards", cards: CARD_TYPES.map(({ id, name }) => ({ id, name })), current: id, install: installState(), version: self.STUDIO_VERSION }, "*");
   if (m.type === "studio-select") select(m.id);
   if (m.type === "studio-install" && installEvent) {
     installEvent.prompt();
@@ -85,7 +86,21 @@ function tellInstall() {
 }
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvent = e; tellInstall(); });
 window.addEventListener("appinstalled", () => { installEvent = null; tellInstall(); });
-if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  // a new version was published while the studio is open: offer a refresh (not on the very first install)
+  const hadWorker = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadWorker) showUpdate(); });
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => setInterval(() => r.update().catch(() => {}), 30 * 60 * 1000)).catch(() => {});
+}
+function showUpdate() {
+  if (document.getElementById("upd")) return;
+  const b = document.createElement("button");
+  b.id = "upd"; b.type = "button"; b.textContent = "Notun version eseche · tap kore refresh koro";
+  b.style.cssText = "position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:99;padding:12px 18px;border:0;border-radius:12px;" +
+    "background:#19e28a;color:#04140d;font:700 14px system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.5);cursor:pointer";
+  b.onclick = () => location.reload();
+  document.body.appendChild(b);
+}
 
 select(location.hash.slice(1));
 window.addEventListener("hashchange", () => select(location.hash.slice(1)));
