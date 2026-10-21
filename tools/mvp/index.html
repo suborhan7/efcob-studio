@@ -42,10 +42,6 @@
         </select>
       </label>
       <label>Logo (optional)<input type="file" accept="image/*" data-file="logo"></label>
-      <div class="two">
-        <label>Footer left<input data-k="footerLeft"></label>
-        <label>Footer right<input data-k="footerRight"></label>
-      </div>
     </section>
 
     <section data-player="player">
@@ -87,13 +83,23 @@
       <button type="button" id="addStat">+ Add stat</button>
     </section>
 
-    <p class="tip">Poster er upor chobi ar sob lekha (title, stats, naam, score, footer) drag kore shorano jay, mouse wheel e boro-choto hoy, ar niche "Poster e ki ki thakbe" theke je kono ongsho remove kora jay.</p>
+    <p class="tip">Poster er upor chobi ar sob lekha (title, stats, naam, score, partners) drag kore shorano jay, mouse wheel e boro-choto hoy, ar niche "Poster e ki ki thakbe" theke je kono ongsho remove kora jay.</p>
     <section>
       <h3>Poster e ki ki thakbe</h3>
       <div id="parts" class="parts"></div>
       <p class="tip">Tick tule dile oi ongsho poster theke shore jay (sudhu ei layout e).</p>
     </section>
     <button type="button" id="resetAll" class="reset-all">Reset to default (sob position, sob ongsho)</button>
+
+    <section>
+      <h3>Partners (niche)</h3>
+      <label>Label<input data-k="partnersLabel"></label>
+      <template id="partnerTpl">
+        <div class="prow"><input type="text" data-pname><input type="file" accept="image/*" data-plogo title="Logo"><button type="button" data-pclear title="Remove">✕</button></div>
+      </template>
+      <div id="partners"></div>
+      <label>Website line<input data-k="site"></label>
+    </section>
 
     <button type="button" id="download" class="primary">Download PNG (HD)</button>
   </aside>

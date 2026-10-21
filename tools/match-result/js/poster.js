@@ -2,7 +2,7 @@
    renderMatch(container, data)
    data = {
      layout: 'wave' | 'ticket' (player mode) | 'clash' | 'victory' | 'torn' (team mode, drawn by js/team.js), bgMode: 'template' | 'jersey' | 'image', bgImage,
-     tag, kicker, label, date, footerLeft, footerRight, logo,
+     tag, kicker, label, date, partnersLabel, partners [{ name, logo }], site, logo,
      teams: [{ name, player, score, scorers, photo, logo, primary, secondary, dx, dy, zoom }, { ... }]
    }
    Wave puts the winner in the top half; Ticket keeps team 1 on the left.
@@ -121,7 +121,7 @@
           <div class="sc"><span class="${draw ? '' : 'w'}">${esc(top.score)}</span><i>:</i><span class="${draw ? '' : 'l'}">${esc(bot.score)}</span></div>
           <div class="date">${esc(d.date)}</div></div></div>`)}
       <div class="grain"></div>
-      ${mv('footer', `<div class="footer"><span>${esc(d.footerLeft)}</span><span>${esc(d.footerRight)}</span></div>`)}`;
+      ${mv('partners', `<footer class="spf"><div class="k">${esc(d.partnersLabel || '').toUpperCase()}</div><div class="sprow">${(d.partners || []).map(p => `<div>${p.logo ? `<img src="${esc(p.logo)}" alt="">` : esc(p.name)}</div>`).join('')}</div><div class="w">${esc(d.site || '').toUpperCase()}</div></div>`)}`;
     return { cls: 'wave', vars: cssVars(p), body };
   }
 
@@ -153,7 +153,7 @@
         ${mv('line', '<div class="perf"></div>')}
         <div class="meta">${w('info', `<div class="info"><span>${esc(d.label || 'Full time')}</span>${esc(d.date)}<br>${esc(d.kicker)}</div>`)}${w('barcode', '<div class="bar"></div>', 'wr')}</div>
       </div>`)}
-      ${mv('footer', `<div class="foot"><span>${esc(d.footerLeft)}</span><span>${esc(d.footerRight)}</span></div>`)}`;
+      ${mv('partners', `<footer class="spf"><div class="k">${esc(d.partnersLabel || '').toUpperCase()}</div><div class="sprow">${(d.partners || []).map(p => `<div>${p.logo ? `<img src="${esc(p.logo)}" alt="">` : esc(p.name)}</div>`).join('')}</div><div class="w">${esc(d.site || '').toUpperCase()}</div></div>`)}`;
     return { cls: 'ticket', vars: cssVars(p), body };
   }
 

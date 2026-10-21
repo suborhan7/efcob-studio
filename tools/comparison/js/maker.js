@@ -14,8 +14,6 @@
     partners: ['NOVAPAY', 'Pixel Arena', 'BOLT', 'zenith', 'KICKOFF+'].map(name => ({ name, logo: '' })),
     moves: {},                     // admin's drags/sizes per layout: { '2': { stats: { x, y, s, ox, oy } } }
     hidden: {},                    // parts the admin switched off, per layout: { '2': { tag: true } }
-    footerLeft: 'efcob.com',
-    footerRight: 'eFootball Council of Bangladesh',
     logo: '',
     a: { dx: 0, dy: 0, zoom: 1, name: 'Nova_10', team: 'Dhaka Strikers', logo: (window.SAMPLE_LOGOS || {}).a || '', photo: (window.SAMPLE_PHOTOS || {}).a || '', sample: true, primary: '#f2c200', secondary: '#111111' },
     b: { dx: 0, dy: 0, zoom: 1, name: 'Red Wolf', team: 'Chattogram Kings', logo: (window.SAMPLE_LOGOS || {}).b || '', photo: (window.SAMPLE_PHOTOS || {}).b || '', sample: true, primary: '#d8202f', secondary: '#111111' },
@@ -35,7 +33,7 @@
   const poster = $('#poster');
   // names for the "Poster e ki ki thakbe" list and the editor bar (js/studio-edit.js)
   const PARTS = { brand: 'Logo', tag: 'Tag (top right)', title: 'Title', stats: 'Stats panel', nameA: 'Player 1 name',
-    nameB: 'Player 2 name', vs: 'VS', footer: 'Footer', ghostA: 'Player 1 boro outline naam', ghostB: 'Player 2 boro outline naam',
+    nameB: 'Player 2 name', vs: 'VS', ghostA: 'Player 1 boro outline naam', ghostB: 'Player 2 boro outline naam',
     p0: 'Player 1 photo', p1: 'Player 2 photo', seam: 'Lightning seam', teamA: 'Player 1 team + tag', teamB: 'Player 2 team + tag', kick: 'League line', paper: 'Chhera kagoj',
     partners: 'Partners strip' };
   const KEYS = ['a', 'b'], moveKey = () => String(state.layout);

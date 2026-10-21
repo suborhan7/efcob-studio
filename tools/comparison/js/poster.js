@@ -1,7 +1,7 @@
 /* Renders the Player Comparison poster into a container.
    renderComparison(container, data)
    data = {
-     tag, kicker, title, footerLeft, footerRight, logo (image url or ''),
+     tag, kicker, title, partnersLabel, partners [{ name, logo }], site, logo (image url or ''),
      a: { name, team, photo, primary, secondary },   // jersey colours as hex
      b: { name, team, photo, primary, secondary },
      stats: [{ label, a, b, better: 'high' | 'low' | 'none' }]
@@ -145,7 +145,7 @@
       ${mv('nameA', `<div class="plate plate-a"><div class="${nameCls(d.a.name)}">${esc(d.a.name)}</div><div class="team">${esc(d.a.team)}</div></div>`)}
       ${mv('vs', `<div class="vs"><span>VS</span></div>`)}
       ${mv('nameB', `<div class="plate plate-b"><div class="${nameCls(d.b.name)}">${esc(d.b.name)}</div><div class="team">${esc(d.b.team)}</div></div>`)}
-      ${mv('footer', `<footer><span><b>${esc(d.footerLeft)}</b></span><span>${esc(d.footerRight)}</span></footer>`)}
+      ${mv('partners', `<footer class="spf"><div class="k">${esc(d.partnersLabel || '').toUpperCase()}</div><div class="sprow">${(d.partners || []).map(p => `<div>${p.logo ? `<img src="${esc(p.logo)}" alt="">` : esc(p.name)}</div>`).join('')}</div><div class="w">${esc(d.site || '').toUpperCase()}</div></footer>`)}
     </div>`;
   }
 
