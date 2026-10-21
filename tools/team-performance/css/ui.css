@@ -252,3 +252,21 @@ button { font-size: 14px; }
     font: 500 15px/1.55 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif; }
   .cap-aside .cap-sec textarea:focus { outline: none; border-color: var(--ui-accent); box-shadow: 0 0 0 3px rgba(25, 226, 138, .15); }
 }
+
+/* phones: Share / Copy become icon buttons so Download + Share + Copy + Undo / Redo / ? always fit in one row */
+@media (max-width: 620px) {
+  .act-bar > button:not(#download) { flex: none; width: 38px; min-width: 38px; padding: 0; }
+  .act-bar > button:not(#download) span { display: none; }
+  .act-bar #download { flex: 1 1 auto; min-width: 0; }
+  .act-edit { margin-left: 0; padding-left: 6px; }
+  .act-edit .se-ic, .act-edit .se-help { width: 38px; min-width: 38px; }
+}
+
+/* section starts and field names stand out: green dot + green heading, labels in a soft green */
+.form section.ui-card > h3, .form .cap-sec > h3, .cap-aside .cap-sec h3 { display: flex; align-items: center; gap: 9px; color: var(--ui-accent); }
+.form section.ui-card > h3::before, .form .cap-sec > h3::before, .cap-aside .cap-sec h3::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 3px;
+  background: var(--ui-accent); box-shadow: 0 0 10px rgba(25, 226, 138, .6); }
+.form section.ui-card > h3:hover { color: #5ef0b0; }
+.form section.ui-card.folded > h3 { color: #7fdcb0; }
+.form label:not(.check):not(.star-pick), .form .colors > span:first-child, .form .pos > span:first-child { color: #8fe3bd; }
+.form .pdet > summary { color: #e8ecf3; }
