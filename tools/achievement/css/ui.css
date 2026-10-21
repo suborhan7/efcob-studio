@@ -231,3 +231,9 @@ button { font-size: 14px; }
   .se-bar.pro:not(.has-sel):not(.show-help) { display: none; }
   .se-bar.pro.show-help:not(.has-sel) > .se-row:first-child { display: none; }
 }
+
+/* caption box: its own full style (MVP and Comparison have no textarea rule, so the browser default showed dark text) */
+.form .cap-sec textarea { display: block; width: 100%; box-sizing: border-box; margin: 0; padding: 12px 14px; resize: vertical;
+  border: 1px solid var(--ui-line2); border-radius: 10px; background: #10131a; color: #eef1f7; caret-color: var(--ui-accent);
+  font: 500 15px/1.55 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+.form .cap-sec textarea:focus { outline: none; border-color: var(--ui-accent); box-shadow: 0 0 0 3px rgba(25, 226, 138, .15); }
