@@ -51,7 +51,7 @@
   parent.postMessage({ type: 'studio-ready' }, '*');
   const st = document.createElement('style');
   st.textContent = `.studio-install{margin:10px 0 2px}.studio-install button{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #19e28a;background:transparent;color:#19e28a;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
-.studio-install button:hover{background:rgba(25,226,138,.12)}.studio-ver{display:block;margin-top:3px;font-size:12px;font-weight:500;color:#8590a6;letter-spacing:.02em}
+.studio-install button:hover{background:rgba(25,226,138,.12)}.studio-brand{flex-wrap:wrap;row-gap:2px}.studio-ver{display:block;flex-basis:100%;padding-left:18px;margin-top:0;font-size:12px;font-weight:500;color:#8590a6;letter-spacing:.02em}
 .studio-install p{margin:6px 0 0;font-size:12.5px;line-height:1.4;color:#9aa3b2}`;
   document.head.appendChild(st);
 })();

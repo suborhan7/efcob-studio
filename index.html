@@ -87,19 +87,20 @@ function tellInstall() {
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvent = e; tellInstall(); });
 window.addEventListener("appinstalled", () => { installEvent = null; tellInstall(); });
 if ("serviceWorker" in navigator && location.protocol === "https:") {
-  // a new version was published while the studio is open: offer a refresh (not on the very first install)
-  const hadWorker = !!navigator.serviceWorker.controller;
-  navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadWorker) showUpdate(); });
-  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => setInterval(() => r.update().catch(() => {}), 30 * 60 * 1000)).catch(() => {});
-}
-function showUpdate() {
-  if (document.getElementById("upd")) return;
-  const b = document.createElement("button");
-  b.id = "upd"; b.type = "button"; b.textContent = "Notun version eseche · tap kore refresh koro";
-  b.style.cssText = "position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:99;padding:12px 18px;border:0;border-radius:12px;" +
-    "background:#19e28a;color:#04140d;font:700 14px system-ui,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.5);cursor:pointer";
-  b.onclick = () => location.reload();
-  document.body.appendChild(b);
+  // a new version was published: the installed app updates itself. Right after opening it reloads at once;
+  // while someone is working it waits until they leave the app and come back, so nothing they typed is lost mid-edit.
+  const hadWorker = !!navigator.serviceWorker.controller, opened = Date.now();
+  let pending = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadWorker) return;
+    if (document.hidden || Date.now() - opened < 15000) location.reload(); else pending = true;
+  });
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") { if (pending) location.reload(); else r.update().catch(() => {}); }
+    });
+    setInterval(() => r.update().catch(() => {}), 30 * 60 * 1000);
+  }).catch(() => {});
 }
 
 select(location.hash.slice(1));
