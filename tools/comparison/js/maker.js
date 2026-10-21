@@ -3,7 +3,7 @@
   const state = {
     tag: 'Semi Final',
     kicker: 'eFCOB PRO LEAGUE · SEASON 2',
-    title: 'Player Comparison',
+    title: 'Head to Head',
     layout: 2,                     // 1 | 2 | 3 (classic) | 'clash' | 'torn' (js/versus.js)
     bgMode: 'template',            // Crest Clash / Torn Poster: 'template' | 'jersey' | 'image'
     bgImage: '',
@@ -15,8 +15,8 @@
     footerLeft: 'efcob.com',
     footerRight: 'eFootball Council of Bangladesh',
     logo: '',
-    a: { dx: 0, dy: 0, zoom: 1, name: 'Nova_10', team: 'FC Barcelona', logo: (window.SAMPLE_LOGOS || {}).a || '', photo: (window.SAMPLE_PHOTOS || {}).a || '', primary: '#f2c200', secondary: '#111111' },
-    b: { dx: 0, dy: 0, zoom: 1, name: 'Red Wolf', team: 'Real Madrid', logo: (window.SAMPLE_LOGOS || {}).b || '', photo: (window.SAMPLE_PHOTOS || {}).b || '', primary: '#d8202f', secondary: '#111111' },
+    a: { dx: 0, dy: 0, zoom: 1, name: 'Nova_10', team: 'Dhaka Strikers', logo: (window.SAMPLE_LOGOS || {}).a || '', photo: (window.SAMPLE_PHOTOS || {}).a || '', sample: true, primary: '#f2c200', secondary: '#111111' },
+    b: { dx: 0, dy: 0, zoom: 1, name: 'Red Wolf', team: 'Chattogram Kings', logo: (window.SAMPLE_LOGOS || {}).b || '', photo: (window.SAMPLE_PHOTOS || {}).b || '', sample: true, primary: '#d8202f', secondary: '#111111' },
     stats: [
       { label: 'Matches', a: '24', b: '22', better: 'none' },
       { label: 'Wins', a: '17', b: '16', better: 'high' },
@@ -110,7 +110,7 @@
         }
       }
       state[key].photo = await JerseyColors.enhancePhoto(await JerseyColors.trimTransparent(src));
-      Object.assign(state[key], { dx: 0, dy: 0, zoom: 1 }); // new photo starts at the default spot
+      Object.assign(state[key], { dx: 0, dy: 0, zoom: 1, sample: false }); // new photo starts at the default spot
       render();
       applyPos(key);
       autoColors(key); // new photo -> new jersey colours
@@ -125,7 +125,26 @@
     $('#bgUploadRow').style.display = isVs() && state.bgMode === 'image' ? '' : 'none';
   };
   $('#layoutSel').value = String(state.layout);
-  $('#layoutSel').addEventListener('change', e => { const v = e.target.value; state.layout = /^\d+$/.test(v) ? +v : v; showVs(); render(); KEYS.forEach(applyPos); });
+  /* demo content per layout family: Classic keeps its original sample (Nova_10 / Red Wolf, Head to Head),
+     Crest Clash / Torn Poster use the clean cut-outs with club teams. Only untouched sample values are swapped. */
+  const DEMO = {
+    classic: { title: 'Head to Head', a: { team: 'Dhaka Strikers', photo: (window.SAMPLE_PHOTOS || {}).a }, b: { team: 'Chattogram Kings', photo: (window.SAMPLE_PHOTOS || {}).b } },
+    vs: { title: 'Player Comparison', a: { team: 'FC Barcelona', photo: (window.SAMPLE_PHOTOS_VS || {}).a }, b: { team: 'Real Madrid', photo: (window.SAMPLE_PHOTOS_VS || {}).b } },
+  };
+  let family = 'classic';
+  async function swapDemo() {
+    if ((isVs() ? 'vs' : 'classic') === family) return;
+    family = isVs() ? 'vs' : 'classic';
+    const to = DEMO[family], from = DEMO[family === 'vs' ? 'classic' : 'vs'];
+    if (state.title === from.title) { state.title = to.title; $('[data-k="title"]').value = to.title; }
+    await Promise.all(KEYS.map(async k => {
+      const sec = $(`[data-player="${k}"]`);
+      if (state[k].team === from[k].team) { state[k].team = to[k].team; $('[data-p="team"]', sec).value = to[k].team; }
+      if (state[k].sample && to[k].photo) { state[k].photo = await JerseyColors.enhancePhoto(to[k].photo); await autoColors(k); }
+    }));
+    render(); KEYS.forEach(applyPos);
+  }
+  $('#layoutSel').addEventListener('change', e => { const v = e.target.value; state.layout = /^\d+$/.test(v) ? +v : v; showVs(); render(); KEYS.forEach(applyPos); swapDemo(); });
   $('[data-k="bgMode"]').addEventListener('change', showVs);
   $('[data-file="bgImage"]').addEventListener('change', async e => { const f = e.target.files[0]; state.bgImage = f ? await readFile(f) : ''; render(); });
   $$('[data-player]').forEach(sec => $('[data-logo]', sec).addEventListener('change', async e => {
