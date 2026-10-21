@@ -215,3 +215,19 @@ button { font-size: 14px; }
 .cap-actions .cap-copy { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); letter-spacing: .04em; text-transform: uppercase; }
 .cap-actions .cap-copy:hover { background: #3df0a0; }
 .cap-actions .cap-again { padding: 0 18px; }
+
+/* phones: one slim row under the poster. Undo / redo / help sit in the Download row (js/ui.js dockEdit);
+   the EDIT row only shows while something is selected (bottom sheet) or the help is open */
+.act-edit { display: none; }
+@media (max-width: 620px) { .act-edit { display: flex; gap: 6px; margin-left: 2px; padding-left: 8px; border-left: 1px solid var(--ui-line2); } }
+@media (max-width: 620px) {
+  .stage { gap: 6px; }
+  .act-bar { max-width: 460px; gap: 6px; }
+  .act-bar button { min-height: 34px; padding: 0 8px; font-size: 13px; border-radius: 9px; }
+  .act-bar button svg { width: 15px; height: 15px; }
+  .act-edit .se-ic, .act-edit .se-help { flex: none; min-height: 34px; min-width: 34px; width: 34px; height: 34px; padding: 0;
+    border: 1px solid var(--ui-line2); border-radius: 9px; background: #1b202b; color: #e8ecf3; }
+  .act-bar .act-edit .se-help.on { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-ink); }
+  .se-bar.pro:not(.has-sel):not(.show-help) { display: none; }
+  .se-bar.pro.show-help:not(.has-sel) > .se-row:first-child { display: none; }
+}
