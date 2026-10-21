@@ -265,8 +265,16 @@
       copyBtn.textContent = 'Copied ✓'; setTimeout(() => { copyBtn.textContent = 'Copy caption'; }, 1600);
     });
     chips();
-    const anchor = form.querySelector(':scope > button.primary') || null;
-    form.insertBefore(sec, anchor);
+    // wide screens: the box gets its own column right of the poster; otherwise it sits at the end of the form
+    const app = document.querySelector('.app'), wide = matchMedia('(min-width: 1280px)');
+    const aside = document.createElement('aside'); aside.className = 'cap-aside';
+    const place = () => {
+      if (wide.matches && app) { aside.append(sec); app.append(aside); app.classList.add('has-cap'); }
+      else { form.insertBefore(sec, form.querySelector(':scope > button.primary') || null); aside.remove(); if (app) app.classList.remove('has-cap'); }
+      window.dispatchEvent(new Event('resize'));
+    };
+    wide.addEventListener ? wide.addEventListener('change', place) : wide.addListener(place);
+    place();
     update(true);
     // the card changes from the form and from the poster editor; follow it until the admin edits the text
     form.addEventListener('input', e => { if (!sec.contains(e.target)) setTimeout(update, 0); });

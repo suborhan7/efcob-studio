@@ -237,3 +237,18 @@ button { font-size: 14px; }
   border: 1px solid var(--ui-line2); border-radius: 10px; background: #10131a; color: #eef1f7; caret-color: var(--ui-accent);
   font: 500 15px/1.55 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif; }
 .form .cap-sec textarea:focus { outline: none; border-color: var(--ui-accent); box-shadow: 0 0 0 3px rgba(25, 226, 138, .15); }
+
+/* PC: caption box in its own column right of the poster (js/ui.js moves it there at 1280px and wider) */
+@media (min-width: 1280px) {
+  .app.has-cap { grid-template-columns: clamp(360px, 28vw, 440px) minmax(0, 1fr) clamp(320px, 24vw, 400px); }
+  .cap-aside { height: 100vh; overflow-y: auto; box-sizing: border-box; padding: 18px; border-left: 1px solid var(--ui-line); background: #161a23;
+    font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif; color: #e8ecf3; }
+  .cap-aside .cap-sec { margin: 0; padding: 0; border: 0; }
+  .cap-aside .cap-sec h3 { margin: 4px 0 8px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #9aa5bb; }
+  .cap-aside .cap-sec .tip { font-size: 13px; line-height: 1.45; color: #8590a6; margin: 0 0 10px; }
+  .cap-aside .cap-sec button { font-family: inherit; }
+  .cap-aside .cap-sec textarea { display: block; width: 100%; box-sizing: border-box; min-height: 52vh; padding: 12px 14px; resize: vertical;
+    border: 1px solid var(--ui-line2); border-radius: 10px; background: #10131a; color: #eef1f7; caret-color: var(--ui-accent);
+    font: 500 15px/1.55 'Barlow', system-ui, -apple-system, 'Segoe UI', sans-serif; }
+  .cap-aside .cap-sec textarea:focus { outline: none; border-color: var(--ui-accent); box-shadow: 0 0 0 3px rgba(25, 226, 138, .15); }
+}
