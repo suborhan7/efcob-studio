@@ -213,6 +213,51 @@
     document.head.appendChild(l);
   }
 
+
+  // ---- Caption & hashtags (js/caption.js writes it from the card's data) ----
+  const CARD = (location.pathname.match(/tools\/([^/]+)\//) || [])[1];
+  function captionBox() {
+    if (!window.CaptionGen || !CARD || !CaptionGen.cards.includes(CARD) || form.querySelector('.cap-sec')) return;
+    const LANGS = [['en', 'English'], ['bn', 'বাংলা'], ['bl', 'Banglish']];
+    let lang = 'en', variant = 0, edited = false, last = '';
+    try { lang = localStorage.getItem('ui-caplang') || 'en'; } catch (e) {}
+    const sec = document.createElement('section'); sec.className = 'cap-sec';
+    sec.innerHTML = `<h3>Caption &amp; hashtags</h3>
+      <p class="tip">Card er lekha theke nije banay. Dorkar hole edit koro, tarpor copy kore post e paste koro.</p>
+      <div class="chips">${LANGS.map(([k, n]) => `<button type="button" data-lang="${k}">${n}</button>`).join('')}</div>
+      <textarea rows="9" aria-label="Caption"></textarea>
+      <div class="cap-actions"><button type="button" class="cap-copy">Copy caption</button><button type="button" class="cap-again">Rewrite</button></div>`;
+    const ta = sec.querySelector('textarea'), copyBtn = sec.querySelector('.cap-copy');
+    const chips = () => sec.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === lang));
+    const update = (force) => {
+      if (edited && !force) return;
+      const txt = CaptionGen.make(CARD, window.__posterState, lang, variant);
+      if (txt !== last || force) { last = txt; ta.value = txt; }
+    };
+    sec.addEventListener('click', e => {
+      const b = e.target.closest('[data-lang]');
+      if (b) { lang = b.dataset.lang; try { localStorage.setItem('ui-caplang', lang); } catch (err) {} chips(); edited = false; update(true); }
+    });
+    sec.querySelector('.cap-again').addEventListener('click', () => { variant++; edited = false; update(true); });
+    ta.addEventListener('input', () => { edited = true; });
+    copyBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(ta.value); } catch (e) { ta.select(); document.execCommand('copy'); }
+      copyBtn.textContent = 'Copied ✓'; setTimeout(() => { copyBtn.textContent = 'Copy caption'; }, 1600);
+    });
+    chips();
+    const anchor = form.querySelector(':scope > button.primary') || null;
+    form.insertBefore(sec, anchor);
+    update(true);
+    // the card changes from the form and from the poster editor; follow it until the admin edits the text
+    form.addEventListener('input', e => { if (!sec.contains(e.target)) setTimeout(update, 0); });
+    form.addEventListener('change', e => { if (!sec.contains(e.target)) setTimeout(update, 0); });
+    setInterval(update, 1500);
+  }
+  if (CARD && !window.CaptionGen) {
+    const sc = document.createElement('script'); sc.src = 'js/caption.js'; sc.onload = () => { captionBox(); enhance(); };
+    document.head.appendChild(sc);
+  }
+
   let busy = false;
   function enhance() {
     if (busy) return;
