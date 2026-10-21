@@ -43,6 +43,67 @@
     </div>`;
   }
 
+  /* Background styles for Classic (d.bgStyle). 'halves' = the jersey-coloured halves; the others are full scenes painted in
+     the two side colours: stadium (spotlights + crowd bokeh), smoke (coloured smoke from each side), grid (neon perspective
+     grid), brush (big paint strokes). */
+  const seeded = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  function scene(style, A, B) {
+    const R = seeded(11), sv = (defs, body) => `<svg class="scene" viewBox="0 0 1080 1350" preserveAspectRatio="none"><defs>${defs}</defs>${body}</svg>`;
+    if (style === 'stadium') {
+      const beam = (x, tx, c, o) => `<polygon points="${x - 26},-20 ${x + 26},-20 ${tx + 230},1100 ${tx - 230},1100" fill="url(#bm${c})" opacity="${o}"/>`;
+      const bokeh = Array.from({ length: 90 }, () => { const x = R() * 1080, y = 300 + R() * 420, r = 3 + R() * 13, c = [A.glow, B.glow, '#ffffff'][Math.floor(R() * 3)];
+        return `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${r.toFixed(1)}" fill="${x < 540 && c === B.glow ? A.glow : c}" opacity="${(.15 + R() * .45).toFixed(2)}"/>`; }).join('');
+      return sv(`<linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#03050c"/><stop offset=".55" stop-color="#0b1330"/><stop offset="1" stop-color="#05070f"/></linearGradient>
+          <linearGradient id="bmA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${A.glow}" stop-opacity=".9"/><stop offset="1" stop-color="${A.glow}" stop-opacity="0"/></linearGradient>
+          <linearGradient id="bmB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${B.glow}" stop-opacity=".9"/><stop offset="1" stop-color="${B.glow}" stop-opacity="0"/></linearGradient>
+          <linearGradient id="bmW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+          <radialGradient id="hzA" cx="0" cy=".55" r=".75"><stop offset="0" stop-color="${A.base}" stop-opacity=".75"/><stop offset="1" stop-color="${A.base}" stop-opacity="0"/></radialGradient>
+          <radialGradient id="hzB" cx="1" cy=".55" r=".75"><stop offset="0" stop-color="${B.base}" stop-opacity=".75"/><stop offset="1" stop-color="${B.base}" stop-opacity="0"/></radialGradient>
+          <filter id="bl8"><feGaussianBlur stdDeviation="8"/></filter><filter id="bl3"><feGaussianBlur stdDeviation="2.5"/></filter>`,
+        `<rect width="1080" height="1350" fill="url(#sk)"/><rect width="1080" height="1350" fill="url(#hzA)"/><rect width="1080" height="1350" fill="url(#hzB)"/>
+         <g filter="url(#bl8)">${beam(120, 300, 'A', .55)}${beam(300, 420, 'W', .3)}${beam(780, 660, 'W', .3)}${beam(960, 780, 'B', .55)}</g>
+         <g filter="url(#bl3)">${bokeh}</g>
+         <ellipse cx="540" cy="1250" rx="700" ry="160" fill="#0e3b2a" opacity=".55" filter="url(#bl8)"/>
+         <path d="M-40 1180 Q540 1080 1120 1180" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="4"/>`);
+    }
+    if (style === 'smoke') {
+      const puff = (cx, c, n) => Array.from({ length: n }, () => `<ellipse cx="${(cx + (R() - .5) * 420).toFixed(0)}" cy="${(250 + R() * 900).toFixed(0)}" rx="${(140 + R() * 200).toFixed(0)}" ry="${(90 + R() * 150).toFixed(0)}" fill="${c}" opacity="${(.18 + R() * .3).toFixed(2)}"/>`).join('');
+      return sv(`<filter id="smk" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".008 .014" numOctaves="4" seed="7"/>
+            <feDisplacementMap in="SourceGraphic" scale="190"/><feGaussianBlur stdDeviation="16"/></filter>
+          <filter id="grn"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .06 0"/></filter>`,
+        `<rect width="1080" height="1350" fill="#06070c"/>
+         <g filter="url(#smk)">${puff(140, A.base, 9)}${puff(140, A.glow, 4)}${puff(940, B.base, 9)}${puff(940, B.glow, 4)}${puff(540, '#ffffff', 3)}</g>
+         <rect width="1080" height="1350" filter="url(#grn)"/>`);
+    }
+    if (style === 'grid') {
+      let lines = '';
+      for (let i = -14; i <= 14; i++) lines += `<line x1="540" y1="760" x2="${540 + i * 140}" y2="1350" stroke="url(#gl)" stroke-width="2"/>`;
+      for (let k = 1; k <= 12; k++) { const y = 760 + 590 * Math.pow(k / 12, 2.1); lines += `<line x1="0" y1="${y.toFixed(1)}" x2="1080" y2="${y.toFixed(1)}" stroke="url(#gl)" stroke-width="${(1 + k * .15).toFixed(2)}" opacity="${(.35 + k * .05).toFixed(2)}"/>`; }
+      const stars = Array.from({ length: 70 }, () => `<circle cx="${(R() * 1080).toFixed(0)}" cy="${(R() * 700).toFixed(0)}" r="${(.6 + R() * 1.6).toFixed(1)}" fill="#fff" opacity="${(.2 + R() * .6).toFixed(2)}"/>`).join('');
+      return sv(`<linearGradient id="gsk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05030f"/><stop offset=".7" stop-color="${A.deep}"/><stop offset="1" stop-color="#05030f"/></linearGradient>
+          <linearGradient id="gl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${A.glow}"/><stop offset=".5" stop-color="#ffffff"/><stop offset="1" stop-color="${B.glow}"/></linearGradient>
+          <radialGradient id="sun" cx=".5" cy="1" r=".6"><stop offset="0" stop-color="${B.glow}" stop-opacity=".85"/><stop offset=".5" stop-color="${A.glow}" stop-opacity=".35"/><stop offset="1" stop-color="${A.glow}" stop-opacity="0"/></radialGradient>
+          <filter id="gb"><feGaussianBlur stdDeviation="3"/></filter>
+          <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1.4" fill="#000" opacity=".35"/></pattern>`,
+        `<rect width="1080" height="1350" fill="url(#gsk)"/>${stars}<rect x="0" y="260" width="1080" height="500" fill="url(#sun)"/>
+         <rect x="0" y="760" width="1080" height="590" fill="#06030f" opacity=".85"/>
+         <g filter="url(#gb)" opacity=".9">${lines}</g><g>${lines}</g>
+         <rect x="0" y="754" width="1080" height="12" fill="#fff" opacity=".9" filter="url(#gb)"/>
+         <rect width="1080" height="1350" fill="url(#scan)"/>`);
+    }
+    // brush
+    const stroke = (pts, c, w) => Array.from({ length: 7 }, (_, i) => { const j = () => ((R() - .5) * 60).toFixed(0);
+      return `<path d="M${pts[0] + +j()} ${pts[1] + +j()} C${pts[2] + +j()} ${pts[3] + +j()} ${pts[4] + +j()} ${pts[5] + +j()} ${pts[6] + +j()} ${pts[7] + +j()}" fill="none" stroke="${c}" stroke-width="${(w * (.35 + R() * .5)).toFixed(0)}" stroke-linecap="round" opacity="${(.55 + R() * .45).toFixed(2)}"/>`; }).join('');
+    const splat = (cx, cy, c) => Array.from({ length: 26 }, () => `<circle cx="${(cx + (R() - .5) * 420).toFixed(0)}" cy="${(cy + (R() - .5) * 420).toFixed(0)}" r="${(2 + R() * 12).toFixed(1)}" fill="${c}" opacity="${(.5 + R() * .5).toFixed(2)}"/>`).join('');
+    return sv(`<filter id="rough"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="3" seed="3"/><feDisplacementMap in="SourceGraphic" scale="34"/></filter>
+        <filter id="grn"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .07 0"/></filter>`,
+      `<rect width="1080" height="1350" fill="#0a0a10"/>
+       <g filter="url(#rough)">${stroke([-120, 1250, 120, 900, 260, 500, 520, 120], A.base, 330)}${stroke([1200, 1150, 980, 820, 860, 420, 620, 60], B.base, 330)}
+       ${stroke([-60, 640, 160, 560, 300, 420, 470, 300], A.glow, 90)}${stroke([1140, 560, 920, 500, 800, 380, 640, 260], B.glow, 90)}
+       ${splat(330, 330, A.glow)}${splat(760, 360, B.glow)}</g>
+       <rect width="1080" height="1350" filter="url(#grn)"/>`);
+  }
+
   function renderComparison(el, d) {
     if ((window.CMP_VS_LAYOUTS || []).includes(d.layout)) return renderCmpVersus(el, d);   // Crest Clash / Torn Poster (js/versus.js)
     const pa = JerseyColors.paletteFor(d.a.primary, d.a.secondary);
@@ -58,8 +119,9 @@
     }).join('');
     const nameCls = n => (String(n || '').length > 11 ? 'name long' : 'name');
 
-    el.innerHTML = `<div class="cmp layout-${esc(d.layout || 1)} ${d.ghost ? '' : 'no-ghost'}" style="${vars('a', pa)}${vars('b', pb)}">
-      ${side('a', d.a, d.ghost)}${side('b', d.b, d.ghost)}
+    const st = d.bgStyle && d.bgStyle !== 'halves' ? d.bgStyle : '';
+    el.innerHTML = `<div class="cmp layout-${esc(d.layout || 1)} ${d.ghost ? '' : 'no-ghost'}${st ? ' bgs bgs-' + st : ''}" style="${vars('a', pa)}${vars('b', pb)}">
+      ${st ? scene(st, pa, pb) : side('a', d.a, d.ghost) + side('b', d.b, d.ghost)}
       <svg class="seam" viewBox="0 0 1080 1350">
         <defs><filter id="seamGlow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter></defs>
         <line x1="615.6" y1="0" x2="464.4" y2="1350" stroke="#fff" stroke-width="18" opacity=".55" filter="url(#seamGlow)"/>

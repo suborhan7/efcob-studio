@@ -192,3 +192,7 @@
 .cmp > .mv[data-move="stats"] { z-index: 6; }
 .cmp > .mv[data-move="nameA"], .cmp > .mv[data-move="nameB"], .cmp > .mv[data-move="footer"] { z-index: 7; }
 .cmp > .mv[data-move="vs"] { z-index: 8; }
+
+/* background styles other than the jersey halves (js/poster.js scene()): one full-poster SVG scene, no seam line */
+.cmp .scene { position: absolute; inset: 0; width: 1080px; height: 1350px; }
+.cmp.bgs .seam { display: none; }
