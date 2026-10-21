@@ -35,7 +35,7 @@
 .tvt .slot img:not(.lg){filter:drop-shadow(0 18px 24px rgba(0,0,0,.5))}
 .tvt img.lg{object-fit:contain}
 .tvt .mv{position:absolute;inset:0;pointer-events:none}
-.tvt .mv > *{pointer-events:auto;cursor:move}
+.tvt .mv > *,.tvt .mv > svg.full{pointer-events:auto;cursor:move}   /* see-through parts are skipped by the studio picker */
 
 /* ===== 1. BALL ===== */
 .tvt.ball .ttl b{font:900 italic 96px/1 'Rubik';background:linear-gradient(180deg,#fff 30%,#c9ccd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6))}

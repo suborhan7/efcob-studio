@@ -363,8 +363,9 @@
   $('#resetAll').addEventListener('click', () => {
     const mk = moveKey();
     delete state.moves[mk]; delete state.hidden[mk];
-    if (isTeam()) [...state.tm.teams, ...state.tm.teams.flatMap(t => t.squad)].forEach(t => Object.assign(t, { dx: 0, dy: 0, zoom: 1 }));
-    else state.teams.forEach((t, i) => { Object.assign(t, { dx: 0, dy: 0, zoom: 1 }); syncZoom(i); });
+    // both photo sets: the Wave / Ticket layouts show the player photos in team mode too
+    [...state.tm.teams, ...state.tm.teams.flatMap(t => t.squad)].forEach(t => Object.assign(t, { dx: 0, dy: 0, zoom: 1 }));
+    state.teams.forEach((t, i) => { Object.assign(t, { dx: 0, dy: 0, zoom: 1 }); syncZoom(i); });
     render();
   });
 

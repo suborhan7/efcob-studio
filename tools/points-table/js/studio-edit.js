@@ -53,6 +53,81 @@
     return m;
   }
 
+  // ---- what the mouse really grabs ----
+  // Big see-through layers (a full-poster SVG, an empty wrapper div, the clear part of a cut-out) would otherwise catch
+  // the click and hide whatever is under them. pick() walks down the stack at the point and returns the first element
+  // that actually paints a pixel there; poster-sized layers only win when nothing smaller is under the mouse.
+  const SHAPES = /^(path|circle|ellipse|rect|polygon|polyline|line|text|tspan|textPath|image|use)$/;
+  const alphaCache = new Map();
+  function alphaAt(img, x, y) {
+    if (!img.complete || !img.naturalWidth) return true;
+    let c = alphaCache.get(img.src);
+    if (!c) {
+      const w = Math.min(256, img.naturalWidth), h = Math.max(1, Math.round(w * img.naturalHeight / img.naturalWidth));
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      try { const g = cv.getContext('2d', { willReadFrequently: true }); g.drawImage(img, 0, 0, w, h); c = { w, h, d: g.getImageData(0, 0, w, h).data }; }
+      catch (err) { c = { w: 0 }; }
+      if (alphaCache.size > 60) alphaCache.clear();
+      alphaCache.set(img.src, c);
+    }
+    if (!c.w) return true;
+    // map the client point into the picture, following object-fit / object-position
+    const q = img.getBoundingClientRect(), cs = getComputedStyle(img), fit = cs.objectFit, ar = c.w / c.h;
+    let w = q.width, h = q.height;
+    if (fit === 'contain' || fit === 'scale-down') { if (q.width / q.height > ar) w = q.height * ar; else h = q.width / ar; }
+    else if (fit === 'cover') { if (q.width / q.height > ar) h = q.width / ar; else w = q.height * ar; }
+    const pos = cs.objectPosition.split(' ').map(v => v.endsWith('%') ? parseFloat(v) / 100 : null);
+    const left = q.left + (q.width - w) * (pos[0] ?? .5), top = q.top + (q.height - h) * (pos[1] ?? .5);
+    const px = Math.floor((x - left) / w * c.w), py = Math.floor((y - top) / h * c.h);
+    if (px < 0 || py < 0 || px >= c.w || py >= c.h) return false;
+    return c.d[(py * c.w + px) * 4 + 3] > 24;
+  }
+  function painted(el, x, y) {
+    const tag = el.tagName.toLowerCase();
+    if (tag === 'img') return alphaAt(el, x, y);
+    if (tag === 'canvas' || tag === 'video') return true;
+    if (el instanceof SVGElement) return SHAPES.test(el.tagName);
+    // a photo box whose picture lets clicks through to it: painted where its picture is
+    if (el.matches('[data-p]') && el.querySelector('img') && [...el.querySelectorAll('img')].some(i => getComputedStyle(i).pointerEvents === 'none' && alphaAt(i, x, y))) return true;
+    const cs = getComputedStyle(el);
+    const clip = (cs.backgroundClip || cs.webkitBackgroundClip) === 'text';   // gradient letters paint like text
+    if (!clip && (cs.backgroundImage !== 'none' || !/rgba\(.*,\s*0\)|transparent/.test(cs.backgroundColor))) return true;
+    if (parseFloat(cs.borderTopWidth) || parseFloat(cs.borderLeftWidth) || parseFloat(cs.borderRightWidth) || parseFloat(cs.borderBottomWidth)) return true;
+    if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) return false;
+    // text alone: only the band where the letters are, not the empty top / bottom of a big title's line box
+    const q = el.getBoundingClientRect(), k = el.offsetHeight ? q.height / el.offsetHeight : scale();
+    return Math.abs(y - (q.top + q.bottom) / 2) <= Math.max(0.42 * parseFloat(cs.fontSize) * k, 3);
+  }
+  function paintedAt(x, y) {
+    const fr = o.frame.getBoundingClientRect();
+    let big = null;
+    for (const el of document.elementsFromPoint(x, y)) {
+      if (!o.poster.contains(el) || el === o.poster || !el.closest('[data-move], [data-p]') || !painted(el, x, y)) continue;
+      const q = el.getBoundingClientRect();
+      if (q.width * q.height > fr.width * fr.height * 0.85 && !el.closest('[data-p]')) { big ||= el; continue; }
+      return { el };
+    }
+    return { big };
+  }
+  // thin lines and small tags get a few px of slack: with nothing painted right under the mouse, look just around it
+  const NEAR = [[5, 0], [-5, 0], [0, 5], [0, -5], [5, 5], [-5, 5], [5, -5], [-5, -5], [10, 0], [-10, 0], [0, 10], [0, -10]];
+  const partOf = el => el.closest('[data-p]') || el.closest('[data-move]');
+  function pick(x, y) {
+    const h = paintedAt(x, y);
+    if (h.el) {
+      // on a big panel, a thin line of another part a few px away wins (it is too thin to hit exactly)
+      const fr = o.frame.getBoundingClientRect(), q = h.el.getBoundingClientRect();
+      if (q.width * q.height > fr.width * fr.height * 0.15) for (const [dx, dy] of NEAR) {
+        const n = paintedAt(x + dx, y + dy).el; if (!n || partOf(n) === partOf(h.el)) continue;
+        const r = n.getBoundingClientRect();
+        if (Math.min(r.width, r.height) / scale() < 16) return n;
+      }
+      return h.el;
+    }
+    for (const [dx, dy] of NEAR) { const n = paintedAt(x + dx, y + dy); if (n.el) return n.el; }
+    return h.big || o.poster;   // nothing painted here: a press on the bare poster (clears the selection)
+  }
+
   // ---- overlay: selection box + centre guide ----
   let box, guide;
   function overlay() {
@@ -102,10 +177,25 @@
     else { const m = originOf(sel.key); m.s = Math.min(3, Math.max(0.3, +((m.s || 1) * f).toFixed(3))); secEl(sel.key).style.cssText = styleOf(sel.key); overlay(); }
     refreshBar();
   }
+  // centre: a part on the poster's centre line; a photo inside a frame (a face circle, a slot) in the middle of its frame
   function centre() {
-    const q = rectOf(sel); if (!q) return;
-    const pr = o.frame.getBoundingClientRect(), d = Math.round(540 - ((q.left + q.right) / 2 - pr.left) / scale());
+    // (looked up again on every measure: a photo nudge re-renders the poster)
+    const imgOf = () => { const el = sel.kind === 'photo' && photoEl(sel.i); return el && (el.tagName === 'IMG' ? el : el.querySelector('img')); };
+    const el = sel.kind === 'photo' ? photoEl(sel.i) : null, img = imgOf();
+    let box = null;   // the frame the photo sits in: its own box, or the nearest clipping box around it
+    if (img && img !== el) box = el;
+    else if (img) for (let p = el.parentElement; p && p !== o.poster; p = p.parentElement) if (getComputedStyle(p).overflow !== 'visible') { box = p; break; }
+    const mid = () => { const q = img ? imgOf().getBoundingClientRect() : rectOf(sel); return q && (q.left + q.right) / 2; };
+    const pr = o.frame.getBoundingClientRect(), goal = box ? (() => { const q = box.getBoundingClientRect(); return (q.left + q.right) / 2; })() : pr.left + 540 * scale();
+    const c0 = mid(); if (c0 == null) return;
+    const d = Math.round((goal - c0) / scale()); if (!d) return;
     nudge(d, 0);
+    // some photos move at a fraction of the poster px (a scaled face): measure and finish the move
+    const k = (mid() - c0) / (d * scale());
+    if (k > 0.05 && Math.abs(k - 1) > 0.05) for (let i = 0; i < 3; i++) {
+      const left = Math.round((goal - mid()) / scale() / k); if (!left) break;
+      nudge(left, 0);
+    }
   }
   function act(a) {
     if (a === 'undo') return undo();
@@ -125,7 +215,18 @@
   }
 
   // ---- undo / redo ----
-  const snap = () => JSON.stringify({ m: o.state.moves, h: o.state.hidden, x: o.extras ? o.extras.get() : null });
+  // entries made just by looking a part up (empty, or not moved / sized) are not a change: they never become an undo step
+  const idle = m => m && typeof m === 'object' && !m.x && !m.y && (!m.s || m.s === 1) && Object.keys(m).every(k => ['x', 'y', 's', 'ox', 'oy'].includes(k));
+  const prune = (v, drop) => {
+    const out = {};
+    for (const [l, parts] of Object.entries(v || {})) {
+      const keep = {};
+      for (const [k, m] of Object.entries(parts || {})) if (!drop(m)) keep[k] = m;
+      if (Object.keys(keep).length) out[l] = keep;
+    }
+    return out;
+  };
+  const snap = () => JSON.stringify({ m: prune(o.state.moves, idle), h: prune(o.state.hidden, h => h === undefined), x: o.extras ? o.extras.get() : null });
   function commit() {
     const s = snap();
     if (s !== last) { undoStack.push(last); if (undoStack.length > 100) undoStack.shift(); redoStack.length = 0; last = s; }
@@ -177,6 +278,24 @@
     o.panel.insertBefore(bar(), o.panel.querySelector('h2') ? o.panel.querySelector('h2').nextSibling : o.panel.firstChild);
 
     const f = o.frame;
+    // send presses and wheel turns to what is really under the mouse (see pick), for this kit and the card's photo drag
+    const redirect = (e, make) => {
+      if (e.__se) return;
+      let t = pick(e.clientX, e.clientY);
+      // on a bare spot inside the selected part's box (between confetti bits, beside a thin line) keep working on that part
+      if (t === o.poster && sel) {
+        const q = rectOf(sel), el = sel.kind === 'photo' ? photoEl(sel.i) : secEl(sel.key);
+        if (q && el && e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom) t = sel.kind === 'photo' ? el : (el.firstElementChild || el);
+      }
+      if (t === e.target || !o.poster.contains(e.target)) return;
+      e.stopImmediatePropagation();
+      if (e.type === 'wheel' && t.closest('[data-move], [data-p]')) e.preventDefault();
+      const ev = make(e); ev.__se = true; t.dispatchEvent(ev);
+    };
+    const base = e => ({ bubbles: true, cancelable: true, composed: true, clientX: e.clientX, clientY: e.clientY, screenX: e.screenX, screenY: e.screenY,
+      button: e.button, buttons: e.buttons, shiftKey: e.shiftKey, altKey: e.altKey, ctrlKey: e.ctrlKey, metaKey: e.metaKey });
+    f.addEventListener('pointerdown', e => redirect(e, e => new PointerEvent('pointerdown', { ...base(e), pointerId: e.pointerId, pointerType: e.pointerType, isPrimary: e.isPrimary })), true);
+    f.addEventListener('wheel', e => redirect(e, e => new WheelEvent('wheel', { ...base(e), deltaX: e.deltaX, deltaY: e.deltaY, deltaMode: e.deltaMode })), { capture: true, passive: false });
     f.addEventListener('pointerdown', e => {
       const p = e.target.closest('[data-p]');
       if (p) { select({ kind: 'photo', i: +p.dataset.p }); return; }   // the card drags photos itself
@@ -231,5 +350,5 @@
   // positions settle after fonts/photos load: start the undo history from there
   const reset = () => { last = snap(); undoStack.length = 0; redoStack.length = 0; refreshBar(); };
 
-  window.StudioEdit = { init, afterRender, commit, reset, hiddenOf: () => hiddenOf() };
+  window.StudioEdit = { init, afterRender, commit, reset, pick, hiddenOf: () => hiddenOf() };
 })();

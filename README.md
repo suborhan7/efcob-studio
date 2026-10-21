@@ -79,6 +79,15 @@ poster to select it, then:
 - **Undo / Redo** (Ctrl+Z / Ctrl+Y) cover moves, sizes and removed parts.
 The **Poster e ki ki thakbe** list switches parts on/off per layout, and **Reset to default** brings everything back.
 Downloads are HD (2160 × 2700). In a new card, wrap each block as `<div class="mv" data-move="key">` and mark photos `data-p`.
+A click goes to whatever is really painted under the mouse: see-through layers (full-poster SVGs, empty wrappers, the clear
+part of a cut-out) are skipped, so a decoration lying over a player never blocks grabbing that player.
+
+**Test:** `node tests/movable.js [card ...]` (needs Playwright) opens every card, walks every layout × background (and
+photo mode / arrangement / formation), and checks that each visible section and photo can be clicked, selected and dragged.
+Run it after adding a card or a layout.
+`node tests/journey.js [card ...]` does what an admin does on every part of every layout: select, − / +, arrows (buttons and
+keys), Majhe, Reset, mouse wheel, drag and grab again, Ctrl+Z / Ctrl+Y, Delete and bring back from the parts list, Reset to
+default; then uploads own pictures into every file box, finger-drags on a phone-sized screen, and downloads the PNG.
 
 ## Adding a new card type
 
