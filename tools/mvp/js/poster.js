@@ -1,7 +1,7 @@
 /* Renders the MVP poster into a container.
    renderMvp(container, data)
    data = {
-     tag, kicker, title, footerLeft, footerRight, logo (image url or ''),
+     tag, kicker, title, partnersLabel, partners [{ name, logo }], site, logo (image url or ''),
      player: { name, team, photo, primary, secondary, dx, dy, zoom },   // jersey colours as hex
      match: { score, opponent },
      stats: [{ label, value }]   // first one is the big headline number, max 5
@@ -62,7 +62,7 @@
     const bg = custom ? `<div class="bgimg" style="background-image:url('${esc(d.bgImage)}')"></div>` : `<div class="bg"></div><div class="stripes"></div><div class="dots"></div>
       <div class="glow"></div><div class="rings"></div><div class="streaks"></div>`;
     const img = `<img data-p="0" class="player ${pl.photo ? '' : 'empty'}" style="${playerTransform(pl)}" src="${esc(pl.photo)}" alt="">`;
-    const footer = mv('footer', `<footer><span><b>${esc(d.footerLeft)}</b></span><span>${esc(d.footerRight)}</span></footer>`);
+    const footer = mv('partners', `<footer class="spf"><div class="k">${esc(d.partnersLabel || '').toUpperCase()}</div><div class="sprow">${(d.partners || []).map(p => `<div>${p.logo ? `<img src="${esc(p.logo)}" alt="">` : esc(p.name)}</div>`).join('')}</div><div class="w">${esc(d.site || '').toUpperCase()}</div></footer>`);
     const plate = sub => mv('name', `<div class="plate"><div class="name ${longName}">${esc(pl.name)}</div>${sub}</div>`);
     let body;
 

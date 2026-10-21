@@ -16,8 +16,6 @@
     kicker: 'eFCOB Pro League · Season 2',
     label: 'Full time',
     date: '19 Oct 2026',
-    footerLeft: 'efcob.com',
-    footerRight: 'eFootball Council of Bangladesh',
     logo: '',
     teams: [
       team({ name: 'Al Nassr', player: 'Nova_10', logo: SC.alnassr || '', score: '3', scorers: "Mbappé 12', Mbappé 54', Vinícius 88'", photo: S.a || '', primary: '#f2c200', secondary: '#111111' }),
@@ -52,7 +50,7 @@
     crestB: 'Nicher team logo', nameB: 'Nicher team name', playerB: 'Nicher player', badgeB: 'DEFEAT tag', scorersB: 'Nicher scorers',
     name1: 'Team 1 name', result1: 'Team 1 WINNER/DEFEAT', player1: 'Team 1 player', score: 'Score', scoreTag: 'Score er upor tag',
     name2: 'Team 2 name', result2: 'Team 2 WINNER/DEFEAT', player2: 'Team 2 player', scorers1: 'Team 1 scorers', scorers2: 'Team 2 scorers',
-    line: 'Dashed line', info: 'Result / date box', barcode: 'Barcode', footer: 'Footer',
+    line: 'Dashed line', info: 'Result / date box', barcode: 'Barcode',
     crest1: 'Team 1 logo', crest2: 'Team 2 logo', seam: 'Lightning', script: 'Script lekha', mark: 'Logo watermark', confetti: 'Confetti',
     tags: 'Player name tags', hero: 'Boro logo', scorebar: 'Score bar', paper: 'Chhera kagoj', p2: 'Team 1 captain', p3: 'Team 2 captain', partners: 'Partners strip' };
   const isTeam = () => state.mode === 'team';
