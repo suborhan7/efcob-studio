@@ -5,6 +5,8 @@
     kicker: 'eFCOB PRO LEAGUE · SEASON 2',
     title: 'Head to Head',
     layout: 2,                     // 1 | 2 | 3 (classic) | 'clash' | 'torn' (js/versus.js)
+    bgStyle: 'halves',             // Classic: 'halves' | 'stadium' | 'smoke' | 'grid' | 'brush' (js/poster.js scene())
+    theme: 'jersey',               // Classic colours: 'jersey' (auto from the kits) or a fixed pair from CMP_THEMES
     bgMode: 'template',            // Crest Clash / Torn Poster: 'template' | 'jersey' | 'image'
     bgImage: '',
     site: 'efcob.com',

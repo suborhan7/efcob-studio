@@ -46,6 +46,9 @@
   /* Background styles for Classic (d.bgStyle). 'halves' = the jersey-coloured halves; the others are full scenes painted in
      the two side colours: stadium (spotlights + crowd bokeh), smoke (coloured smoke from each side), grid (neon perspective
      grid), brush (big paint strokes). */
+  // fixed two-colour themes for Classic (left, right), picked when the kits' own colours don't look good together
+  const CMP_THEMES = { neon: ['#ff2e88', '#19c7ff'], gold: ['#f5b301', '#2453ff'], fire: ['#ff5a1f', '#2fa4ff'],
+    violet: ['#7b3fe4', '#12c9a6'], bd: ['#0f9d58', '#e11d48'], night: ['#3b5bff', '#ff3d6e'] };
   const seeded = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
   function scene(style, A, B) {
     const R = seeded(11), sv = (defs, body) => `<svg class="scene" viewBox="0 0 1080 1350" preserveAspectRatio="none"><defs>${defs}</defs>${body}</svg>`;
@@ -106,8 +109,9 @@
 
   function renderComparison(el, d) {
     if ((window.CMP_VS_LAYOUTS || []).includes(d.layout)) return renderCmpVersus(el, d);   // Crest Clash / Torn Poster (js/versus.js)
-    const pa = JerseyColors.paletteFor(d.a.primary, d.a.secondary);
-    const pb = JerseyColors.paletteFor(d.b.primary, d.b.secondary);
+    const th = CMP_THEMES[d.theme];   // a fixed colour pair, or the jersey colours
+    const pa = th ? JerseyColors.paletteFor(th[0], '#111111') : JerseyColors.paletteFor(d.a.primary, d.a.secondary);
+    const pb = th ? JerseyColors.paletteFor(th[1], '#111111') : JerseyColors.paletteFor(d.b.primary, d.b.secondary);
     const rows = d.stats.filter(s => s.label || s.a || s.b).slice(0, 7).map(s => {
       const w = winner(s);
       const cls = k => w ? (w === k ? 'win' : 'lose') : '';
