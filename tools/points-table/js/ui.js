@@ -226,6 +226,38 @@
     dock.append(help);
     act.append(dock);
   }
+  // Partners: "+ Add partner" under the list, and ✕ takes the partner off the poster (not just blanks it)
+  function partnersPlus() {
+    const box = document.getElementById('partners'), tpl = document.getElementById('partnerTpl'), st = window.__posterState;
+    if (!box || !tpl || !st || !Array.isArray(st.partners) || box.dataset.plus) return;
+    box.dataset.plus = '1';
+    const MAX = 10;
+    const kick = () => { const l = form.querySelector('[data-k="partnersLabel"]'); if (l) l.dispatchEvent(new Event('input', { bubbles: true })); };
+    const add = document.createElement('button'); add.type = 'button'; add.className = 'p-add'; add.textContent = '+ Add partner';
+    const sync = () => {
+      [...box.children].forEach((r, i) => { const n = r.querySelector('[data-pname]'); if (n) n.placeholder = `Partner ${i + 1}`; });
+      add.hidden = st.partners.length >= MAX;
+    };
+    box.addEventListener('click', e => {
+      const b = e.target.closest('[data-pclear]'); if (!b) return;
+      const row = [...box.children].find(r => r.contains(b)), i = [...box.children].indexOf(row);
+      if (i < 0) return;
+      e.stopImmediatePropagation();
+      st.partners.splice(i, 1); row.remove(); sync(); kick();
+    }, true);
+    add.addEventListener('click', () => {
+      const p = { name: '', logo: '' }; st.partners.push(p);
+      const row = tpl.content.firstElementChild.cloneNode(true);
+      const name = row.querySelector('[data-pname]'), logo = row.querySelector('[data-plogo]');
+      name.addEventListener('input', () => { p.name = name.value; kick(); });
+      logo.addEventListener('change', () => {
+        const f = logo.files[0]; if (!f) { p.logo = ''; kick(); return; }
+        const r = new FileReader(); r.onload = () => { p.logo = r.result; kick(); }; r.readAsDataURL(f);
+      });
+      box.appendChild(row); sync(); name.focus(); kick();
+    });
+    box.after(add); sync();
+  }
   // the form font (Barlow), the same face the reference studio uses; falls back to the system font offline
   if (!document.querySelector('link[data-ui-font]')) {
     const l = document.createElement('link'); l.rel = 'stylesheet'; l.dataset.uiFont = '1';
@@ -315,6 +347,7 @@
   enhance();
   actionBar();
   dockEdit();
+  partnersPlus();
   window.addEventListener('load', enhance);
 
   // phones: the poster sticks at the top; tell the CSS how tall it is so the editor row sticks just below it
