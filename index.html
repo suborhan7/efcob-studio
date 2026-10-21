@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>eFCOB Admin Studio</title>
 <link rel="manifest" href="manifest.webmanifest">
+<script src="version.js"></script>
 <meta name="theme-color" content="#11141b">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -63,7 +64,7 @@ window.addEventListener("message", e => {
   const m = e.data || {};
   const id = Object.keys(frames).find(k => frames[k].contentWindow === e.source);
   if (m.type === "studio-ready" && id)
-    e.source.postMessage({ type: "studio-cards", cards: CARD_TYPES.map(({ id, name }) => ({ id, name })), current: id, install: installState() }, "*");
+    e.source.postMessage({ type: "studio-cards", cards: CARD_TYPES.map(({ id, name }) => ({ id, name })), current: id, install: installState(), version: self.STUDIO_VERSION }, "*");
   if (m.type === "studio-select") select(m.id);
   if (m.type === "studio-install" && installEvent) {
     installEvent.prompt();
@@ -85,7 +86,22 @@ function tellInstall() {
 }
 window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvent = e; tellInstall(); });
 window.addEventListener("appinstalled", () => { installEvent = null; tellInstall(); });
-if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  // a new version was published: the installed app updates itself. Right after opening it reloads at once;
+  // while someone is working it waits until they leave the app and come back, so nothing they typed is lost mid-edit.
+  const hadWorker = !!navigator.serviceWorker.controller, opened = Date.now();
+  let pending = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadWorker) return;
+    if (document.hidden || Date.now() - opened < 15000) location.reload(); else pending = true;
+  });
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(r => {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") { if (pending) location.reload(); else r.update().catch(() => {}); }
+    });
+    setInterval(() => r.update().catch(() => {}), 30 * 60 * 1000);
+  }).catch(() => {});
+}
 
 select(location.hash.slice(1));
 window.addEventListener("hashchange", () => select(location.hash.slice(1)));
